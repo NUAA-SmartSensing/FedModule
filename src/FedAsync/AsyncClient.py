@@ -4,6 +4,7 @@ import copy
 import torch.nn as nn
 from Model import CNN
 import torch.cuda
+import torch.nn.functional as F
 from torch.utils.data import DataLoader
 import collections
 
@@ -25,7 +26,7 @@ class AsyncClient(threading.Thread):
         self.dev = 'cuda' if torch.cuda.is_available() else 'cpu'
         self.model = CNN.CNN()
         self.model = self.model.to(self.dev)
-        self.opti = torch.optim.Adam(self.model.parameters(), lr=0.01)
+        self.opti = torch.optim.Adam(self.model.parameters(), lr=0.01, weight_decay=0.005)
         self.loss_func = loss_func
 
         self.weights_buffer = collections.OrderedDict()
@@ -51,7 +52,8 @@ class AsyncClient(threading.Thread):
             if self.event.is_set():
                 self.client_thread_lock.acquire()
                 # 该client进行训练
-                weights = self.train_one_epoch()
+                r_weights = copy.deepcopy(self.model.state_dict())
+                weights = self.train_one_epoch(r_weights)
 
                 # client传回server的信息具有延迟
                 print("Client", self.client_id, "trained")
@@ -125,7 +127,7 @@ class AsyncClient(threading.Thread):
         # self.client_thread_lock.release()
         return delay
 
-    def train_one_epoch(self):
+    def train_one_epoch(self, r_weights):
         # 设置迭代次数
         for epoch in range(self.epoch):
             for data, label in self.train_dl:

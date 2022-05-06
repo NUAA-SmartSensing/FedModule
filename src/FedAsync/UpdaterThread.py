@@ -98,6 +98,7 @@ class UpdaterThread(threading.Thread):
             updated_parameters[key] = var.clone()
         for key, var in server_weights.items():
             updated_parameters[key] = (alpha * updated_parameters[key] + (1 - alpha) * server_weights[key])
+            # updated_parameters[key] = (updated_parameters[key] + server_weights[key]) / 2
         self.server_network.load_state_dict(updated_parameters)
 
     def run_server_test(self, epoch):

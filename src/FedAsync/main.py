@@ -84,7 +84,10 @@ if __name__ == '__main__':
     print(((end_time - start_time).seconds / 60), "min")
     print(((end_time - start_time).seconds / 3600), "h")
 
-    saveAns("IID/MINIST/fedavg.txt",accuracy_lists)
-    saveAns("IID/MINIST/time.txt", [end_time - start_time])
+    try:
+        saveAns("IID/MNIST/fedasyc_accuracy.txt", accuracy_lists)
+        saveAns("IID/MNIST/fedasyc_time.txt", [end_time - start_time])
+    except:
+        print(accuracy_list)
+        print(end_time - start_time)
     # ResultManager.handle_result(RESULT_FILE_NAME, EPOCHS, len(alpha_list), curve_name_list, accuracy_lists, loss_lists)
-

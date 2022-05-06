@@ -1,7 +1,6 @@
 import random
 import threading
 import torch.nn.functional as F
-from Model import CNN
 
 import AsyncClient
 
