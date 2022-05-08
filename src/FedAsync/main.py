@@ -5,7 +5,7 @@ import threading
 import torch
 
 import AsyncServer
-import utils.Tools as Tools
+from utils.Tools import *
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
@@ -44,23 +44,19 @@ else:
     CLIENT_SIZE = int(50000 / CLIENT_NUMBER)
 
 
-def saveAns(filename, result):
-    save = open("../results/" + filename, "w")
-    for w in result:
-        save.write(str(w) + "\n")
-    save.close()
-
-
 if __name__ == '__main__':
     start_time = datetime.datetime.now()
 
     accuracy_lists = []
     loss_lists = []
-    client_staleness_list = []
 
     alpha_list = [1]
-    for i in range(CLIENT_NUMBER):
-        client_staleness_list.append(0)
+    # client_staleness_list = []
+    # for i in range(CLIENT_NUMBER):
+    #     client_staleness_list.append(0)
+    # client_staleness_list = Tools.generate_stale_list(10, 10, 10, 10, 5, 5)
+    # saveAns("IID/MNIST/stale.txt", client_staleness_list)
+    client_staleness_list = get_stale_list("../results/IID/MNIST/stale.txt")
     async_server = AsyncServer.AsyncServer(DATA_TYPE, MODEL_NAME, CLIENT_RATIO, CLIENT_NUMBER,
                                            BATCH_SIZE, E,
                                            EPOCHS, SCHEDULER_INTERVAL, CHECK_IN_INTERVAL,
@@ -85,8 +81,8 @@ if __name__ == '__main__':
     print(((end_time - start_time).seconds / 3600), "h")
 
     try:
-        saveAns("IID/MNIST/fedasyc_accuracy.txt", accuracy_lists)
-        saveAns("IID/MNIST/fedasyc_time.txt", [end_time - start_time])
+        saveAns("IID/MNIST/fedavg_accuracy.txt", accuracy_lists)
+        saveAns("IID/MNIST/fedavg_time.txt", [end_time - start_time])
     except:
         print(accuracy_list)
         print(end_time - start_time)

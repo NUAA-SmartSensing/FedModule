@@ -20,6 +20,8 @@
 #
 import random
 
+import torch
+
 
 def generate_stale_list(n1, *n):
     stale_list = []
@@ -29,11 +31,40 @@ def generate_stale_list(n1, *n):
     bound = 0
     for i in n:
         for j in range(i):
-            stale_list.append(random.randint(bound, bound + 10))
-        bound += 10
+            stale_list.append(random.randint(bound, bound + 5))
+        bound += 5
     return stale_list
 
 
+def get_stale_list(filename):
+    stale_list = []
+    with open(filename) as f:
+        for line in f:
+            stale_list.append(int(line))
+    return stale_list
+
+
+def get_order_as_tuple(filename):
+    mylist = []
+    with open(filename) as f:
+        for line in f:
+            mylist.append(int(line))
+    return torch.tensor(mylist)
+
+
+def saveOrder(filename, result):
+    save = open("../results/" + filename, "w")
+    for w in result:
+        save.write(str(w.numpy()) + "\n")
+    save.close()
+
+
+def saveAns(filename, result):
+    save = open("../results/" + filename, "w")
+    for w in result:
+        save.write(str(w) + "\n")
+    save.close()
+
+
 if __name__ == '__main__':
-    alist = generate_stale_list(10, 5, 5)
-    print(alist)
+    get_stale_list("../results/IID/MNIST/2/stale.txt")

@@ -26,7 +26,8 @@ class AsyncClient(threading.Thread):
         self.dev = 'cuda' if torch.cuda.is_available() else 'cpu'
         self.model = CNN.CNN()
         self.model = self.model.to(self.dev)
-        self.opti = torch.optim.Adam(self.model.parameters(), lr=0.01, weight_decay=0.005)
+        # self.opti = torch.optim.Adam(self.model.parameters(), lr=0.01, weight_decay=0.005)
+        self.opti = torch.optim.Adam(self.model.parameters(), lr=0.01)
         self.loss_func = loss_func
 
         self.weights_buffer = collections.OrderedDict()

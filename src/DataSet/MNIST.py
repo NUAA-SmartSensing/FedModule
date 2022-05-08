@@ -1,3 +1,5 @@
+import copy
+
 import torch
 import torchvision
 from torch.autograd import Variable
@@ -5,6 +7,7 @@ from torchvision import datasets, transforms
 from torch.utils.data import DataLoader
 import numpy as np
 from torch.utils.data import TensorDataset
+from utils.Tools import *
 from matplotlib import pyplot as plt
 from torchvision.transforms import ToPILImage
 
@@ -17,6 +20,7 @@ class MNIST:
         test_datasets = datasets.MNIST(root='../data/', train=False,
                                        transform=transforms.ToTensor(), download=True)
         train_data = train_datasets.data
+        self.raw_data = train_datasets.data
         self.train_labels = train_datasets.targets
         test_data = test_datasets.data
         self.test_datasets = test_datasets
@@ -37,20 +41,28 @@ class MNIST:
             self.train_data = self.train_data[order]
             self.train_labels = self.train_labels[order]
         else:
-            # 待更新
-            order = np.arange(self.train_data_size)
-            np.random.shuffle(order)
+            # order = np.argsort(self.train_labels)
+            # saveOrder("IID/MNIST/order.txt", list(order))
+            order = get_order_as_tuple("../results/IID/MNIST/order.txt")
             self.train_data = self.train_data[order]
+            self.raw_data = self.raw_data[order]
             self.train_labels = self.train_labels[order]
 
-        shard_size = self.train_data_size // clients
+        shard_size = self.train_data_size // clients // 2
         for i in range(clients):
-            client_data = self.train_data[shard_size * i: shard_size * (i + 1)]
-            client_label = self.train_labels[shard_size * i: shard_size * (i + 1)]
-            self.datasets.append(TensorDataset(client_data, client_label))
+            client_data1 = self.train_data[shard_size * i: shard_size * (i + 1)]
+            client_data2 = self.train_data[shard_size * clients + shard_size * i: shard_size * clients + shard_size * (i + 1)]
+            client_label1 = self.train_labels[shard_size * i: shard_size * (i + 1)]
+            client_label2 = self.train_labels[shard_size * clients + shard_size * i: shard_size * clients + shard_size * (i + 1)]
+            client_data, client_label = np.vstack((client_data1, client_data2)), np.hstack((client_label1, client_label2))
+            self.datasets.append(TensorDataset(torch.tensor(client_data), torch.tensor(client_label)))
 
     def get_test_dataset(self):
         return self.test_datasets
 
     def get_train_dataset(self):
         return self.datasets
+
+
+if __name__ == '__main__':
+    mnist = MNIST(50, False)
