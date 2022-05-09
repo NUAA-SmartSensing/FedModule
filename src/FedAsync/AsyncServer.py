@@ -70,7 +70,7 @@ class AsyncServer:
         else:
             self.server_network = CNN.CNN()
         self.dev = 'cuda' if torch.cuda.is_available() else 'cpu'
-        self.server_network = self.server_network.to()
+        self.server_network = self.server_network.to(self.dev)
         self.opti = optim.Adam(self.server_network.parameters(), lr=0.01)
         init_weights = self.server_network.state_dict()
         datasets = self.dataset.get_train_dataset()

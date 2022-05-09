@@ -96,9 +96,13 @@ class UpdaterThread(threading.Thread):
         server_weights = copy.deepcopy(self.server_network.state_dict())
         for key, var in client_weights.items():
             updated_parameters[key] = var.clone()
+            if torch.cuda.is_available():
+                updated_parameters[key] = updated_parameters[key].cuda()
         for key, var in server_weights.items():
-            # updated_parameters[key] = (alpha * updated_parameters[key] + (1 - alpha) * server_weights[key])
-            updated_parameters[key] = (updated_parameters[key] + server_weights[key]) / 2
+            updated_parameters[key] = (alpha * updated_parameters[key] + (1 - alpha) * server_weights[key])
+            # updated_parameters[key] = (updated_parameters[key] + server_weights[key]) / 2
+            if torch.cuda.is_available():
+                updated_parameters[key] = updated_parameters[key].cuda()
         self.server_network.load_state_dict(updated_parameters)
 
     def run_server_test(self, epoch):
@@ -110,7 +114,7 @@ class UpdaterThread(threading.Thread):
             inputs, labels = inputs.to(dev), labels.to(dev)
             outputs = self.server_network(inputs)
             _, id = torch.max(outputs.data, 1)
-            test_correct += torch.sum(id == labels.data).numpy()
+            test_correct += torch.sum(id == labels.data).cpu().numpy()
         accuracy = test_correct / len(dl)
         self.accuracy_list.append(accuracy)
         print('Epoch(t):', epoch, 'accuracy:', accuracy)

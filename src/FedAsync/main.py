@@ -2,6 +2,8 @@ import datetime
 import os
 import threading
 
+import sys
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import torch
 
 import AsyncServer
@@ -16,7 +18,7 @@ MODEL_NAME = "CNN"
 
 RESULT_FILE_NAME = "FashionMNIST"
 
-EPOCHS = 300
+EPOCHS = 600
 
 PRE_TRAIN_EPOCH = 0
 

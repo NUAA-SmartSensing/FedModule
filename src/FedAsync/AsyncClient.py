@@ -26,8 +26,8 @@ class AsyncClient(threading.Thread):
         self.dev = 'cuda' if torch.cuda.is_available() else 'cpu'
         self.model = CNN.CNN()
         self.model = self.model.to(self.dev)
-        # self.opti = torch.optim.Adam(self.model.parameters(), lr=0.01, weight_decay=0.005)
-        self.opti = torch.optim.Adam(self.model.parameters(), lr=0.01)
+        self.opti = torch.optim.Adam(self.model.parameters(), lr=0.01, weight_decay=0.005)
+        # self.opti = torch.optim.Adam(self.model.parameters(), lr=0.01)
         self.loss_func = loss_func
 
         self.weights_buffer = collections.OrderedDict()
@@ -144,4 +144,7 @@ class AsyncClient(threading.Thread):
                 # 将梯度归零，初始化梯度
                 self.opti.zero_grad()
         # 返回当前Client基于自己的数据训练得到的新的模型参数
-        return self.model.state_dict()
+        weights = copy.deepcopy(self.model.state_dict())
+        for k, v in weights.items():
+            weights[k] = weights[k].cpu().detach()
+        return weights
