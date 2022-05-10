@@ -7,7 +7,9 @@ import torch.cuda
 import Queue
 from torch import optim
 import DataSet.MNIST as MNIST
+import DataSet.CIFAR10 as CIFAR10
 import Model.CNN as CNN
+import Model.ConvNet as ConvNet
 
 import AsyncClientManager
 import CheckInThread
@@ -61,17 +63,25 @@ class AsyncServer:
 
         if self.data_type == "MNIST":
             self.dataset = MNIST.MNIST(clients_num, False)
+        elif self.data_type == "CIFAR10":
+            self.dataset = CIFAR10.CIFAR10(clients_num, True)
         else:
             self.dataset = MNIST.MNIST(clients_num, False)
 
         self.test_data = self.dataset.get_test_dataset()
+        self.dev = 'cuda' if torch.cuda.is_available() else 'cpu'
         if self.model_name == "CNN":
             self.server_network = CNN.CNN()
+            self.server_network = self.server_network.to(self.dev)
+            self.opti = optim.Adam(self.server_network.parameters(), lr=0.01)
+        elif self.model_name == "ConvNet":
+            self.server_network = ConvNet.ConvNet()
+            self.server_network = self.server_network.to(self.dev)
+            self.opti = optim.SGD(self.server_network.parameters(), lr=0.001, momentum=0.9)
         else:
             self.server_network = CNN.CNN()
-        self.dev = 'cuda' if torch.cuda.is_available() else 'cpu'
-        self.server_network = self.server_network.to(self.dev)
-        self.opti = optim.Adam(self.server_network.parameters(), lr=0.01)
+            self.server_network = self.server_network.to(self.dev)
+            self.opti = optim.Adam(self.server_network.parameters(), lr=0.01)
         init_weights = self.server_network.state_dict()
         datasets = self.dataset.get_train_dataset()
         self.server_thread_lock = threading.Lock()

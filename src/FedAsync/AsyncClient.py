@@ -2,10 +2,10 @@ import threading
 import time
 import copy
 import torch.nn as nn
-from Model import CNN
+from Model import CNN, ConvNet
 import torch.cuda
 import torch.nn.functional as F
-from torch.utils.data import DataLoader
+from torch.utils.data import DataLoader, sampler
 import collections
 
 
@@ -24,9 +24,25 @@ class AsyncClient(threading.Thread):
         self.time_stamp = 0
         self.client_thread_lock = threading.Lock()
         self.dev = 'cuda' if torch.cuda.is_available() else 'cpu'
-        self.model = CNN.CNN()
-        self.model = self.model.to(self.dev)
-        self.opti = torch.optim.Adam(self.model.parameters(), lr=0.01, weight_decay=0.005)
+        self.model_name = "ConvNet"
+        if self.model_name == "CNN":
+            self.model = CNN.CNN()
+            self.model = self.model.to(self.dev)
+            self.opti = torch.optim.Adam(self.model.parameters(), lr=0.01, weight_decay=0.005)
+            self.train_dl = DataLoader(self.train_ds, batch_size=self.batch_size, shuffle=True)
+        elif self.model_name == "ConvNet":
+            self.model = ConvNet.ConvNet()
+            self.model = self.model.to(self.dev)
+            self.opti = torch.optim.SGD(self.model.parameters(), lr=0.001, momentum=0.9)
+            all_range = list(range(len(self.train_ds)))
+            data_len = int(len(self.train_ds) / 50)
+            indices = all_range[self.client_id * data_len: (self.client_id + 1) * data_len]
+            self.train_dl = DataLoader(self.train_ds, batch_size=4, num_workers=2, sampler=sampler.SubsetRandomSampler(indices))
+        else:
+            self.model = CNN.CNN()
+            self.model = self.model.to(self.dev)
+            self.opti = torch.optim.Adam(self.model.parameters(), lr=0.01, weight_decay=0.005)
+            self.train_dl = DataLoader(self.train_ds, batch_size=self.batch_size, shuffle=True)
         # self.opti = torch.optim.Adam(self.model.parameters(), lr=0.01)
         self.loss_func = loss_func
 
@@ -35,7 +51,6 @@ class AsyncClient(threading.Thread):
         self.received_weights = False
         self.received_time_stamp = False
         self.event_is_set = False
-        self.train_dl = DataLoader(self.train_ds, batch_size=self.batch_size, shuffle=True)
 
     def run(self):
         while not self.stop_event.is_set():
@@ -129,22 +144,4 @@ class AsyncClient(threading.Thread):
         return delay
 
     def train_one_epoch(self, r_weights):
-        # 设置迭代次数
-        for epoch in range(self.epoch):
-            for data, label in self.train_dl:
-                data, label = data.to(self.dev), label.to(self.dev)
-                # 模型上传入数据
-                preds = self.model(data)
-                # 计算损失函数
-                loss = self.loss_func(preds, label)
-                # 反向传播
-                loss.backward()
-                # 计算梯度，并更新梯度
-                self.opti.step()
-                # 将梯度归零，初始化梯度
-                self.opti.zero_grad()
-        # 返回当前Client基于自己的数据训练得到的新的模型参数
-        weights = copy.deepcopy(self.model.state_dict())
-        for k, v in weights.items():
-            weights[k] = weights[k].cpu().detach()
-        return weights
+        return self.model.train_one_epoch(self.epoch, self.dev, self.train_dl, self.model, self.loss_func, self.opti)

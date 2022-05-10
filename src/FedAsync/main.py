@@ -11,8 +11,8 @@ from utils.Tools import *
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
-DATA_TYPE = "MNIST"
-MODEL_NAME = "CNN"
+DATA_TYPE = "CIFAR10"
+MODEL_NAME = "ConvNet"
 # DATA_TYPE = "CIFAR10"
 # MODEL_NAME = "VGG13"
 
@@ -31,7 +31,7 @@ BATCH_SIZE = 50
 CLIENT_RATIO = 0.1
 E = 5
 R_RHO = 7
-SCHEDULER_INTERVAL = 10
+SCHEDULER_INTERVAL = 5
 CHECK_IN_INTERVAL = 600  # 200
 CHECK_IN_NUM = 200  # 100
 
@@ -53,12 +53,12 @@ if __name__ == '__main__':
     loss_lists = []
 
     alpha_list = [1]
-    # client_staleness_list = []
-    # for i in range(CLIENT_NUMBER):
-    #     client_staleness_list.append(0)
-    # client_staleness_list = Tools.generate_stale_list(10, 10, 10, 10, 5, 5)
-    # saveAns("IID/MNIST/stale.txt", client_staleness_list)
-    client_staleness_list = get_stale_list("../results/IID/MNIST/stale.txt")
+    client_staleness_list = []
+    for i in range(CLIENT_NUMBER):
+        client_staleness_list.append(0)
+    client_staleness_list = generate_stale_list(10, 10, 10, 10, 5, 5)
+    saveAns("IID/MNIST/stale.txt", client_staleness_list)
+    # client_staleness_list = get_stale_list("../results/IID/CIFAR10/stale.txt")
     async_server = AsyncServer.AsyncServer(DATA_TYPE, MODEL_NAME, CLIENT_RATIO, CLIENT_NUMBER,
                                            BATCH_SIZE, E,
                                            EPOCHS, SCHEDULER_INTERVAL, CHECK_IN_INTERVAL,
@@ -83,8 +83,8 @@ if __name__ == '__main__':
     print(((end_time - start_time).seconds / 3600), "h")
 
     try:
-        saveAns("IID/MNIST/fedavg_accuracy.txt", accuracy_lists)
-        saveAns("IID/MNIST/fedavg_time.txt", [end_time - start_time])
+        saveAns("IID/CIFAR10/fedavg_accuracy.txt", accuracy_lists)
+        saveAns("IID/CIFAR10/fedavg_time.txt", [end_time - start_time])
     except:
         print(accuracy_list)
         print(end_time - start_time)

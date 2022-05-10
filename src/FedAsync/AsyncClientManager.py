@@ -19,7 +19,7 @@ class AsyncClientManager:
         self.check_in_thread_lock = threading.Lock()
         self.checked_in = False
         self.loss_func = F.cross_entropy
-        self.epoch = 10
+        self.epoch = 2
 
         # 初始化clients
         self.client_thread_list = []

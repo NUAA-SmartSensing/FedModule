@@ -1,7 +1,9 @@
+import copy
+
 import torch.nn as nn
 import torch.nn.functional as F
 
-
+# mnist
 class CNN(nn.Module):
     def __init__(self):
         super().__init__()
@@ -22,3 +24,24 @@ class CNN(nn.Module):
         tensor = F.relu(self.fc1(tensor))
         tensor = self.fc2(tensor)
         return tensor
+
+    def train_one_epoch(self, epoch, dev, train_dl, model, loss_func, opti):
+        # 设置迭代次数
+        for epoch in range(epoch):
+            for data, label in train_dl:
+                data, label = data.to(dev), label.to(dev)
+                # 模型上传入数据
+                preds = model(data)
+                # 计算损失函数
+                loss = loss_func(preds, label)
+                # 反向传播
+                loss.backward()
+                # 计算梯度，并更新梯度
+                opti.step()
+                # 将梯度归零，初始化梯度
+                opti.zero_grad()
+        # 返回当前Client基于自己的数据训练得到的新的模型参数
+        weights = copy.deepcopy(model.state_dict())
+        for k, v in weights.items():
+            weights[k] = weights[k].cpu().detach()
+        return weights
