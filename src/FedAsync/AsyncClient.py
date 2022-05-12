@@ -35,8 +35,7 @@ class AsyncClient(threading.Thread):
             self.model = self.model.to(self.dev)
             self.opti = torch.optim.SGD(self.model.parameters(), lr=0.001, momentum=0.9)
             all_range = list(range(len(self.train_ds)))
-            data_len = int(len(self.train_ds) / 50)
-            indices = all_range[self.client_id * data_len: (self.client_id + 1) * data_len]
+            indices = all_range[self.client_id::50]
             self.train_dl = DataLoader(self.train_ds, batch_size=4, num_workers=2, sampler=sampler.SubsetRandomSampler(indices))
         else:
             self.model = CNN.CNN()
