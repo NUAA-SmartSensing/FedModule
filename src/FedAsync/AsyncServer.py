@@ -62,11 +62,11 @@ class AsyncServer:
         self.accuracy_and_loss_list = []
 
         if self.data_type == "MNIST":
-            self.dataset = MNIST.MNIST(clients_num, False)
+            self.dataset = MNIST.MNIST(clients_num, True)
         elif self.data_type == "CIFAR10":
             self.dataset = CIFAR10.CIFAR10(clients_num, True)
         else:
-            self.dataset = MNIST.MNIST(clients_num, False)
+            self.dataset = MNIST.MNIST(clients_num, True)
 
         self.test_data = self.dataset.get_test_dataset()
         self.dev = 'cuda' if torch.cuda.is_available() else 'cpu'

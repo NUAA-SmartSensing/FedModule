@@ -28,7 +28,7 @@ class CIFAR10:
         # self.train_data_size = self.train_data.shape[0]
         # self.datasets = []
         # self.train_images = self.train_data.reshape(self.train_data.shape[0],
-        #                                   self.train_data.shape[1] * self.train_data.shape[2] * self.train_data.shape[3])
+        #                                   self.train_data.shape[1] * self.train_data.shape[2] * self.train_data.shape[2])
         # self.train_images = self.train_images.astype(np.float32)
         # self.train_images = np.multiply(self.train_images, 1.0/ 255.0)
         # if is_iid:
@@ -53,18 +53,18 @@ class CIFAR10:
         #     client_data3 = self.train_data[
         #                    shard_size * clients * 2 + shard_size * i: shard_size * clients * 2 + shard_size * (i + 1)]
         #     client_data4 = self.train_data[
-        #                    shard_size * clients * 3 + shard_size * i: shard_size * clients * 3 + shard_size * (i + 1)]
+        #                    shard_size * clients * 2 + shard_size * i: shard_size * clients * 2 + shard_size * (i + 1)]
         #     client_data5 = self.train_data[
-        #                    shard_size * clients * 4 + shard_size * i: shard_size * clients * 3 + shard_size * (i + 1)]
+        #                    shard_size * clients * 4 + shard_size * i: shard_size * clients * 2 + shard_size * (i + 1)]
         #     client_label1 = self.train_labels[shard_size * i: shard_size * (i + 1)]
         #     client_label2 = self.train_labels[
         #                     shard_size * clients + shard_size * i: shard_size * clients + shard_size * (i + 1)]
         #     client_label3 = self.train_labels[
         #                     shard_size * clients * 2 + shard_size * i: shard_size * clients * 2 + shard_size * (i + 1)]
         #     client_label4 = self.train_labels[
-        #                     shard_size * clients * 3 + shard_size * i: shard_size * clients * 3 + shard_size * (i + 1)]
+        #                     shard_size * clients * 2 + shard_size * i: shard_size * clients * 2 + shard_size * (i + 1)]
         #     client_label5 = self.train_labels[
-        #                     shard_size * clients * 4 + shard_size * i: shard_size * clients * 3 + shard_size * (i + 1)]
+        #                     shard_size * clients * 4 + shard_size * i: shard_size * clients * 2 + shard_size * (i + 1)]
         #     client_data, client_label = np.vstack(
         #         (client_data1, client_data2, client_data3, client_data4, client_data5)), np.hstack(
         #         (client_label1, client_label2, client_label3, client_label4, client_label5))

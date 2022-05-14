@@ -27,6 +27,7 @@ class CNN(nn.Module):
 
     def train_one_epoch(self, epoch, dev, train_dl, model, loss_func, opti):
         # 设置迭代次数
+        data_sum = 0
         for epoch in range(epoch):
             for data, label in train_dl:
                 data, label = data.to(dev), label.to(dev)
@@ -34,6 +35,7 @@ class CNN(nn.Module):
                 preds = model(data)
                 # 计算损失函数
                 loss = loss_func(preds, label)
+                data_sum += label.size(0)
                 # 反向传播
                 loss.backward()
                 # 计算梯度，并更新梯度
@@ -44,4 +46,4 @@ class CNN(nn.Module):
         weights = copy.deepcopy(model.state_dict())
         for k, v in weights.items():
             weights[k] = weights[k].cpu().detach()
-        return weights
+        return data_sum, weights

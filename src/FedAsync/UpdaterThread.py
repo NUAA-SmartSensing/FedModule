@@ -28,6 +28,11 @@ class UpdaterThread(threading.Thread):
 
         self.accuracy_list = []
         self.loss_list = []
+        self.total_data = 0
+        self.total_quality = 0
+        self.client_weights = []
+        for i in range(50):
+            self.client_weights.append(1)
 
     def run(self):
         for epoch in range(self.T):
@@ -37,18 +42,18 @@ class UpdaterThread(threading.Thread):
                 c_r = 0
                 # 接收一个client发回的模型参数和时间戳
                 if not self.queue.empty():
-                    (c_id, client_weights, time_stamp) = self.queue.get()
+                    (c_id, client_weights, data_sum, time_stamp) = self.queue.get()
                     self.sum_delay += (self.current_time.get_time() - time_stamp)
                     print("Updater received data from client", c_id, "| staleness =", time_stamp, "-",
                           self.current_time.get_time(), "| queue size = ", self.queue.qsize())
                     self.event.set()
                 else:
-                    (c_id, client_weights, time_stamp) = (0, [], 0)
+                    (c_id, client_weights, data_sum, time_stamp) = (0, [], 0, 0)
 
                 if self.event.is_set():
                     # 使用接收的client发回的模型参数和时间戳对全局模型进行更新
                     self.server_thread_lock.acquire()
-                    self.update_server_weights(client_weights, time_stamp)
+                    self.update_server_weights(c_id, client_weights, data_sum, time_stamp, epoch)
                     self.run_server_test(epoch)
                     self.server_thread_lock.release()
                     self.event.clear()
@@ -73,16 +78,19 @@ class UpdaterThread(threading.Thread):
         # print("Thread count =", threading.activeCount())
         # print(*threading.enumerate(), sep="\n")
 
-    def update_server_weights(self, client_weights: collections.OrderedDict, time_stamp):
+    def update_server_weights(self, c_id, client_weights: collections.OrderedDict, data_sum, time_stamp, epoch):
         # if s_type == "Constant":
         #     s = 1
         # elif s_type == "Polynomial":
         #     s = float(1 / ((self.current_time.get_time() - time_stamp + 1) ** a))
         # elif s_type == "Hinge":
+        self.total_data += data_sum
         b = 60
         a = 0.1
         alpha = 0.1
         r = 1
+        q = 1
+        c = 1
         if (self.current_time.get_time() - time_stamp) <= b:
             s = 1
         else:
@@ -91,15 +99,28 @@ class UpdaterThread(threading.Thread):
         #     s = 1
         #     print("Error in s-type!!!!")
         # r = 1
+        reward = 1
         alpha = alpha * s * r
         updated_parameters = {}
         server_weights = copy.deepcopy(self.server_network.state_dict())
+        total_diff = 0
+        for key, var in client_weights.items():
+            total_diff += torch.sum((server_weights[key] - client_weights[key])**2)
+        total_diff = total_diff.tolist()
+        self.total_quality += total_diff
+        if (self.current_time.get_time() - time_stamp) > b:
+            if self.total_data <= (epoch+1)*data_sum:
+                c = 2-self.total_data/((epoch+1)*data_sum)
+            if self.total_quality <= (epoch+1)*total_diff:
+                q = 2-self.total_quality/((epoch+1)*total_diff)
+        reward = c * q
         for key, var in client_weights.items():
             updated_parameters[key] = var.clone()
             if torch.cuda.is_available():
                 updated_parameters[key] = updated_parameters[key].cuda()
         for key, var in server_weights.items():
-            updated_parameters[key] = (alpha * updated_parameters[key] + (1 - alpha) * server_weights[key])
+            # updated_parameters[key] = (alpha * updated_parameters[key] + (1 - alpha) * server_weights[key])
+            updated_parameters[key] = (alpha * reward * updated_parameters[key] + (1 - alpha) * server_weights[key])
             # updated_parameters[key] = (updated_parameters[key] + server_weights[key]) / 2
             if torch.cuda.is_available():
                 updated_parameters[key] = updated_parameters[key].cuda()

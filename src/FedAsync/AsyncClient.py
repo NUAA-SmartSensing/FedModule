@@ -24,7 +24,7 @@ class AsyncClient(threading.Thread):
         self.time_stamp = 0
         self.client_thread_lock = threading.Lock()
         self.dev = 'cuda' if torch.cuda.is_available() else 'cpu'
-        self.model_name = "ConvNet"
+        self.model_name = "CNN"
         if self.model_name == "CNN":
             self.model = CNN.CNN()
             self.model = self.model.to(self.dev)
@@ -68,14 +68,14 @@ class AsyncClient(threading.Thread):
                 self.client_thread_lock.acquire()
                 # 该client进行训练
                 r_weights = copy.deepcopy(self.model.state_dict())
-                weights = self.train_one_epoch(r_weights)
+                data_sum, weights = self.train_one_epoch(r_weights)
 
                 # client传回server的信息具有延迟
                 print("Client", self.client_id, "trained")
                 time.sleep(self.delay)
 
                 # 返回其ID、模型参数和时间戳
-                self.queue.put((self.client_id, weights, self.time_stamp))
+                self.queue.put((self.client_id, weights, data_sum, self.time_stamp))
                 self.event.clear()
                 self.client_thread_lock.release()
             # 该client等待被选中
