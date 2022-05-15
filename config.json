@@ -1,0 +1,25 @@
+{
+  "global": {
+    "data_type": "MNIST",
+    "result": {
+      "test_name": "fedavg",
+      "path": ""
+    },
+    "client_num": 50,
+    "client_ratio": 0.1,
+    "scheduler_interval": 5,
+    "checkin_interval": 600,
+    "checkin_num": 200
+  },
+  "server": {
+    "epochs": 600,
+    "model_type": "CNN"
+  },
+  "client": {
+    "epochs": 2,
+    "batch_size": 50,
+    "model_type": "CNN",
+    "iid": false,
+    "stale_file": ""
+  }
+}
