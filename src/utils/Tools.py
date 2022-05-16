@@ -1,29 +1,9 @@
-# import copy
-# import random
-# import tensorflow as tf
-# from tensorflow.keras.utils import to_categorical
-# from tensorflow.keras.datasets import cifar10
-# import numpy as np
-# import scipy.stats as stats
-# from sklearn.metrics import confusion_matrix
-# from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
-#
-# import matplotlib.pyplot as plt
-#
-# import Datasets.MNIST as MNIST
-# import Datasets.FashionMNIST as FashionMNIST
-# import Datasets.CIFAR10 as CIFAR10
-# import Datasets.CIFAR100 as CIFAR100
-# import Datasets.ImageNette as ImageNette
-#
-# from MainFrame.Client import Client
-#
 import random
-
 import torch
+import numpy as np
 
 
-def generate_stale_list(n1, *n):
+def generate_stale_list(filename, step, shuffle, n1, *n):
     stale_list = []
     for i in range(n1):
         stale_list.append(0)
@@ -31,9 +11,11 @@ def generate_stale_list(n1, *n):
     bound = 0
     for i in n:
         for j in range(i):
-            stale_list.append(random.randint(bound, bound + 5))
-        bound += 5
-    return stale_list
+            stale_list.append(random.randint(bound, bound + step))
+        bound += step
+    if shuffle:
+        np.random.shuffle(stale_list)
+    saveAns(filename, stale_list)
 
 
 def get_stale_list(filename):
@@ -67,4 +49,4 @@ def saveAns(filename, result):
 
 
 if __name__ == '__main__':
-    get_stale_list("../results/IID/MNIST/2/stale.txt")
+    generate_stale_list("", 15, 20, 15)
