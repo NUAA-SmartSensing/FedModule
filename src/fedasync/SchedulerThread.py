@@ -14,10 +14,13 @@ class SchedulerThread(threading.Thread):
         self.check_in_interval = checkin_config["checkin_interval"]
         self.async_client_manager = async_client_manager
         self.queue = queue
-        self.c_ratio = scheduler_config["client_ratio"]
         self.current_t = current_t
         self.server_network = server_network
         self.T = t
+        module = __import__("schedule")
+        schedule_file = getattr(module, scheduler_config["schedule_file"])
+        self.schedule = getattr(schedule_file, scheduler_config["schedule_name"])()
+        self.config = scheduler_config
 
     def run(self):
         last_s_time = -1
@@ -32,7 +35,7 @@ class SchedulerThread(threading.Thread):
                 if self.queue.qsize() <= self.schedule_interval * 2:
                     last_s_time = current_time
                     print("Begin client select")
-                    selected_client_threads = self.client_select()
+                    selected_client_threads = self.client_select(self.config["params"])
                     print("\nSchedulerThread select(", len(selected_client_threads), "clients):")
                     self.server_thread_lock.acquire()
                     server_weights = copy.deepcopy(self.server_network.state_dict())
@@ -53,14 +56,7 @@ class SchedulerThread(threading.Thread):
             else:
                 time.sleep(0.01)
 
-    def client_select(self):
+    def client_select(self, params):
         current_checked_client_tl = self.async_client_manager.get_checked_in_client_thread_list()
-        select_num = int(self.c_ratio * len(current_checked_client_tl))
-        # if select_num < self.schedule_interval * 2:
-        #     select_num = self.schedule_interval * 2
-        if select_num < self.schedule_interval + 1:
-            select_num = self.schedule_interval + 1
-
-        print("Current clients:", len(current_checked_client_tl), ", select:", select_num)
-        selected_client_threads = random.sample(current_checked_client_tl, select_num)
+        selected_client_threads = self.schedule.schedule(current_checked_client_tl, params)
         return selected_client_threads

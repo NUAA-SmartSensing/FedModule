@@ -16,9 +16,8 @@ class AsyncClientManager:
         self.client_staleness_list = client_config["stale_list"]
         self.thread_lock = threading.Lock()
         self.check_in_thread_lock = threading.Lock()
-        self.checked_in = False
         self.loss_func = F.cross_entropy
-        self.epoch = 2
+        self.epoch = client_config["epochs"]
 
         # 初始化clients
         self.client_thread_list = []
@@ -123,13 +122,3 @@ class AsyncClientManager:
     def get_check_in_thread_lock(self):
         return self.check_in_thread_lock
 
-    def set_checked_in(self, new_checked_in):
-        self.thread_lock.acquire()
-        self.checked_in = new_checked_in
-        self.thread_lock.release()
-
-    def get_checked_in(self):
-        self.thread_lock.acquire()
-        checked_in = self.checked_in
-        self.thread_lock.release()
-        return checked_in

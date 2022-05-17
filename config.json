@@ -19,10 +19,13 @@
       "checkin_num": 200
     },
     "scheduler": {
-      "client_ratio": 0.1,
       "scheduler_interval": 5,
-      "schedule_file": "",
-      "schedule_name": ""
+      "schedule_file": "RandomSchedule",
+      "schedule_name": "RandomSchedule",
+      "params": {
+        "c_ratio": 0.1,
+        "schedule_interval": 5
+      }
     },
     "updater": {
       "update_file": "",

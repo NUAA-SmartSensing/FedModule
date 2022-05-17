@@ -26,7 +26,11 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 # CHECK_IN_NUM = 200  # 100
 
 if __name__ == '__main__':
-    config = getConfig()
+    if len(sys.argv) < 2:
+        config_file = "config.json"
+    else:
+        config_file = sys.argv[1]
+    config = getConfig(config_file)
     global_config = config['global']
     server_config = config['server']
     client_config = config['client']
