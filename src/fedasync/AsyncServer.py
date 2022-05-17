@@ -97,7 +97,7 @@ class AsyncServer:
                 self.queue.get()
         self.queue.close()
 
-        self.accuracy_list = self.updater_thread.get_accuracy_and_loss_list()
+        self.accuracy_list = self.updater_thread.get_accuracy_list()
         del self.scheduler_thread
         del self.updater_thread
         del self.async_client_manager

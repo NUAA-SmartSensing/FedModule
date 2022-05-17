@@ -28,8 +28,16 @@
       }
     },
     "updater": {
-      "update_file": "",
-      "update_name": ""
+      "update_file": "FedAsync",
+      "update_name": "FedAsync",
+      "params": {
+        "a": 10,
+        "b": 4,
+        "alpha": 0.1,
+        "r" : 1,
+        "c" : 2,
+        "d" : 2
+      }
     }
   },
   "client": {
