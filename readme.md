@@ -30,14 +30,14 @@ python3.8 + pytorch + macos
     │   ├── MNIST.py
     │   └── __init__.py
     ├── fedasync                              异步联邦学习
-    │   ├── AsyncClient.py              			客户端类
-    │   ├── AsyncClientManager.py       			客户端管理类
-    │   ├── AsyncServer.py              			服务器类
-    │   ├── CheckInThread.py            			CheckIn进程
+    │   ├── AsyncClient.py                    客户端类
+    │   ├── AsyncClientManager.py             客户端管理类
+    │   ├── AsyncServer.py                    服务器类
+    │   ├── CheckInThread.py                  CheckIn进程
     │   ├── Queue.py
-    │   ├── SchedulerThread.py          			调度进程
+    │   ├── SchedulerThread.py                调度进程
     │   ├── Time.py
-    │   ├── UpdaterThread.py            			聚合进程
+    │   ├── UpdaterThread.py                  聚合进程
     │   ├── __init__.py
     │   └── main.py
     ├── fedsync                               同步联邦学习
@@ -47,16 +47,16 @@ python3.8 + pytorch + macos
     │   ├── ConvNet.py
     │   └── __init__.py
     ├── results                               实验结果
-    ├── schedule															调度算法类
+    ├── schedule                              调度算法类
     │   ├── RandomSchedule.py
     │   └── __init__.py
-    ├── test																	测试用
-    ├── update																聚合算法类
+    ├── test                                  测试用
+    ├── update                                聚合算法类
     │   ├── Avg.py
     │   ├── FedAsync.py
     │   ├── MyFed.py
     │   └── __init__.py
-    └── utils																	工具集
+    └── utils                                 工具集
         ├── ConfigManager.py
         ├── Plot.py
         ├── ResultManager.py
@@ -72,33 +72,33 @@ Time文件是一个多线程时间获取类的实现，Queue文件是因为mac�
 ```text
 {
   "global": {
-    "experiment": "TMP/test/1",								实验路径/结果存放路径
+    "experiment": "TMP/test/1",               实验路径/结果存放路径
     "data_file": "MNIST",                     数据集类文件
     "data_name": "MNIST",                     数据集类
     "iid": false,                             是否iid
-    "client_num": 50													客户端数量
+    "client_num": 50                          客户端数量
   },
   "server": {
-    "epochs": 600,														服务器全局迭代次数
-    "model_file": "CNN",											全局模型文件
-    "model_name": "CNN",											全局模型类
+    "epochs": 600,                            服务器全局迭代次数
+    "model_file": "CNN",                      全局模型文件
+    "model_name": "CNN",                      全局模型类
     "checkin": {
       "checkin_interval": 600,
       "checkin_num": 200
     },
     "scheduler": {
-      "scheduler_interval": 5,								调度间隔
-      "schedule_file": "RandomSchedule",			调度算法文件
+      "scheduler_interval": 5,                调度间隔
+      "schedule_file": "RandomSchedule",      调度算法文件
       "schedule_name": "RandomSchedule",      调度算法类
-      "params": {															调度算法相关参数
+      "params": {                             调度算法相关参数
         "c_ratio": 0.1,
         "schedule_interval": 5
       }
     },
     "updater": {
-      "update_file": "MyFed",									聚合算法文件
-      "update_name": "MyFed",									聚合算法类
-      "params": {															聚合算法参数
+      "update_file": "MyFed",                 聚合算法文件
+      "update_name": "MyFed",                 聚合算法类
+      "params": {                             聚合算法参数
         "a": 10,
         "b": 4,
         "alpha": 0.1,
@@ -109,10 +109,10 @@ Time文件是一个多线程时间获取类的实现，Queue文件是因为mac�
     }
   },
   "client": {
-    "epochs": 2,															客户端迭代次数
+    "epochs": 2,                              客户端迭代次数
     "batch_size": 50,
     "model_type": "CNN",
-    "stale_file": "stale.txt"									延迟设置
+    "stale_file": "stale.txt"                 延迟设置
   }
 }
 ```
