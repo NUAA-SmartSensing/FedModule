@@ -138,9 +138,9 @@ Time文件是一个多线程时间获取类的实现，Queue文件是因为mac�
 这个bug是pytorch和queue导致的bug，暂时采取的解决方法是上传非cuda张量，聚合时再将其转为cuda张量，因此在添加聚合算法时，大致会需要出现如下代码：
 
 ```python
-    updated_parameters = {}
-    for key, var in client_weights.items():
-        updated_parameters[key] = var.clone()
-        if torch.cuda.is_available():
-            updated_parameters[key] = updated_parameters[key].cuda()
+updated_parameters = {}
+for key, var in client_weights.items():
+    updated_parameters[key] = var.clone()
+    if torch.cuda.is_available():
+        updated_parameters[key] = updated_parameters[key].cuda()
 ```
