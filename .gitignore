@@ -1,2 +1,7 @@
 .DS_Store
+*/.DS_Store
 .idea
+./src/results/*
+./src/data/*
+*/__pycache__
+/src/test/*
