@@ -16,7 +16,6 @@ class AsyncClientManager:
         self.client_staleness_list = client_config["stale_list"]
         self.thread_lock = threading.Lock()
         self.check_in_thread_lock = threading.Lock()
-        self.loss_func = F.cross_entropy
         self.epoch = client_config["epochs"]
 
         # 初始化clients
@@ -24,7 +23,7 @@ class AsyncClientManager:
         for i in range(clients_num):
             client_delay = self.client_staleness_list[i]
             dataset = datasets[i]
-            self.client_thread_list.append(AsyncClient.AsyncClient(i, self.queue, self.batch_size, self.stop_event, client_delay, dataset, self.epoch, self.loss_func))
+            self.client_thread_list.append(AsyncClient.AsyncClient(i, self.queue, self.stop_event, client_delay, dataset, client_config))
 
         self.checked_in_client_thread_list = []
         self.unchecked_in_client_thread_list = []

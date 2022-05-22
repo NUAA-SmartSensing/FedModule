@@ -43,7 +43,8 @@
   "client": {
     "epochs": 2,
     "batch_size": 50,
-    "model_type": "CNN",
+    "model_file": "CNN",
+    "model_name": "CNN",
     "stale_file": "stale.txt"
   }
 }

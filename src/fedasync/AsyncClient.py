@@ -1,7 +1,6 @@
 import threading
 import time
 import copy
-import torch.nn as nn
 from model import CNN, ConvNet
 import torch.cuda
 import torch.nn.functional as F
@@ -10,21 +9,21 @@ import collections
 
 
 class AsyncClient(threading.Thread):
-    def __init__(self, c_id, queue, batch_size, stop_event, delay, train_ds, epoch, loss_func):
+    def __init__(self, c_id, queue, stop_event, delay, train_ds, client_config):
         threading.Thread.__init__(self)
         self.client_id = c_id
         self.queue = queue
         self.event = threading.Event()
         self.event.clear()
-        self.batch_size = batch_size
         self.stop_event = stop_event
         self.delay = delay
         self.train_ds = train_ds
-        self.epoch = epoch
+        self.batch_size = client_config["batch_size"]
+        self.epoch = client_config["epochs"]
         self.time_stamp = 0
         self.client_thread_lock = threading.Lock()
         self.dev = 'cuda' if torch.cuda.is_available() else 'cpu'
-        self.model_name = "CNN"
+        self.model_name = client_config["model_name"]
         if self.model_name == "CNN":
             self.model = CNN.CNN()
             self.model = self.model.to(self.dev)
@@ -42,7 +41,7 @@ class AsyncClient(threading.Thread):
             self.model = self.model.to(self.dev)
             self.opti = torch.optim.Adam(self.model.parameters(), lr=0.01, weight_decay=0.005)
             self.train_dl = DataLoader(self.train_ds, batch_size=self.batch_size, shuffle=True)
-        self.loss_func = loss_func
+        self.loss_func = F.cross_entropy
 
         self.weights_buffer = collections.OrderedDict()
         self.time_stamp_buffer = 0
