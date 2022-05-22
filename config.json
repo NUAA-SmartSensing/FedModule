@@ -28,8 +28,8 @@
       }
     },
     "updater": {
-      "update_file": "FedAsync",
-      "update_name": "FedAsync",
+      "update_file": "MyFed",
+      "update_name": "MyFed",
       "params": {
         "a": 10,
         "b": 4,

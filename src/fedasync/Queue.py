@@ -1,6 +1,7 @@
 import multiprocessing as mp
 import multiprocessing.queues as mpq
 
+
 class SharedCounter(object):
     """ A synchronized shared counter.
 

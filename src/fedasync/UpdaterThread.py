@@ -40,18 +40,21 @@ class UpdaterThread(threading.Thread):
                 c_r = 0
                 # 接收一个client发回的模型参数和时间戳
                 if not self.queue.empty():
-                    (c_id, client_weights, data_sum, time_stamp) = self.queue.get()
+                    # (c_id, client_weights, data_sum, time_stamp) = self.queue.get()
+                    update_dict = self.queue.get()
+                    c_id = update_dict["client_id"]
+                    time_stamp = update_dict["time_stamp"]
                     self.sum_delay += (self.current_time.get_time() - time_stamp)
                     print("Updater received data from client", c_id, "| staleness =", time_stamp, "-",
                           self.current_time.get_time(), "| queue size = ", self.queue.qsize())
                     self.event.set()
                 else:
-                    (c_id, client_weights, data_sum, time_stamp) = (0, [], 0, 0)
+                    update_dict = {}
 
                 if self.event.is_set():
                     # 使用接收的client发回的模型参数和时间戳对全局模型进行更新
                     self.server_thread_lock.acquire()
-                    self.update_server_weights(c_id, client_weights, data_sum, time_stamp, epoch, self.config["params"])
+                    self.update_server_weights(epoch, update_dict, self.config["params"])
                     self.run_server_test(epoch)
                     self.server_thread_lock.release()
                     self.event.clear()
@@ -72,8 +75,8 @@ class UpdaterThread(threading.Thread):
         # 终止所有client线程
         self.async_client_manager.stop_all_clients()
 
-    def update_server_weights(self, c_id, client_weights: collections.OrderedDict, data_sum, time_stamp, epoch, update_param):
-        updated_parameters = self.update.update_server_weights(self, c_id, client_weights, data_sum, time_stamp, epoch, update_param)
+    def update_server_weights(self, epoch, update_dict, update_param):
+        updated_parameters = self.update.update_server_weights(self, epoch, update_dict, update_param)
         for key, var in updated_parameters.items():
             if torch.cuda.is_available():
                 updated_parameters[key] = updated_parameters[key].cuda()

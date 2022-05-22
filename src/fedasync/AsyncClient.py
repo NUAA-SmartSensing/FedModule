@@ -42,7 +42,6 @@ class AsyncClient(threading.Thread):
             self.model = self.model.to(self.dev)
             self.opti = torch.optim.Adam(self.model.parameters(), lr=0.01, weight_decay=0.005)
             self.train_dl = DataLoader(self.train_ds, batch_size=self.batch_size, shuffle=True)
-        # self.opti = torch.optim.Adam(self.model.parameters(), lr=0.01)
         self.loss_func = loss_func
 
         self.weights_buffer = collections.OrderedDict()
@@ -75,7 +74,9 @@ class AsyncClient(threading.Thread):
                 time.sleep(self.delay)
 
                 # 返回其ID、模型参数和时间戳
-                self.queue.put((self.client_id, weights, data_sum, self.time_stamp))
+                update_dict = {"client_id": self.client_id, "weights": weights, "data_sum": data_sum, "time_stamp": self.time_stamp}
+                # self.queue.put((self.client_id, weights, data_sum, self.time_stamp))
+                self.queue.put(update_dict)
                 self.event.clear()
                 self.client_thread_lock.release()
             # 该client等待被选中

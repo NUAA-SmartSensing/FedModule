@@ -4,11 +4,9 @@ import torch
 
 
 class FedAsync:
-    def update_server_weights(self, updater_thread: UpdaterThread, c_id, client_weights, data_sum, time_stamp, epoch, update_param):
-        # b = 60
-        # a = 0.1
-        # alpha = 0.1
-        # r = 1
+    def update_server_weights(self, updater_thread: UpdaterThread, epoch, update_dict, update_param):
+        client_weights = update_dict["weights"]
+        time_stamp = update_dict["time_stamp"]
         b = update_param["b"]
         a = update_param["a"]
         alpha = update_param["alpha"]
