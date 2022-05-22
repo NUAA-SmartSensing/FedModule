@@ -4,4 +4,4 @@
 ./src/results/*
 ./src/data/*
 */__pycache__
-/src/test/*
+src/test/*
