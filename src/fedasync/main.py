@@ -11,6 +11,11 @@ from utils.ConfigManager import *
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 if __name__ == '__main__':
+    # 创建结果文件夹
+    if not os.path.exists("../results"):
+        os.mkdir("../results")
+
+    # 配置文件读取
     if len(sys.argv) < 2:
         config_file = "config.json"
     else:
