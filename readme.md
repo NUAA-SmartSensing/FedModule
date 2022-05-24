@@ -73,6 +73,7 @@ Time文件是一个多线程时间获取类的实现，Queue文件是因为mac�
 {
   "global": {
     "experiment": "TMP/test/1",               实验路径/结果存放路径
+    "stale_file": "stale.txt",                延迟设置文件
     "data_file": "MNIST",                     数据集类文件
     "data_name": "MNIST",                     数据集类
     "iid": false,                             是否iid
@@ -111,14 +112,25 @@ Time文件是一个多线程时间获取类的实现，Queue文件是因为mac�
   "client": {
     "epochs": 2,                              客户端迭代次数
     "batch_size": 50,
-    "model_type": "CNN",
-    "stale_file": "stale.txt"                 延迟设置
+    "model_file": "CNN",                      本地模型文件
+    "model_name": "CNN",                      本地模型类
+    "loss": "cross_entropy",                  loss函数
+    "optimizer": {                            优化器
+      "name": "Adam",
+      "weight_decay": 0.005,
+      "lr": 0.01
+    }
   }
 }
 ```
 ## 运行
 
-直接运行`python main.py`即可，程序会自动读取根目录下的config.json文件，执行完后将结果储存到results下的指定路径下，并将配置文件一并存储。
+### 生成延迟文件
+
+如果需要生成客户端延迟文件，使用`utils.Tools.generate_stale_list()`函数生成延迟文件。
+
+### 实验
+直接运行`python main.py`即可，程序会自动读取根目录下的config.json文件和stale.txt延迟文件，执行完后将结果储存到results下的指定路径下，并将配置文件一并存储。
 
 也可以自行指定配置文件`python main.py config.json`，需要注意的是config.json的路径是基于根目录的，而非main.py。
 
@@ -128,6 +140,7 @@ Time文件是一个多线程时间获取类的实现，Queue文件是因为mac�
 - [x] 支持替换模型和数据集
 - [x] 支持替换调度算法
 - [x] 支持替换聚合算法
+- [x] 支持替换loss函数
 - [ ] 支持替换客户端
 - [ ] 同步联邦学习
 - [ ] 支持多GPU
@@ -141,6 +154,19 @@ Time文件是一个多线程时间获取类的实现，Queue文件是因为mac�
 * 在配置文件申明，`model_file`等对应的是新的算法所在文件名，`model_name`等对应的是新的算法的类。
 
 另外，算法里需要使用到的参数均可在配置项`params`中申明。
+
+### loss函数添加
+
+loss函数可以选择torch自带算法，也可以自行实现，自行实现和上述步骤基本相同，在配置项中需进行如下修改：
+
+```json
+"client": {
+    "loss": {
+        "loss_file": "my_loss",
+        "loss_name": "my_loss"
+  }
+}
+```
 
 ## 代码尚存问题
 
