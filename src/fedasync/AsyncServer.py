@@ -8,6 +8,7 @@ import CheckInThread
 import SchedulerThread
 import UpdaterThread
 import Time
+from utils import ModuleFindTool
 
 
 # 强制关闭线程
@@ -33,16 +34,14 @@ def _async_raise(tid, exc_type):
 class AsyncServer:
     def __init__(self, global_config, server_config, client_config):
         # 全局模型
-        model = __import__("model")
-        model_file = getattr(model, server_config["model_file"])
-        self.server_network = getattr(model_file, server_config["model_name"])()
+        model_class = ModuleFindTool.find_class_by_string("model", server_config["model_file"], server_config["model_name"])
+        self.server_network = model_class()
         self.dev = 'cuda' if torch.cuda.is_available() else 'cpu'
         self.server_network = self.server_network.to(self.dev)
 
         # 数据集
-        dataset = __import__("dataset")
-        dataset_file = getattr(dataset, global_config["data_file"])
-        self.dataset = getattr(dataset_file, global_config["data_name"])(global_config["client_num"], global_config["iid"])
+        dataset_class = ModuleFindTool.find_class_by_string("dataset", global_config["data_file"], global_config["data_name"])
+        self.dataset = dataset_class(global_config["client_num"], global_config["iid"])
         self.test_data = self.dataset.get_test_dataset()
         self.T = server_config["epochs"]
 

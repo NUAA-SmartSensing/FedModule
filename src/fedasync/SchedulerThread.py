@@ -1,8 +1,7 @@
+import copy
 import threading
 import time
-import random
-import copy
-
+from utils import ModuleFindTool
 
 class SchedulerThread(threading.Thread):
     def __init__(self, server_thread_lock, async_client_manager,
@@ -17,9 +16,8 @@ class SchedulerThread(threading.Thread):
         self.current_t = current_t
         self.server_network = server_network
         self.T = t
-        module = __import__("schedule")
-        schedule_file = getattr(module, scheduler_config["schedule_file"])
-        self.schedule = getattr(schedule_file, scheduler_config["schedule_name"])()
+        schedule_class = ModuleFindTool.find_class_by_string("schedule", scheduler_config["schedule_file"], scheduler_config["schedule_name"])
+        self.schedule = schedule_class()
         self.config = scheduler_config
 
     def run(self):

@@ -1,11 +1,9 @@
-import collections
 import threading
 import time
-import copy
-from torch.utils.data import DataLoader
 
 import torch.utils.data
-
+from torch.utils.data import DataLoader
+from utils import ModuleFindTool
 
 class UpdaterThread(threading.Thread):
     def __init__(self, queue, server_thread_lock, t, current_t, server_network,
@@ -29,9 +27,8 @@ class UpdaterThread(threading.Thread):
 
         self.accuracy_list = []
         self.config = updater_config
-        update_module = __import__("update")
-        update_file = getattr(update_module, updater_config["update_file"])
-        self.update = getattr(update_file, updater_config["update_name"])()
+        update_class = ModuleFindTool.find_class_by_string("update", updater_config["update_file"], updater_config["update_name"])
+        self.update = update_class()
 
     def run(self):
         for epoch in range(self.T):
