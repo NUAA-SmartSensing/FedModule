@@ -28,10 +28,6 @@ class Client(threading.Thread):
     def run(self):
         pass
 
-    @abstractmethod
-    def train_one_epoch(self, r_weights):
-        pass
-
     def set_client_id(self, new_id):
         self.client_thread_lock.acquire()
         self.client_id = new_id
