@@ -45,6 +45,12 @@
     "batch_size": 50,
     "model_file": "CNN",
     "model_name": "CNN",
-    "stale_file": "stale.txt"
+    "stale_file": "stale.txt",
+    "loss": "cross_entropy",
+    "optimizer": {
+      "name": "Adam",
+      "weight_decay": 0.005,
+      "lr": 0.01
+    }
   }
 }

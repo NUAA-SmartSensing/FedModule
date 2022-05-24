@@ -5,6 +5,7 @@ import torch.cuda
 import torch.nn.functional as F
 from torch.utils.data import DataLoader, sampler
 from client import Client
+from utils import ModuleFindTool
 
 
 class AsyncClient(Client.Client):
@@ -13,24 +14,23 @@ class AsyncClient(Client.Client):
         self.batch_size = client_config["batch_size"]
         self.epoch = client_config["epochs"]
         self.model_name = client_config["model_name"]
-        if self.model_name == "CNN":
-            self.model = CNN.CNN()
-            self.model = self.model.to(self.dev)
-            self.opti = torch.optim.Adam(self.model.parameters(), lr=0.01, weight_decay=0.005)
-            self.train_dl = DataLoader(self.train_ds, batch_size=self.batch_size, shuffle=True)
-        elif self.model_name == "ConvNet":
-            self.model = ConvNet.ConvNet()
-            self.model = self.model.to(self.dev)
-            self.opti = torch.optim.SGD(self.model.parameters(), lr=0.001, momentum=0.9)
-            all_range = list(range(len(self.train_ds)))
-            indices = all_range[self.client_id::50]
-            self.train_dl = DataLoader(self.train_ds, batch_size=4, num_workers=2, sampler=sampler.SubsetRandomSampler(indices))
+        self.optimizer_config = client_config["optimizer"]
+
+        # 本地模型
+        model_class = ModuleFindTool.find_class_by_string("model", client_config["model_file"], client_config["model_name"])
+        self.model = model_class()
+        self.model = self.model.to(self.dev)
+
+        # 优化器
+        opti_class = ModuleFindTool.find_opti_by_string(self.optimizer_config["name"])
+        self.opti = opti_class(self.model.parameters(), lr=self.optimizer_config["lr"], weight_decay=self.optimizer_config["weight_decay"])
+
+        # loss函数
+        if isinstance(client_config["loss"], str):
+            self.loss_func = ModuleFindTool.find_F_by_string(client_config["loss"])
         else:
-            self.model = CNN.CNN()
-            self.model = self.model.to(self.dev)
-            self.opti = torch.optim.Adam(self.model.parameters(), lr=0.01, weight_decay=0.005)
-            self.train_dl = DataLoader(self.train_ds, batch_size=self.batch_size, shuffle=True)
-        self.loss_func = F.cross_entropy
+            self.loss_func = ModuleFindTool.find_class_by_string("loss", client_config["loss"]["loss_file"], client_config["loss"]["loss_name"])
+        self.train_dl = DataLoader(self.train_ds, batch_size=self.batch_size, shuffle=True)
 
     def run(self):
         while not self.stop_event.is_set():
