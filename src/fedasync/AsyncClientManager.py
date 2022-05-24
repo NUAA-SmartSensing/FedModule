@@ -1,8 +1,7 @@
 import random
 import threading
-import torch.nn.functional as F
 
-import AsyncClient
+from client import AsyncClient
 
 
 class AsyncClientManager:
@@ -23,7 +22,8 @@ class AsyncClientManager:
         for i in range(clients_num):
             client_delay = self.client_staleness_list[i]
             dataset = datasets[i]
-            self.client_thread_list.append(AsyncClient.AsyncClient(i, self.queue, self.stop_event, client_delay, dataset, client_config))
+            self.client_thread_list.append(
+                AsyncClient.AsyncClient(i, self.queue, self.stop_event, client_delay, dataset, client_config))
 
         self.checked_in_client_thread_list = []
         self.unchecked_in_client_thread_list = []
