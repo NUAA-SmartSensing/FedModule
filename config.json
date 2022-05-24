@@ -1,6 +1,7 @@
 {
   "global": {
     "experiment": "TMP/test/1",
+    "stale_file": "stale.txt",
     "data_file": "MNIST",
     "data_name": "MNIST",
     "iid": false,
@@ -45,7 +46,6 @@
     "batch_size": 50,
     "model_file": "CNN",
     "model_name": "CNN",
-    "stale_file": "stale.txt",
     "loss": "cross_entropy",
     "optimizer": {
       "name": "Adam",
