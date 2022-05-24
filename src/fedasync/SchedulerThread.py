@@ -3,6 +3,7 @@ import threading
 import time
 from utils import ModuleFindTool
 
+
 class SchedulerThread(threading.Thread):
     def __init__(self, server_thread_lock, async_client_manager,
                  queue, current_t, scheduler_config, checkin_config,

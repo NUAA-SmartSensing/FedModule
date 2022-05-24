@@ -5,6 +5,7 @@ import torch.utils.data
 from torch.utils.data import DataLoader
 from utils import ModuleFindTool
 
+
 class UpdaterThread(threading.Thread):
     def __init__(self, queue, server_thread_lock, t, current_t, server_network,
                  async_client_manager, stop_event, test_data, updater_config):

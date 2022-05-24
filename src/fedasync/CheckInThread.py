@@ -1,6 +1,7 @@
 import threading
 import time
 
+
 class CheckInThread(threading.Thread):
     def __init__(self, checkin_config, async_client_manager, current_t, t):
         threading.Thread.__init__(self)

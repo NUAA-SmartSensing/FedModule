@@ -1,14 +1,7 @@
 import copy
 
-import torch
 import torchvision
-from torch.autograd import Variable
-from torchvision import datasets, transforms
-from torch.utils.data import DataLoader
-import numpy as np
-from torch.utils.data import TensorDataset
-from matplotlib import pyplot as plt
-from torchvision.transforms import ToPILImage
+from torchvision import transforms
 
 
 class CIFAR10:
@@ -72,7 +65,7 @@ class CIFAR10:
         # for i in range(total_clients - clients):
         #     self.datasets.append(copy.deepcopy(self.datasets[i]))
         self.datasets = []
-        transform = transforms.Compose([transforms.ToTensor(),transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
+        transform = transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
         train_datasets = torchvision.datasets.CIFAR10(root='../data', train=True, download=True, transform=transform)
         self.test_datasets = torchvision.datasets.CIFAR10(root='../data', train=False, download=True, transform=transform)
         for i in range(clients):

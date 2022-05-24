@@ -3,8 +3,6 @@ import copy
 import torch.nn as nn
 import torch.nn.functional as F
 
-import dataset.CIFAR10
-
 
 class ConvNet(nn.Module):
     def __init__(self):
