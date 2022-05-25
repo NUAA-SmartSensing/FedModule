@@ -1,9 +1,8 @@
-import time
 import copy
-from model import CNN, ConvNet
-import torch.cuda
-import torch.nn.functional as F
-from torch.utils.data import DataLoader, sampler
+import time
+
+from torch.utils.data import DataLoader
+
 from client import Client
 from utils import ModuleFindTool
 
