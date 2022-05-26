@@ -27,6 +27,7 @@ if __name__ == '__main__':
     global_config = copy.deepcopy(config['global'])
     server_config = copy.deepcopy(config['server'])
     client_config = copy.deepcopy(config['client'])
+    manager_config = copy.deepcopy(config['client_manager'])
 
     # 实验路径相关
     if not global_config["experiment"].endswith("/"):
@@ -64,7 +65,7 @@ if __name__ == '__main__':
     accuracy_lists = []
     loss_lists = []
 
-    async_server = AsyncServer.AsyncServer(global_config, server_config, client_config)
+    async_server = AsyncServer.AsyncServer(global_config, server_config, client_config, manager_config)
 
     async_server.run()
     print("")

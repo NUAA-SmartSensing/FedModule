@@ -2,10 +2,11 @@ import random
 import threading
 
 from client import AsyncClient
+from utils import ModuleFindTool
 
 
 class AsyncClientManager:
-    def __init__(self, init_weights, clients_num, datasets, q, current_time, stop_event, client_config):
+    def __init__(self, init_weights, clients_num, datasets, q, current_time, stop_event, client_config, manager_config):
         self.init_weights = init_weights
         self.queue = q
         self.clients_num = clients_num
@@ -17,13 +18,15 @@ class AsyncClientManager:
         self.check_in_thread_lock = threading.Lock()
         self.epoch = client_config["epochs"]
 
+        client_class = ModuleFindTool.find_class_by_string("client", manager_config["client_file"], manager_config["client_name"])
+
         # 初始化clients
         self.client_thread_list = []
         for i in range(clients_num):
             client_delay = self.client_staleness_list[i]
             dataset = datasets[i]
             self.client_thread_list.append(
-                AsyncClient.AsyncClient(i, self.queue, self.stop_event, client_delay, dataset, client_config))
+                client_class(i, self.queue, self.stop_event, client_delay, dataset, client_config))
 
         self.checked_in_client_thread_list = []
         self.unchecked_in_client_thread_list = []

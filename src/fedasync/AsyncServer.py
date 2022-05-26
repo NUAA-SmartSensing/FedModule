@@ -32,7 +32,7 @@ def _async_raise(tid, exc_type):
 
 
 class AsyncServer:
-    def __init__(self, global_config, server_config, client_config):
+    def __init__(self, global_config, server_config, client_config, manager_config):
         # 全局模型
         model_class = ModuleFindTool.find_class_by_string("model", server_config["model_file"], server_config["model_name"])
         self.server_network = model_class()
@@ -58,7 +58,7 @@ class AsyncServer:
 
         self.async_client_manager = AsyncClientManager.AsyncClientManager(init_weights, global_config["client_num"],
                                                                           datasets, self.queue, self.current_t,
-                                                                          self.stop_event, client_config)
+                                                                          self.stop_event, client_config, manager_config)
         self.scheduler_thread = SchedulerThread.SchedulerThread(self.server_thread_lock, self.async_client_manager,
                                                                 self.queue, self.current_t, server_config["scheduler"],
                                                                 server_config["checkin"], self.server_network, self.T)

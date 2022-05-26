@@ -41,6 +41,10 @@
       }
     }
   },
+  "client_manager": {
+    "client_file": "AsyncClient",
+    "client_name": "AsyncClient"
+  },
   "client": {
     "epochs": 2,
     "batch_size": 50,
