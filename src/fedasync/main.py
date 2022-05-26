@@ -1,16 +1,18 @@
+import copy
 import datetime
 import os
 import shutil
 import threading
 import sys
+import json
 from shutil import copyfile
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from utils.Tools import *
 from utils.ConfigManager import *
+from exception import ClientSumError
 import AsyncServer
 
 if __name__ == '__main__':
-    print(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
     # 创建结果文件夹
     if not os.path.exists("../results"):
         os.mkdir("../results")
@@ -22,9 +24,9 @@ if __name__ == '__main__':
         config_file = sys.argv[1]
 
     config = getConfig(config_file)
-    global_config = config['global']
-    server_config = config['server']
-    client_config = config['client']
+    global_config = copy.deepcopy(config['global'])
+    server_config = copy.deepcopy(config['server'])
+    client_config = copy.deepcopy(config['client'])
 
     # 实验路径相关
     if not global_config["experiment"].endswith("/"):
@@ -32,19 +34,28 @@ if __name__ == '__main__':
     if not os.path.exists("../results/" + global_config["experiment"]):
         os.makedirs("../results/" + global_config["experiment"])
 
-    stale_path = "../../" + global_config["stale_file"]
-    if os.path.exists(stale_path):
-        client_staleness_list = get_stale_list(stale_path)
-    else:
+    # 客户端延迟文件生成
+    stale = global_config['stale']
+    if isinstance(stale, list):
+        client_staleness_list = stale
+    elif isinstance(stale, bool):
         client_staleness_list = []
         for i in range(global_config["client_num"]):
             client_staleness_list.append(0)
+    else:
+        total_sum = 0
+        for i in stale['list']:
+            total_sum += i
+        if total_sum != global_config['client_num']:
+            raise ClientSumError.ClientSumError()
+        client_staleness_list = generate_stale_list(stale['step'], stale['shuffle'], stale['list'])
     client_config["stale_list"] = client_staleness_list
 
     # 保存配置文件
     try:
-        copyfile("../../" + config_file, "../results/" + global_config["experiment"] + "config.json")
-        copyfile("../../" + global_config["stale.txt"], "../results" + global_config["experiment"] + "stale.txt")
+        config['global']['stale'] = client_staleness_list
+        with open("../results/" + global_config["experiment"] + "config.json", "w") as r:
+            json.dump(config, r, indent=4)
     except shutil.SameFileError:
         pass
 

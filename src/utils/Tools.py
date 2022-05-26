@@ -3,7 +3,7 @@ import torch
 import numpy as np
 
 
-def generate_stale_list(filename, step, shuffle, n1, *n):
+def generate_stale_list(step, shuffle, n1, *n):
     stale_list = []
     for i in range(n1):
         stale_list.append(0)
@@ -11,11 +11,34 @@ def generate_stale_list(filename, step, shuffle, n1, *n):
     bound = 0
     for i in n:
         for j in range(i):
-            stale_list.append(random.randint(bound, bound + step))
+            while True:
+                s = random.randint(bound, bound + step)
+                if s != 0:
+                    break
+            stale_list.append(s)
         bound += step
     if shuffle:
         np.random.shuffle(stale_list)
-    saveAns(filename, stale_list)
+    return stale_list
+
+
+def generate_stale_list(step, shuffle, n):
+    stale_list = []
+    for i in range(n[0]):
+        stale_list.append(0)
+
+    bound = 0
+    for i in range(1, len(n)):
+        for j in range(n[i]):
+            while True:
+                s = random.randint(bound, bound + step)
+                if s != 0:
+                    break
+            stale_list.append(s)
+        bound += step
+    if shuffle:
+        np.random.shuffle(stale_list)
+    return stale_list
 
 
 def get_stale_list(filename):
@@ -49,4 +72,4 @@ def saveAns(filename, result):
 
 
 if __name__ == '__main__':
-    generate_stale_list("", 15, 20, 15)
+    generate_stale_list(15, True, [1,2,3])
