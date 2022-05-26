@@ -37,7 +37,6 @@ python3.8 + pytorch + macos
     │   ├── ClientSumError.py
     │   └── __init__.py
     ├── fedasync                              异步联邦学习
-    │   ├── AsyncClient.py                    客户端类
     │   ├── AsyncClientManager.py             客户端管理类
     │   ├── AsyncServer.py                    服务器类
     │   ├── CheckInThread.py                  CheckIn进程
@@ -46,7 +45,7 @@ python3.8 + pytorch + macos
     │   ├── Time.py
     │   ├── UpdaterThread.py                  聚合进程
     │   ├── __init__.py
-    │   └── main.py
+    │   └── main.py                           主函数
     ├── fedsync                               同步联邦学习
     │   └── __init__.py
     ├── loss                                  loss函数实现
