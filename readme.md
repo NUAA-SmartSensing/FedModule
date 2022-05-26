@@ -23,11 +23,18 @@ python3.8 + pytorch + macos
 ├── config.json                               配置文件                                
 ├── readme.md                                 
 ├── requirements.txt
-└── src
+└── src 
+    ├── client                                客户端实现
+    │   ├── AsyncClient.py              异步客户端类
+    │   ├── Client.py                   客户端基类
+    │   ├── __init__.py
     ├── data                                  数据集下载位置
     ├── dataset                               数据集类
     │   ├── CIFAR10.py
     │   ├── MNIST.py
+    │   └── __init__.py
+    ├── exception                             异常类
+    │   ├── ClientSumError.py
     │   └── __init__.py
     ├── fedasync                              异步联邦学习
     │   ├── AsyncClient.py                    客户端类
@@ -41,6 +48,8 @@ python3.8 + pytorch + macos
     │   ├── __init__.py
     │   └── main.py
     ├── fedsync                               同步联邦学习
+    │   └── __init__.py
+    ├── loss                                  loss函数实现
     │   └── __init__.py
     ├── model                                 模型类
     │   ├── CNN.py
@@ -58,8 +67,8 @@ python3.8 + pytorch + macos
     │   └── __init__.py
     └── utils                                 工具集
         ├── ConfigManager.py
+        ├── ModuleFindTool.py
         ├── Plot.py
-        ├── ResultManager.py
         ├── Tools.py
         └── __init__.py
 
@@ -73,7 +82,11 @@ Time文件是一个多线程时间获取类的实现，Queue文件是因为mac�
 {
   "global": {
     "experiment": "TMP/test/1",               实验路径/结果存放路径
-    "stale_file": "stale.txt",                延迟设置文件
+    "stale": {                                延迟设置
+      "step": 1,                              步长
+      "shuffle": true,                        是否打乱
+      "list": [10, 10, 10, 5, 5, 5, 5]        每个步长对应的客户端数
+    },
     "data_file": "MNIST",                     数据集类文件
     "data_name": "MNIST",                     数据集类
     "iid": false,                             是否iid
@@ -125,12 +138,8 @@ Time文件是一个多线程时间获取类的实现，Queue文件是因为mac�
 ```
 ## 运行
 
-### 生成延迟文件
-
-如果需要生成客户端延迟文件，使用`utils.Tools.generate_stale_list()`函数生成延迟文件。
-
 ### 实验
-直接运行`python main.py`即可，程序会自动读取根目录下的config.json文件和stale.txt延迟文件，执行完后将结果储存到results下的指定路径下，并将配置文件一并存储。
+直接运行`python main.py`即可，程序会自动读取根目录下的config.json文件，执行完后将结果储存到results下的指定路径下，并将配置文件一并存储。
 
 也可以自行指定配置文件`python main.py config.json`，需要注意的是config.json的路径是基于根目录的，而非main.py。
 
@@ -167,6 +176,29 @@ loss函数可以选择torch自带算法，也可以自行实现，自行实现�
   }
 }
 ```
+
+## stale设置
+
+stale支持三种设置，其一是上述配置文件中提到的
+
+```json
+"stale": {
+      "step": 5,
+      "shuffle": true,
+      "list": [10, 10, 10, 5, 5, 5, 5]
+    }
+```
+
+程序会根据提供的`step`和`list`生成一串随机整数，例如上述代码，程序会生成10个0，10个(0，5)，10个[5,10)......，并会根据`shuffle`判断是否进行打乱。最后将随机数串赋给各客户端，客户端根据数值在每轮训练结束后，自动sleep对应秒。在存储json文件至实验结果时，该设置会自动转为其三。
+
+其二是设置为false，程序会给各客户端延迟设置为0。
+
+其三是随机数列表，程序直接会将列表指定延迟设置给客户端。
+
+```json
+"stale": [1, 2, 3, 1, 4]
+```
+
 
 ## 代码尚存问题
 
