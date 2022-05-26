@@ -155,9 +155,9 @@ Time文件是一个多线程时间获取类的实现，Queue文件是因为mac�
 
 ## 添加新的算法
 
-需要让客户端/服务器调用自己的算法，（注意：所有的算法实现必须以类的形式），需要以下几个步骤：
+需要让客户端/服务器调用自己的算法或实现类，（注意：所有的算法实现必须以类的形式），需要以下几个步骤：
 
-* 在对应的位置加入自己的实现（dataset、model、schedule、update）
+* 在对应的位置加入自己的实现（dataset、model、schedule、update、client、loss）
 * 在对应包的`__init__.py`文件下导入该类，例如`from model import CNN`
 * 在配置文件申明，`model_file`等对应的是新的算法所在文件名，`model_name`等对应的是新的算法的类。
 
