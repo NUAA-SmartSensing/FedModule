@@ -25,8 +25,8 @@ python3.8 + pytorch + macos
 ├── requirements.txt
 └── src 
     ├── client                                客户端实现
-    │   ├── AsyncClient.py              异步客户端类
-    │   ├── Client.py                   客户端基类
+    │   ├── AsyncClient.py                    异步客户端类
+    │   ├── Client.py                         客户端基类
     │   ├── __init__.py
     ├── data                                  数据集下载位置
     ├── dataset                               数据集类
