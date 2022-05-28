@@ -19,7 +19,8 @@ class MyFed:
         r = update_param["r"]
         c_num = update_param["c"]
         d_num = update_param["d"]
-
+        c = 1
+        q = 1
         if (updater_thread.current_time.get_time() - time_stamp) <= b:
             s = 1
         else:
@@ -46,5 +47,5 @@ class MyFed:
         reward = c * q
 
         for key, var in server_weights.items():
-            updated_parameters[key] = (alpha * reward * updated_parameters[key] + (1 - alpha * reward) * server_weights[key])
+            updated_parameters[key] = (alpha * updated_parameters[key] + (1 - alpha * reward) * server_weights[key])
         return updated_parameters

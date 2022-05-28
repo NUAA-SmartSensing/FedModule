@@ -6,8 +6,8 @@
       "shuffle": true,
       "list": [10, 10, 10, 5, 5, 5, 5]
     },
-    "data_file": "MNIST",
-    "data_name": "MNIST",
+    "data_file": "FashionMNIST",
+    "data_name": "FashionMNIST",
     "iid": false,
     "client_num": 50
   },
