@@ -17,8 +17,8 @@ class MyFed:
         a = update_param["a"]
         alpha = update_param["alpha"]
         r = update_param["r"]
-        c = 1
-        q = 1
+        c = update_param["c"]
+        q = update_param["q"]
 
         if (updater_thread.current_time.get_time() - time_stamp) <= b:
             s = 1
@@ -28,9 +28,14 @@ class MyFed:
         alpha = alpha * s * r
         server_weights = copy.deepcopy(updater_thread.server_network.state_dict())
 
+        updated_parameters = {}
+        for key, var in client_weights.items():
+            updated_parameters[key] = var.clone()
+            if torch.cuda.is_available():
+                updated_parameters[key] = updated_parameters[key].cuda()
         total_diff = 0
         for key, var in client_weights.items():
-            total_diff += torch.sum((server_weights[key] - client_weights[key]) ** 2)
+            total_diff += torch.sum((server_weights[key] - updated_parameters[key]) ** 2)
         total_diff = total_diff.tolist()
         self.total_quality += total_diff
         if (updater_thread.current_time.get_time() - time_stamp) > b:
@@ -40,12 +45,6 @@ class MyFed:
                 q = 2 - self.total_quality / ((epoch + 1) * total_diff)
         reward = c * q
 
-        updated_parameters = {}
-        for key, var in client_weights.items():
-            updated_parameters[key] = var.clone()
-            if torch.cuda.is_available():
-                updated_parameters[key] = updated_parameters[key].cuda()
-
         for key, var in server_weights.items():
-            updated_parameters[key] = (alpha * reward * updated_parameters[key] + (1 - alpha) * server_weights[key])
+            updated_parameters[key] = (alpha * reward * updated_parameters[key] + (1 - alpha * reward) * server_weights[key])
         return updated_parameters
