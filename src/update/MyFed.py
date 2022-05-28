@@ -17,8 +17,8 @@ class MyFed:
         a = update_param["a"]
         alpha = update_param["alpha"]
         r = update_param["r"]
-        c = update_param["c"]
-        q = update_param["q"]
+        c_num = update_param["c"]
+        d_num = update_param["d"]
 
         if (updater_thread.current_time.get_time() - time_stamp) <= b:
             s = 1
@@ -40,9 +40,9 @@ class MyFed:
         self.total_quality += total_diff
         if (updater_thread.current_time.get_time() - time_stamp) > b:
             if self.total_data <= (epoch + 1) * data_sum:
-                c = 2 - self.total_data / ((epoch + 1) * data_sum)
+                c = c_num - self.total_data / ((epoch + 1) * data_sum)
             if self.total_quality <= (epoch + 1) * total_diff:
-                q = 2 - self.total_quality / ((epoch + 1) * total_diff)
+                q = d_num - self.total_quality / ((epoch + 1) * total_diff)
         reward = c * q
 
         for key, var in server_weights.items():
