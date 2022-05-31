@@ -53,12 +53,21 @@ if __name__ == '__main__':
     client_config["stale_list"] = client_staleness_list
 
     # 保存配置文件
-    try:
-        config['global']['stale'] = client_staleness_list
-        with open("../results/" + global_config["experiment"] + "config.json", "w") as r:
-            json.dump(config, r, indent=4)
-    except shutil.SameFileError:
-        pass
+    if os.path.exists("../results/" + global_config["experiment"] + "config.json"):
+        is_cover = input("实验路径已存在config.json，是否覆盖(y/n):")
+        if is_cover == 'y' or is_cover == 'Y':
+            is_cover = True
+        else:
+            print("config.json将不会被存储")
+            is_cover = False
+
+    if is_cover:
+        try:
+            config['global']['stale'] = client_staleness_list
+            with open("../results/" + global_config["experiment"] + "config.json", "w") as r:
+                json.dump(config, r, indent=4)
+        except shutil.SameFileError:
+            pass
 
     start_time = datetime.datetime.now()
 
