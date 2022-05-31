@@ -5,3 +5,4 @@ src/results/*
 src/data/*
 src/*/__pycache__/*
 src/test/*
+src/utils/Plot.py
