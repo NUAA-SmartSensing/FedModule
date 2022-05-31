@@ -50,6 +50,7 @@ if __name__ == '__main__':
         client_staleness_list = generate_stale_list(stale['step'], stale['shuffle'], stale['list'])
     client_config["stale_list"] = client_staleness_list
 
+    is_cover = True
     # 保存配置文件
     if os.path.exists("../results/" + global_config["experiment"] + "config.json"):
         is_cover = input("实验路径已存在config.json，是否覆盖(y/n):")
