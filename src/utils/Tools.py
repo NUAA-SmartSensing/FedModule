@@ -65,9 +65,8 @@ def saveOrder(filename, result):
 
 
 def saveAns(filename, result):
-    save = open("../results/" + filename, "w")
-    for w in result:
-        save.write(str(w) + "\n")
+    save = open(filename, "w")
+    save.write(str(result))
     save.close()
 
 
