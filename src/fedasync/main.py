@@ -84,4 +84,5 @@ if __name__ == '__main__':
 
     # 保存结果
     saveAns("../results/" + global_config["experiment"] + "accuracy.txt", list(accuracy_list))
-    saveAns("../results/" + global_config["experiment"] + "time.txt", [end_time - start_time])
+    saveAns("../results/" + global_config["experiment"] + "time.txt", end_time - start_time)
+    result_to_markdown("../results/" + global_config["experiment"] + "实验阐述.md", config)

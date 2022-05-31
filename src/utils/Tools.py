@@ -70,5 +70,18 @@ def saveAns(filename, result):
     save.close()
 
 
+def result_to_markdown(filename, config):
+    md = open(filename, "w")
+    md.write("实验数据集: " + config["global"]["data_name"] + "\n")
+    md.write("实验服务器模型: " + config["server"]["model_name"] + "\n")
+    md.write("聚合算法: " + config["server"]["updater"]["update_name"] + "\n")
+    md.write("调度算法: " + config["server"]["scheduler"]["schedule_name"] + "\n")
+    md.write("实验客户端模型: " + config["client"]["model_name"] + "\n")
+    md.write("客户端数量: " + str(config["global"]["client_num"]) + "\n")
+    md.write("全局迭代次数: " + str(config["server"]["epochs"]) + "\n")
+    md.write("数据集分布: " + "iid" if config["global"]["iid"] else "non-iid" + "\n")
+    md.close()
+
+
 if __name__ == '__main__':
     generate_stale_list(15, True, [1,2,3])
