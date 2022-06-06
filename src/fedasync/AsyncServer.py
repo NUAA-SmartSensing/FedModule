@@ -2,13 +2,11 @@ import threading
 import ctypes
 import inspect
 import torch.cuda
-import Queue
-import AsyncClientManager
-import CheckInThread
-import SchedulerThread
-import UpdaterThread
-import Time
-from utils import ModuleFindTool
+from fedasync import AsyncClientManager
+from fedasync import CheckInThread
+from fedasync import SchedulerThread
+from fedasync import UpdaterThread
+from utils import ModuleFindTool, Queue, Time
 
 
 # 强制关闭线程
