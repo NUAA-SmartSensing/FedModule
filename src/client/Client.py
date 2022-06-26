@@ -6,10 +6,9 @@ from abc import abstractmethod
 
 
 class Client(threading.Thread):
-    def __init__(self, c_id, queue, stop_event, delay, train_ds):
+    def __init__(self, c_id, stop_event, delay, train_ds):
         threading.Thread.__init__(self)
         self.client_id = c_id
-        self.queue = queue
         self.event = threading.Event()
         self.event.clear()
         self.stop_event = stop_event

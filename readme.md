@@ -40,14 +40,20 @@ python3.8 + pytorch + macos
     │   ├── AsyncClientManager.py             客户端管理类
     │   ├── AsyncServer.py                    服务器类
     │   ├── CheckInThread.py                  CheckIn进程
-    │   ├── Queue.py
     │   ├── SchedulerThread.py                调度进程
-    │   ├── Time.py
     │   ├── UpdaterThread.py                  聚合进程
     │   ├── __init__.py
     │   └── main.py                           主函数
     ├── fedsync                               同步联邦学习
+    │   ├── QueueManager.py
+    │   ├── SchedulerThread.py
+    │   ├── SyncClientManager.py
+    │   ├── SyncServer.py
+    │   ├── UpdaterThread.py
     │   └── __init__.py
+    ├── fl                                    fl主函数
+    │   ├── __init__.py
+    │   └── main.py
     ├── loss                                  loss函数实现
     │   └── __init__.py
     ├── model                                 模型类
@@ -68,6 +74,8 @@ python3.8 + pytorch + macos
         ├── ConfigManager.py
         ├── ModuleFindTool.py
         ├── Plot.py
+        ├── Queue.py
+        ├── Time.py
         ├── Tools.py
         └── __init__.py
 

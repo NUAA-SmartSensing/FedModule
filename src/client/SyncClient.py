@@ -7,10 +7,10 @@ from client import Client
 from utils import ModuleFindTool
 
 
-class AsyncClient(Client.Client):
-    def __init__(self, c_id, queue, stop_event, delay, train_ds, client_config):
+class SyncClient(Client.Client):
+    def __init__(self, c_id, queue_manager, stop_event, delay, train_ds, client_config):
         Client.Client.__init__(self, c_id, stop_event, delay, train_ds)
-        self.queue = queue
+        self.queue_manager = queue_manager
         self.batch_size = client_config["batch_size"]
         self.epoch = client_config["epochs"]
         self.model_name = client_config["model_name"]
@@ -57,7 +57,7 @@ class AsyncClient(Client.Client):
 
                 # 返回其ID、模型参数和时间戳
                 update_dict = {"client_id": self.client_id, "weights": weights, "data_sum": data_sum, "time_stamp": self.time_stamp}
-                self.queue.put(update_dict)
+                self.queue_manager.put(update_dict)
                 self.event.clear()
                 self.client_thread_lock.release()
             # 该client等待被选中

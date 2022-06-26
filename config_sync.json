@@ -1,0 +1,67 @@
+{
+  "global": {
+    "experiment": "TMP/test/1",
+    "stale": {
+      "step": 1,
+      "shuffle": true,
+      "list": [10, 10, 10, 5, 5, 5, 5]
+    },
+    "data_file": "FashionMNIST",
+    "data_name": "FashionMNIST",
+    "iid": false,
+    "client_num": 50
+  },
+  "server": {
+    "epochs": 600,
+    "model_file": "CNN",
+    "model_name": "CNN",
+    "checkin": {
+      "checkin_interval": 600,
+      "checkin_num": 200
+    },
+    "scheduler": {
+      "scheduler_interval": 5,
+      "schedule_file": "RandomSchedule",
+      "schedule_name": "RandomSchedule",
+      "params": {
+        "c_ratio": 0.1,
+        "schedule_interval": 5
+      }
+    },
+    "updater": {
+      "update_file": "MyFed",
+      "update_name": "MyFed",
+      "params": {
+        "a": 10,
+        "b": 4,
+        "alpha": 0.1,
+        "r" : 1,
+        "c" : 2,
+        "d" : 2
+      }
+    },
+    "checker": {
+      "checker_file": "AvgCheck",
+      "checker_name": "AvgCheck",
+      "params": {
+        "schedule_interval": 5
+      }
+    }
+  },
+  "client_manager": {
+    "client_file": "AsyncClient",
+    "client_name": "AsyncClient"
+  },
+  "client": {
+    "epochs": 2,
+    "batch_size": 50,
+    "model_file": "CNN",
+    "model_name": "CNN",
+    "loss": "cross_entropy",
+    "optimizer": {
+      "name": "Adam",
+      "weight_decay": 0.005,
+      "lr": 0.01
+    }
+  }
+}
