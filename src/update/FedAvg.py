@@ -8,7 +8,7 @@ class FedAvg:
         client_nums = len(update_list)
         updated_parameters = {}
         for key, var in update_list[0]["weights"].items():
-            updated_parameters[key] = update_list[0]["weights"]
+            updated_parameters[key] = update_list[0]["weights"][key]
         for i in range(len(update_list)-1):
             update_dict = update_list[i+1]
             client_weights = update_dict["weights"]
