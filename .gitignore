@@ -3,6 +3,6 @@
 .idea
 src/results/*
 src/data/*
-src/*/__pycache__/*
+*.pyc
 src/test/*
 src/utils/Plot.py
