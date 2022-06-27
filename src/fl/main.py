@@ -9,6 +9,7 @@ from utils.Tools import *
 from utils.ConfigManager import *
 from exception import ClientSumError
 from fedasync import AsyncServer
+from fedsync import SyncServer
 
 if __name__ == '__main__':
     # 创建结果文件夹
@@ -62,7 +63,7 @@ if __name__ == '__main__':
 
     if is_cover:
         try:
-            config['global']['stale'] = client_staleness_list
+            global_config['stale'] = client_staleness_list
             with open("../results/" + global_config["experiment"] + "config.json", "w") as r:
                 json.dump(config, r, indent=4)
         except shutil.SameFileError:
@@ -73,14 +74,18 @@ if __name__ == '__main__':
     accuracy_lists = []
     loss_lists = []
 
-    async_server = AsyncServer.AsyncServer(global_config, server_config, client_config, manager_config)
-
-    async_server.run()
+    if global_config['mode'] == 'async':
+        server = AsyncServer.AsyncServer(global_config, server_config, client_config, manager_config)
+    elif global_config['mode'] == 'sync':
+        server = SyncServer.SyncServer(global_config, server_config, client_config, manager_config)
+    else:
+        server = AsyncServer.AsyncServer(global_config, server_config, client_config, manager_config)
+    server.run()
     print("")
 
-    accuracy_list = async_server.get_accuracy_list()
+    accuracy_list = server.get_accuracy_list()
 
-    del async_server
+    del server
 
     print("Thread count =", threading.activeCount())
     print(*threading.enumerate(), sep="\n")

@@ -1,6 +1,7 @@
 {
   "global": {
-    "experiment": "TMP/test/1",
+    "mode": "async",
+    "experiment": "TMP/test/3",
     "stale": {
       "step": 1,
       "shuffle": true,

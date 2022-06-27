@@ -1,5 +1,6 @@
 {
   "global": {
+    "mode": "sync",
     "experiment": "Sync/test/2",
     "stale": {
       "step": 1,
