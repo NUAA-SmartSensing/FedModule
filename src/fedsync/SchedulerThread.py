@@ -51,6 +51,7 @@ class SchedulerThread(threading.Thread):
             print("\n-----------------------------------------------------------------Schedule complete")
             # 等待所有客户端上传更新
             self.receiver.start(len(selected_client_threads))
+            # 通知updater聚合权重
             self.mutex_sem.release()
             self.full_sem.release()
             time.sleep(0.01)

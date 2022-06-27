@@ -55,8 +55,11 @@ class UpdaterThread(threading.Thread):
         # 终止所有client线程
         self.sync_client_manager.stop_all_clients()
 
-    def update_server_weights(self, epoch, update_dict, update_param):
-        updated_parameters = self.update.update_server_weights(self, epoch, update_dict, update_param)
+    def update_server_weights(self, epoch, update_list, update_param):
+        if not isinstance(update_list, list):
+            print("-------------- !!!error!!! --------------")
+            print("using asynchronous update method")
+        updated_parameters = self.update.update_server_weights(self, epoch, update_list, update_param)
         for key, var in updated_parameters.items():
             if torch.cuda.is_available():
                 updated_parameters[key] = updated_parameters[key].cuda()
