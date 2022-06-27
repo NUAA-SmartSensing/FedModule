@@ -1,1 +1,0 @@
-from fedsync.receiver import AvgReceiver

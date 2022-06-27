@@ -32,13 +32,15 @@ def _async_raise(tid, exc_type):
 class SyncServer:
     def __init__(self, global_config, server_config, client_config, manager_config):
         # 全局模型
-        model_class = ModuleFindTool.find_class_by_string("model", server_config["model_file"], server_config["model_name"])
+        model_class = ModuleFindTool.find_class_by_string("model", server_config["model_file"],
+                                                          server_config["model_name"])
         self.server_network = model_class()
         self.dev = 'cuda' if torch.cuda.is_available() else 'cpu'
         self.server_network = self.server_network.to(self.dev)
 
         # 数据集
-        dataset_class = ModuleFindTool.find_class_by_string("dataset", global_config["data_file"], global_config["data_name"])
+        dataset_class = ModuleFindTool.find_class_by_string("dataset", global_config["data_file"],
+                                                            global_config["data_name"])
         self.dataset = dataset_class(global_config["client_num"], global_config["iid"])
         self.test_data = self.dataset.get_test_dataset()
         self.T = server_config["epochs"]
@@ -58,8 +60,8 @@ class SyncServer:
         self.empty_sem = threading.Semaphore(1)
         self.full_sem = threading.Semaphore(0)
         self.sync_client_manager = SyncClientManager.SyncClientManager(init_weights, global_config["client_num"],
-                                                                          datasets, self.queue, self.current_t,
-                                                                          self.stop_event, client_config, manager_config)
+                                                                       datasets, self.queue, self.current_t,
+                                                                       self.stop_event, client_config, manager_config)
         self.scheduler_thread = SchedulerThread.SchedulerThread(self.server_thread_lock, self.sync_client_manager,
                                                                 self.queue, self.current_t, server_config["scheduler"],
                                                                 server_config["checkin"], self.server_network, self.T,
