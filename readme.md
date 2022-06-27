@@ -1,6 +1,6 @@
 # 联邦学习简易框架
 
->keywords: `federated-learning`, `asynchronous`
+>keywords: `federated-learning`, `asynchronous`, `synchronous`
 
 ## 初衷
 
@@ -24,6 +24,9 @@ python3.8 + pytorch + macos
 ├── readme.md                                 
 ├── requirements.txt
 └── src 
+    ├── checker                               上传器类
+    │   ├── AvgChecker.py
+    │   └── __init__.py
     ├── client                                客户端实现
     │   ├── AsyncClient.py                    异步客户端类
     │   ├── Client.py                         客户端基类
@@ -54,13 +57,7 @@ python3.8 + pytorch + macos
     │   ├── SyncServer.py                     同步服务器类
     │   ├── UpdaterThread.py                  聚合进程
     │   ├── __init__.py
-    │   ├── checker                           上传器类
-    │   │   ├── AvgChecker.py
-    │   │   └── __init__.py
-    │   ├── main.py                           主函数
-    │   └── receiver                          接收器类
-    │       ├── AvgReceiver.py
-    │       └── __init__.py
+    │   └── main.py                           主函数
     ├── fl                                    fl主函数
     │   ├── __init__.py
     │   └── main.py
@@ -70,6 +67,9 @@ python3.8 + pytorch + macos
     │   ├── CNN.py
     │   ├── ConvNet.py
     │   └── __init__.py
+    ├── receiver                              接收器类
+    │       ├── AvgReceiver.py
+    │       └── __init__.py
     ├── results                               实验结果
     ├── schedule                              调度算法类
     │   ├── RandomSchedule.py
@@ -93,7 +93,13 @@ python3.8 + pytorch + macos
 
 Time文件是一个多线程时间获取类的实现，Queue文件是因为mac的多线程queue部分功能未实现，对queue相关功能的实现。
 
+## 框架结构
+
 ## 类解释
+
+### 接收器类
+
+### 上传器类
 
 ## 配置文件
 
