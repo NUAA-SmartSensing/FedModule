@@ -22,8 +22,9 @@ class SchedulerThread(threading.Thread):
         self.T = t
         schedule_class = ModuleFindTool.find_class_by_string("schedule", scheduler_config["schedule_file"], scheduler_config["schedule_name"])
         self.schedule = schedule_class()
-        receiver_class = ModuleFindTool.find_class_by_string("fedsync", scheduler_config["receiver_file"], scheduler_config["receiver_name"])
-        self.receiver = receiver_class(queue)
+        receiver_config = scheduler_config["receiver"]
+        receiver_class = ModuleFindTool.find_class_by_string("receiver", receiver_config["receiver_file"], receiver_config["receiver_name"])
+        self.receiver = receiver_class(queue, receiver_config)
         self.config = scheduler_config
 
     def run(self):

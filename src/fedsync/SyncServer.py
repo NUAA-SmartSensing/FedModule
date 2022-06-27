@@ -2,10 +2,10 @@ import threading
 import ctypes
 import inspect
 import torch.cuda
-from fedasync import AsyncClientManager
-from fedasync import CheckInThread
-from fedasync import SchedulerThread
-from fedasync import UpdaterThread
+from fedsync import SyncClientManager
+from fedsync import CheckInThread
+from fedsync import SchedulerThread
+from fedsync import UpdaterThread
 from utils import ModuleFindTool, Queue, Time
 
 
@@ -54,17 +54,22 @@ class SyncServer:
         init_weights = self.server_network.state_dict()
         datasets = self.dataset.get_train_dataset()
 
-        self.async_client_manager = AsyncClientManager.AsyncClientManager(init_weights, global_config["client_num"],
+        self.mutex_sem = threading.Semaphore(1)
+        self.empty_sem = threading.Semaphore(1)
+        self.full_sem = threading.Semaphore(0)
+        self.sync_client_manager = SyncClientManager.SyncClientManager(init_weights, global_config["client_num"],
                                                                           datasets, self.queue, self.current_t,
                                                                           self.stop_event, client_config, manager_config)
-        self.scheduler_thread = SchedulerThread.SchedulerThread(self.server_thread_lock, self.async_client_manager,
+        self.scheduler_thread = SchedulerThread.SchedulerThread(self.server_thread_lock, self.sync_client_manager,
                                                                 self.queue, self.current_t, server_config["scheduler"],
-                                                                server_config["checkin"], self.server_network, self.T)
+                                                                server_config["checkin"], self.server_network, self.T,
+                                                                self.mutex_sem, self.empty_sem, self.full_sem)
         self.updater_thread = UpdaterThread.UpdaterThread(self.queue, self.server_thread_lock,
                                                           self.T, self.current_t, self.server_network,
-                                                          self.async_client_manager, self.stop_event,
-                                                          self.test_data, server_config["updater"])
-        self.check_in_thread = CheckInThread.CheckInThread(server_config["checkin"], self.async_client_manager,
+                                                          self.sync_client_manager, self.stop_event,
+                                                          self.test_data, server_config["updater"],
+                                                          self.mutex_sem, self.empty_sem, self.full_sem)
+        self.check_in_thread = CheckInThread.CheckInThread(server_config["checkin"], self.sync_client_manager,
                                                            self.current_t, self.T)
 
     def run(self):
@@ -75,7 +80,7 @@ class SyncServer:
         self.updater_thread.start()
         self.check_in_thread.start()
 
-        client_thread_list = self.async_client_manager.get_checked_in_client_thread_list()
+        client_thread_list = self.sync_client_manager.get_checked_in_client_thread_list()
         for client_thread in client_thread_list:
             client_thread.join()
         self.scheduler_thread.join()
@@ -97,7 +102,7 @@ class SyncServer:
         self.accuracy_list = self.updater_thread.get_accuracy_list()
         del self.scheduler_thread
         del self.updater_thread
-        del self.async_client_manager
+        del self.sync_client_manager
         del self.check_in_thread
         print("End!")
 

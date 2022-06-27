@@ -1,7 +1,7 @@
 import random
 import threading
-
-from client import AsyncClient
+from fedsync import QueueManager
+from client import SyncClient
 from utils import ModuleFindTool
 
 
@@ -9,6 +9,7 @@ class SyncClientManager:
     def __init__(self, init_weights, clients_num, datasets, q, current_time, stop_event, client_config, manager_config):
         self.init_weights = init_weights
         self.queue = q
+        self.queue_manager = QueueManager.QueueManager(q, current_time, manager_config["checker"])
         self.clients_num = clients_num
         self.batch_size = client_config["batch_size"]
         self.current_time = current_time
@@ -26,7 +27,7 @@ class SyncClientManager:
             client_delay = self.client_staleness_list[i]
             dataset = datasets[i]
             self.client_thread_list.append(
-                client_class(i, self.queue, self.stop_event, client_delay, dataset, client_config))
+                client_class(i, self.queue_manager, self.stop_event, client_delay, dataset, client_config))
 
         self.checked_in_client_thread_list = []
         self.unchecked_in_client_thread_list = []

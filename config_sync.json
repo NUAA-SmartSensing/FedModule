@@ -1,6 +1,6 @@
 {
   "global": {
-    "experiment": "TMP/test/1",
+    "experiment": "Sync/test/2",
     "stale": {
       "step": 1,
       "shuffle": true,
@@ -26,11 +26,15 @@
       "params": {
         "c_ratio": 0.1,
         "schedule_interval": 5
+      },
+      "receiver": {
+        "receiver_file": "AvgReceiver",
+        "receiver_name": "AvgReceiver"
       }
     },
     "updater": {
-      "update_file": "MyFed",
-      "update_name": "MyFed",
+      "update_file": "FedAvg",
+      "update_name": "FedAvg",
       "params": {
         "a": 10,
         "b": 4,
@@ -40,15 +44,19 @@
         "d" : 2
       }
     },
-    "checker": {
-      "checker_file": "AvgCheck",
-      "checker_name": "AvgCheck",
-      "params": {
-        "schedule_interval": 5
-      }
+    "receiver": {
+      "receiver_file": "AvgReceiver",
+      "receiver_name": "AvgReceiver"
     }
   },
   "client_manager": {
+    "checker": {
+      "checker_file": "AvgChecker",
+      "checker_name": "AvgChecker",
+      "params": {
+        "schedule_interval": 5
+      }
+    },
     "client_file": "AsyncClient",
     "client_name": "AsyncClient"
   },

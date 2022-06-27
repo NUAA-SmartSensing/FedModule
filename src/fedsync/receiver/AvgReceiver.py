@@ -2,8 +2,9 @@ import time
 
 
 class AvgReceiver:
-    def __init__(self, queue):
+    def __init__(self, queue, config):
         self.queue = queue
+        self.config = config
 
     def start(self, nums):
         while self.queue.qsize() < nums:
