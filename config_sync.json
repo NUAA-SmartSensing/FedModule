@@ -47,7 +47,9 @@
     },
     "receiver": {
       "receiver_file": "AvgReceiver",
-      "receiver_name": "AvgReceiver"
+      "receiver_name": "AvgReceiver",
+      "params": {
+      }
     }
   },
   "client_manager": {
@@ -55,7 +57,6 @@
       "checker_file": "AvgChecker",
       "checker_name": "AvgChecker",
       "params": {
-        "schedule_interval": 5
       }
     },
     "client_file": "AsyncClient",
