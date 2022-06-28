@@ -72,6 +72,7 @@ def saveAns(filename, result):
 
 def result_to_markdown(filename, config):
     md = open(filename, "w")
+    md.write("实验架构：" + config["global"]["mode"] + "\n")
     md.write("实验数据集: " + config["global"]["data_name"] + "\n")
     md.write("实验服务器模型: " + config["server"]["model_name"] + "\n")
     md.write("聚合算法: " + config["server"]["updater"]["update_name"] + "\n")
