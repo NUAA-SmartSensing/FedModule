@@ -13,7 +13,7 @@
     "client_num": 50
   },
   "server": {
-    "epochs": 600,
+    "epochs": 2,
     "model_file": "CNN",
     "model_name": "CNN",
     "checkin": {
