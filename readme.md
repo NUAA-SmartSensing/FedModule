@@ -208,6 +208,12 @@ Time文件是一个多线程时间获取类的实现，Queue文件是因为mac�
       "params": {                             调度算法相关参数
         "c_ratio": 0.1,
         "schedule_interval": 5
+      },
+      "receiver": {
+        "receiver_file": "AvgReceiver",       接收器文件
+        "receiver_name": "AvgReceiver"        接收器类 
+        "params": {
+        }
       }
     },
     "updater": {
@@ -220,12 +226,6 @@ Time文件是一个多线程时间获取类的实现，Queue文件是因为mac�
         "r" : 1,
         "c" : 2,
         "d" : 2
-      },
-      "receiver": {
-        "receiver_file": "AvgReceiver",       接收器文件
-        "receiver_name": "AvgReceiver"        接收器类 
-        "params": {
-        }
       }
     }
   },

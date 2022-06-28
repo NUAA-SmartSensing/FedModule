@@ -30,7 +30,9 @@
       },
       "receiver": {
         "receiver_file": "AvgReceiver",
-        "receiver_name": "AvgReceiver"
+        "receiver_name": "AvgReceiver",
+        "params": {
+        }
       }
     },
     "updater": {
@@ -43,12 +45,6 @@
         "r" : 1,
         "c" : 2,
         "d" : 2
-      }
-    },
-    "receiver": {
-      "receiver_file": "AvgReceiver",
-      "receiver_name": "AvgReceiver",
-      "params": {
       }
     }
   },
