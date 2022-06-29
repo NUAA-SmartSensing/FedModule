@@ -20,7 +20,7 @@ python3.8 + pytorch + macos
 
 ```text
 .
-├── config_sync.json                               配置文件   
+├── config_sync.json                          配置文件   
 ├── config.json                               配置文件                                
 ├── readme.md                                 
 ├── requirements.txt
