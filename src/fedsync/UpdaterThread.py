@@ -2,6 +2,7 @@ import threading
 import time
 
 import torch.utils.data
+import wandb
 from torch.utils.data import DataLoader
 from utils import ModuleFindTool
 
@@ -78,6 +79,8 @@ class UpdaterThread(threading.Thread):
         accuracy = test_correct / len(dl)
         self.accuracy_list.append(accuracy)
         print('Epoch(t):', epoch, 'accuracy:', accuracy)
+        if self.config['enabled']:
+            wandb.log({'accuracy': accuracy, 'epoch': epoch})
         return accuracy
 
     def get_accuracy_list(self):

@@ -89,7 +89,8 @@ if __name__ == '__main__':
 
     accuracy_lists = []
     loss_lists = []
-
+    # wanda启动配置植入update_config中
+    server_config['updater']['enabled'] = wandb_config['enabled']
     if global_config['mode'] == 'async':
         server = AsyncServer.AsyncServer(global_config, server_config, client_config, manager_config)
     elif global_config['mode'] == 'sync':
