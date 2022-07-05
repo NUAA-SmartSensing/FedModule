@@ -78,6 +78,13 @@ if __name__ == '__main__':
             config=config,
             name=wandb_config["name"],
         )
+    if wandb_config["enabled"]:
+        try:
+            global_config['stale'] = client_staleness_list
+            with open(os.path.join(wandb.run.dir, "config.json"), "w") as r:
+                json.dump(config, r, indent=4)
+        except shutil.SameFileError:
+            pass
     start_time = datetime.datetime.now()
 
     accuracy_lists = []
@@ -101,6 +108,7 @@ if __name__ == '__main__':
 
     print("Time used:")
     end_time = datetime.datetime.now()
+    print(end_time - start_time)
     print(((end_time - start_time).seconds / 60), "min")
     print(((end_time - start_time).seconds / 3600), "h")
 
@@ -109,4 +117,6 @@ if __name__ == '__main__':
     saveAns("../results/" + global_config["experiment"] + "time.txt", end_time - start_time)
     result_to_markdown("../results/" + global_config["experiment"] + "实验阐述.md", config)
     if wandb_config['enabled']:
-        wandb.save("../results/" + global_config["experiment"] + "*")
+        saveAns(os.path.join(wandb.run.dir, "accuracy.txt"), list(accuracy_list))
+        saveAns(os.path.join(wandb.run.dir, "time.txt"), end_time - start_time)
+        result_to_markdown(os.path.join(wandb.run.dir, "实验阐述.md"), config)
