@@ -80,7 +80,7 @@ class UpdaterThread(threading.Thread):
         self.accuracy_list.append(accuracy)
         print('Epoch(t):', epoch, 'accuracy:', accuracy)
         if self.config['enabled']:
-            wandb.log({'accuracy': accuracy, 'epoch': epoch})
+            wandb.log({'accuracy': accuracy})
         return accuracy
 
     def get_accuracy_list(self):
