@@ -274,6 +274,7 @@ Time文件是一个多线程时间获取类的实现，Queue文件是因为mac�
 - [x] 同步联邦学习
 - [ ] 收集loss信息
 - [ ] 自定义非独立同分布
+- [ ] 支持`Synthetic Non-Identical Client Data`生成;[相关论文](https://arxiv.org/pdf/1909.06335.pdf)
 - [ ] wandb可视化
 - [ ] leaf相关数据集支持
 - [ ] 支持多GPU
