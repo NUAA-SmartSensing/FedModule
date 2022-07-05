@@ -4,7 +4,10 @@ import torch
 
 
 class FedAvg:
-    def update_server_weights(self, updater_thread: UpdaterThread, epoch, update_list, update_param):
+    def __init__(self, config):
+        self.config = config
+
+    def update_server_weights(self, updater_thread: UpdaterThread, epoch, update_list):
         total_nums = 0
         for update_dict in update_list:
             total_nums += update_dict["data_sum"]

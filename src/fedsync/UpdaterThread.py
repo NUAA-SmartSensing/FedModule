@@ -27,7 +27,7 @@ class UpdaterThread(threading.Thread):
         self.accuracy_list = []
         self.config = updater_config
         update_class = ModuleFindTool.find_class_by_string("update", updater_config["update_file"], updater_config["update_name"])
-        self.update = update_class()
+        self.update = update_class(self.config["params"])
 
     def run(self):
         for epoch in range(self.T):
@@ -40,7 +40,7 @@ class UpdaterThread(threading.Thread):
                 update_list.append(self.queue.get())
 
             self.server_thread_lock.acquire()
-            self.update_server_weights(epoch, update_list, self.config["params"])
+            self.update_server_weights(epoch, update_list)
             self.run_server_test(epoch)
             self.server_thread_lock.release()
             self.check_in_thread_lock.release()
@@ -55,11 +55,11 @@ class UpdaterThread(threading.Thread):
         # 终止所有client线程
         self.sync_client_manager.stop_all_clients()
 
-    def update_server_weights(self, epoch, update_list, update_param):
+    def update_server_weights(self, epoch, update_list):
         if not isinstance(update_list, list):
             print("-------------- !!!error!!! --------------")
             print("using asynchronous update method")
-        updated_parameters = self.update.update_server_weights(self, epoch, update_list, update_param)
+        updated_parameters = self.update.update_server_weights(self, epoch, update_list)
         for key, var in updated_parameters.items():
             if torch.cuda.is_available():
                 updated_parameters[key] = updated_parameters[key].cuda()

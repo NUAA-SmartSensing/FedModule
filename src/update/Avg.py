@@ -4,7 +4,10 @@ import torch
 
 
 class Avg:
-    def update_server_weights(self, updater_thread: UpdaterThread, epoch, update_dict, update_param):
+    def __init__(self, config):
+        self.config = config
+
+    def update_server_weights(self, updater_thread: UpdaterThread, epoch, update_dict):
         client_weights = update_dict["weights"]
         updated_parameters = {}
         server_weights = copy.deepcopy(updater_thread.server_network.state_dict())

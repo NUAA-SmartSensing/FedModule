@@ -4,13 +4,16 @@ import torch
 
 
 class FedAsync:
-    def update_server_weights(self, updater_thread: UpdaterThread, epoch, update_dict, update_param):
+    def __init__(self, config):
+        self.config = config
+
+    def update_server_weights(self, updater_thread: UpdaterThread, epoch, update_dict):
         client_weights = update_dict["weights"]
         time_stamp = update_dict["time_stamp"]
-        b = update_param["b"]
-        a = update_param["a"]
-        alpha = update_param["alpha"]
-        r = update_param["r"]
+        b = self.config["b"]
+        a = self.config["a"]
+        alpha = self.config["alpha"]
+        r = self.config["r"]
         if (updater_thread.current_time.get_time() - time_stamp) <= b:
             s = 1
         else:

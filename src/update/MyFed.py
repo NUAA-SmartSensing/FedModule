@@ -4,21 +4,22 @@ import torch
 
 
 class MyFed:
-    def __init__(self):
+    def __init__(self, config):
+        self.config = config
         self.total_data = 0
         self.total_quality = 0
 
-    def update_server_weights(self, updater_thread: UpdaterThread, epoch, update_dict, update_param):
+    def update_server_weights(self, updater_thread: UpdaterThread, epoch, update_dict):
         client_weights = update_dict["weights"]
         data_sum = update_dict["data_sum"]
         time_stamp = update_dict["time_stamp"]
         self.total_data += data_sum
-        b = update_param["b"]
-        a = update_param["a"]
-        alpha = update_param["alpha"]
-        r = update_param["r"]
-        c_num = update_param["c"]
-        d_num = update_param["d"]
+        b = self.config["b"]
+        a = self.config["a"]
+        alpha = self.config["alpha"]
+        r = self.config["r"]
+        c_num = self.config["c"]
+        d_num = self.config["d"]
         c = 1
         q = 1
         if (updater_thread.current_time.get_time() - time_stamp) <= b:
