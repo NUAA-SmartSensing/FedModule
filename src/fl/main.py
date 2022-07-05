@@ -4,6 +4,7 @@ import os
 import shutil
 import threading
 import sys
+import wandb
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from utils.Tools import *
 from utils.ConfigManager import *
@@ -27,6 +28,7 @@ if __name__ == '__main__':
     server_config = copy.deepcopy(config['server'])
     client_config = copy.deepcopy(config['client'])
     manager_config = copy.deepcopy(config['client_manager'])
+    wandb_config = copy.deepcopy(config['wandb'])
 
     # 实验路径相关
     if not global_config["experiment"].endswith("/"):
@@ -69,6 +71,13 @@ if __name__ == '__main__':
         except shutil.SameFileError:
             pass
 
+    # 初始化wandb
+    if wandb_config["enabled"]:
+        wandb.init(
+            project=wandb_config["project"],
+            config=config,
+            name=wandb_config["name"],
+        )
     start_time = datetime.datetime.now()
 
     accuracy_lists = []
@@ -99,3 +108,5 @@ if __name__ == '__main__':
     saveAns("../results/" + global_config["experiment"] + "accuracy.txt", list(accuracy_list))
     saveAns("../results/" + global_config["experiment"] + "time.txt", end_time - start_time)
     result_to_markdown("../results/" + global_config["experiment"] + "实验阐述.md", config)
+    if wandb_config['enabled']:
+        wandb.save("../results/" + global_config["experiment"] + "*")

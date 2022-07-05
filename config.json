@@ -1,7 +1,12 @@
 {
+  "wandb": {
+    "enabled": true,
+    "project": "non-iid实验对比",
+    "name": "1"
+  },
   "global": {
     "mode": "async",
-    "experiment": "TMP/test/3",
+    "experiment": "TMP/test/4",
     "stale": {
       "step": 1,
       "shuffle": true,
@@ -13,7 +18,7 @@
     "client_num": 50
   },
   "server": {
-    "epochs": 600,
+    "epochs": 2,
     "model_file": "CNN",
     "model_name": "CNN",
     "checkin": {
