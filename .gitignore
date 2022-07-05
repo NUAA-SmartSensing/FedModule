@@ -6,3 +6,4 @@ src/data/*
 *.pyc
 src/test/*
 src/utils/Plot.py
+src/fl/wandb/*
