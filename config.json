@@ -37,6 +37,7 @@
     "updater": {
       "update_file": "MyFed",
       "update_name": "MyFed",
+      "loss": "cross_entropy",
       "params": {
         "a": 10,
         "b": 4,

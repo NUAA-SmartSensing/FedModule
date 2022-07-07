@@ -100,7 +100,7 @@ if __name__ == '__main__':
     server.run()
     print("")
 
-    accuracy_list = server.get_accuracy_list()
+    accuracy_list, loss_list = server.get_accuracy_and_loss_list()
 
     del server
 
@@ -115,9 +115,11 @@ if __name__ == '__main__':
 
     # 保存结果
     saveAns("../results/" + global_config["experiment"] + "accuracy.txt", list(accuracy_list))
+    saveAns("../results/" + global_config["experiment"] + "loss.txt", list(loss_list))
     saveAns("../results/" + global_config["experiment"] + "time.txt", end_time - start_time)
     result_to_markdown("../results/" + global_config["experiment"] + "实验阐述.md", config)
     if wandb_config['enabled']:
         saveAns(os.path.join(wandb.run.dir, "accuracy.txt"), list(accuracy_list))
+        saveAns(os.path.join(wandb.run.dir, "loss.txt"), list(loss_list))
         saveAns(os.path.join(wandb.run.dir, "time.txt"), end_time - start_time)
         result_to_markdown(os.path.join(wandb.run.dir, "实验阐述.md"), config)

@@ -5,6 +5,7 @@ import torch.utils.data
 import wandb
 from torch.utils.data import DataLoader
 from utils import ModuleFindTool
+import torch.nn.functional as F
 
 
 class UpdaterThread(threading.Thread):
@@ -28,9 +29,16 @@ class UpdaterThread(threading.Thread):
         self.sum_delay = 0
 
         self.accuracy_list = []
+        self.loss_list = []
         self.config = updater_config
         update_class = ModuleFindTool.find_class_by_string("update", updater_config["update_file"], updater_config["update_name"])
         self.update = update_class(self.config["params"])
+
+        # loss函数
+        if isinstance(updater_config["loss"], str):
+            self.loss_func = ModuleFindTool.find_F_by_string(updater_config["loss"])
+        else:
+            self.loss_func = ModuleFindTool.find_class_by_string("loss", updater_config["loss"]["loss_file"], updater_config["loss"]["loss_name"])
 
     def run(self):
         for epoch in range(self.T):
@@ -84,19 +92,23 @@ class UpdaterThread(threading.Thread):
     def run_server_test(self, epoch):
         dl = DataLoader(self.test_data, batch_size=100, shuffle=True)
         test_correct = 0
+        test_loss = 0
         dev = 'cuda' if torch.cuda.is_available() else 'cpu'
         for data in dl:
             inputs, labels = data
             inputs, labels = inputs.to(dev), labels.to(dev)
             outputs = self.server_network(inputs)
             _, id = torch.max(outputs.data, 1)
+            test_loss += self.loss_func(outputs, labels).item()
             test_correct += torch.sum(id == labels.data).cpu().numpy()
         accuracy = test_correct / len(dl)
+        loss = test_loss / len(dl)
+        self.loss_list.append(loss)
         self.accuracy_list.append(accuracy)
-        print('Epoch(t):', epoch, 'accuracy:', accuracy)
+        print('Epoch(t):', epoch, 'accuracy:', accuracy, 'loss', loss)
         if self.config['enabled']:
-            wandb.log({'accuracy': accuracy})
-        return accuracy
+            wandb.log({'accuracy': accuracy, 'loss': loss})
+        return accuracy, loss
 
-    def get_accuracy_list(self):
-        return self.accuracy_list
+    def get_accuracy_and_loss_list(self):
+        return self.accuracy_list, self.loss_list

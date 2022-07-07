@@ -49,6 +49,7 @@ class SyncServer:
         self.current_t = Time.Time(0)
         self.queue = Queue.Queue()
         self.accuracy_list = []
+        self.loss_list = []
         self.stop_event = threading.Event()
         self.stop_event.clear()
         self.server_thread_lock = threading.Lock()
@@ -101,12 +102,12 @@ class SyncServer:
                 self.queue.get()
         self.queue.close()
 
-        self.accuracy_list = self.updater_thread.get_accuracy_list()
+        self.accuracy_list, self.loss_list = self.updater_thread.get_accuracy_and_loss_list()
         del self.scheduler_thread
         del self.updater_thread
         del self.sync_client_manager
         del self.check_in_thread
         print("End!")
 
-    def get_accuracy_list(self):
-        return self.accuracy_list
+    def get_accuracy_and_loss_list(self):
+        return self.accuracy_list, self.loss_list

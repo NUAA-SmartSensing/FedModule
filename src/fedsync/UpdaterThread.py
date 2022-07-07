@@ -26,9 +26,16 @@ class UpdaterThread(threading.Thread):
         self.check_in_thread_lock = self.sync_client_manager.get_check_in_thread_lock()
 
         self.accuracy_list = []
+        self.loss_list = []
         self.config = updater_config
         update_class = ModuleFindTool.find_class_by_string("update", updater_config["update_file"], updater_config["update_name"])
         self.update = update_class(self.config["params"])
+
+        # loss函数
+        if isinstance(updater_config["loss"], str):
+            self.loss_func = ModuleFindTool.find_F_by_string(updater_config["loss"])
+        else:
+            self.loss_func = ModuleFindTool.find_class_by_string("loss", updater_config["loss"]["loss_file"], updater_config["loss"]["loss_name"])
 
     def run(self):
         for epoch in range(self.T):
@@ -69,6 +76,7 @@ class UpdaterThread(threading.Thread):
     def run_server_test(self, epoch):
         dl = DataLoader(self.test_data, batch_size=100, shuffle=True)
         test_correct = 0
+        test_loss = 0
         dev = 'cuda' if torch.cuda.is_available() else 'cpu'
         for data in dl:
             inputs, labels = data
@@ -76,12 +84,15 @@ class UpdaterThread(threading.Thread):
             outputs = self.server_network(inputs)
             _, id = torch.max(outputs.data, 1)
             test_correct += torch.sum(id == labels.data).cpu().numpy()
+            test_loss += self.loss_func(outputs, labels).item()
         accuracy = test_correct / len(dl)
+        loss = test_loss / len(dl)
         self.accuracy_list.append(accuracy)
+        self.loss_list.append(loss)
         print('Epoch(t):', epoch, 'accuracy:', accuracy)
         if self.config['enabled']:
             wandb.log({'accuracy': accuracy})
         return accuracy
 
-    def get_accuracy_list(self):
-        return self.accuracy_list
+    def get_accuracy_and_loss_list(self):
+        return self.accuracy_list, self.loss_list
