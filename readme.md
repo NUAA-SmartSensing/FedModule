@@ -114,6 +114,11 @@ Time文件是一个多线程时间获取类的实现，Queue文件是因为mac�
 
 ```text
 {
+  "wandb": {                                  wandb配置
+    "enabled": true,                          是否启用
+    "project": "non-iid test",                项目名称  
+    "name": "1"                               本次运行结果
+  },
   "global": {
     "mode": "async"                           同步｜异步
     "experiment": "TMP/test/1",               实验路径/结果存放路径
@@ -180,6 +185,11 @@ Time文件是一个多线程时间获取类的实现，Queue文件是因为mac�
 
 ```text
 {
+  "wandb": {                                  wandb配置
+    "enabled": true,                          是否启用
+    "project": "non-iid test",                项目名称  
+    "name": "1"                               本次运行结果
+  },
   "global": {
     "mode": "async"                           同步｜异步
     "experiment": "TMP/test/1",               实验路径/结果存放路径
@@ -272,7 +282,7 @@ Time文件是一个多线程时间获取类的实现，Queue文件是因为mac�
 - [x] 支持替换loss函数
 - [x] 支持替换客户端
 - [x] 同步联邦学习
-- [ ] 收集loss信息
+- [ ] 收集loss信息（50%）
 - [ ] 自定义非独立同分布
 - [ ] 支持`Synthetic Non-Identical Client Data`生成;[相关论文](https://arxiv.org/pdf/1909.06335.pdf)
 - [x] wandb可视化
