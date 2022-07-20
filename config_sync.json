@@ -43,6 +43,7 @@
     "updater": {
       "update_file": "FedAvg",
       "update_name": "FedAvg",
+      "loss": "cross_entropy",
       "params": {
         "a": 10,
         "b": 4,
