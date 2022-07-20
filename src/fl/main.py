@@ -123,3 +123,4 @@ if __name__ == '__main__':
         saveAns(os.path.join(wandb.run.dir, "loss.txt"), list(loss_list))
         saveAns(os.path.join(wandb.run.dir, "time.txt"), end_time - start_time)
         result_to_markdown(os.path.join(wandb.run.dir, "实验阐述.md"), config)
+    torch.optim.Adam()
