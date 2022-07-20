@@ -15,6 +15,7 @@ class AsyncClient(Client.Client):
         self.epoch = client_config["epochs"]
         self.model_name = client_config["model_name"]
         self.optimizer_config = client_config["optimizer"]
+        self.config = client_config
 
         # 本地模型
         model_class = ModuleFindTool.find_class_by_string("model", client_config["model_file"], client_config["model_name"])
