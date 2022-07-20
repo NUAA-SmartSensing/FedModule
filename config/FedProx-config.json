@@ -68,11 +68,11 @@
     "loss": "cross_entropy",
     "optimizer": {
       "name": "Adam",
-      "weight_decay": 0.005,
+      "weight_decay": 0,
       "lr": 0.01
     },
     "params": {
-      "stragglers": 10,
+      "stragglers": true,
       "local_epoch": 8,
       "weight_decay": 0
     }
