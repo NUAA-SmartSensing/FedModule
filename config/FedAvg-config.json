@@ -72,7 +72,8 @@
     "loss": "cross_entropy",
     "optimizer": {
       "name": "Adam",
-      "lr": 0.01
+      "lr": 0.01,
+      "weight_decay": 0
     }
   }
 }

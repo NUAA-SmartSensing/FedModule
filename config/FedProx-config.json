@@ -73,7 +73,8 @@
     },
     "params": {
       "stragglers": 10,
-      "local_epoch": 8
+      "local_epoch": 8,
+      "weight_decay": 0
     }
   }
 }
