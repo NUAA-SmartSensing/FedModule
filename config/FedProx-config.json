@@ -1,19 +1,15 @@
 {
   "wandb": {
     "enabled": true,
-    "project": "FedAvg",
+    "project": "FedProx",
     "name": "1"
   },
   "global": {
     "mode": "sync",
-    "experiment": "FedAvg/1",
-    "stale": {
-      "step": 1,
-      "shuffle": true,
-      "list": [10, 10, 10, 5, 5, 5, 5]
-    },
-    "data_file": "FashionMNIST",
-    "data_name": "FashionMNIST",
+    "experiment": "FedProx/1",
+    "stale": false,
+    "data_file": "MNIST",
+    "data_name": "MNIST",
     "iid": false,
     "client_num": 50
   },
@@ -61,8 +57,8 @@
       "params": {
       }
     },
-    "client_file": "SyncClient",
-    "client_name": "SyncClient"
+    "client_file": "AsyncClient",
+    "client_name": "AsyncClient"
   },
   "client": {
     "epochs": 2,
@@ -72,7 +68,12 @@
     "loss": "cross_entropy",
     "optimizer": {
       "name": "Adam",
+      "weight_decay": 0.005,
       "lr": 0.01
+    },
+    "params": {
+      "stragglers": 10,
+      "local_epoch": 8
     }
   }
 }

@@ -61,8 +61,8 @@
       "params": {
       }
     },
-    "client_file": "AsyncClient",
-    "client_name": "AsyncClient"
+    "client_file": "SyncClient",
+    "client_name": "SyncClient"
   },
   "client": {
     "epochs": 2,
@@ -72,7 +72,6 @@
     "loss": "cross_entropy",
     "optimizer": {
       "name": "Adam",
-      "weight_decay": 0.005,
       "lr": 0.01
     }
   }
