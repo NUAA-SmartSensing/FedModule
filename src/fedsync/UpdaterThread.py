@@ -89,7 +89,7 @@ class UpdaterThread(threading.Thread):
         loss = test_loss / len(dl)
         self.accuracy_list.append(accuracy)
         self.loss_list.append(loss)
-        print('Epoch(t):', epoch, 'accuracy:', accuracy)
+        print('Epoch(t):', epoch, 'accuracy:', accuracy, 'loss', loss)
         if self.config['enabled']:
             wandb.log({'accuracy': accuracy})
         return accuracy
