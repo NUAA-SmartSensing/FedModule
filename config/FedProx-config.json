@@ -57,8 +57,8 @@
       "params": {
       }
     },
-    "client_file": "AsyncClient",
-    "client_name": "AsyncClient"
+    "client_file": "ProxClient",
+    "client_name": "ProxClient"
   },
   "client": {
     "epochs": 2,
@@ -66,15 +66,15 @@
     "model_file": "CNN",
     "model_name": "CNN",
     "loss": "cross_entropy",
+    "mu": 0.01,
     "optimizer": {
       "name": "Adam",
       "weight_decay": 0,
       "lr": 0.01
     },
     "params": {
-      "stragglers": true,
-      "local_epoch": 8,
-      "weight_decay": 0
+      "straggler": true,
+      "local_epoch": 8
     }
   }
 }
