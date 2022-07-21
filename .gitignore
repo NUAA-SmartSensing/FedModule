@@ -7,3 +7,4 @@ src/data/*
 src/test/*
 src/utils/Plot.py
 src/fl/wandb/*
+config_test.json
