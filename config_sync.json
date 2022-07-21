@@ -73,7 +73,8 @@
     "mu": 0.01,
     "optimizer": {
       "name": "Adam",
-      "lr": 0.01
+      "lr": 0.01,
+      "weight_decay": 0
     }
   }
 }
