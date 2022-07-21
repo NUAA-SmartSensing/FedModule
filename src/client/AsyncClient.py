@@ -15,6 +15,7 @@ class AsyncClient(Client.Client):
         self.epoch = client_config["epochs"]
         self.model_name = client_config["model_name"]
         self.optimizer_config = client_config["optimizer"]
+        self.mu = client_config["mu"]
         self.config = client_config
 
         # 本地模型
@@ -66,4 +67,4 @@ class AsyncClient(Client.Client):
                 self.event.wait()
 
     def train_one_epoch(self, r_weights):
-        return self.model.train_one_epoch(self.epoch, self.dev, self.train_dl, self.model, self.loss_func, self.opti)
+        return self.model.train_one_epoch(self.epoch, self.dev, self.train_dl, self.model, self.loss_func, self.opti, self.mu)

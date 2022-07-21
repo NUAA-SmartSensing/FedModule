@@ -70,6 +70,7 @@
     "model_file": "CNN",
     "model_name": "CNN",
     "loss": "cross_entropy",
+    "mu": 0.01,
     "optimizer": {
       "name": "Adam",
       "lr": 0.01

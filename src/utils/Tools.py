@@ -4,16 +4,16 @@ import numpy as np
 from torch.utils.data import TensorDataset
 
 
-def generate_stale_list(step, shuffle, n1, *n):
+def generate_stale_list(step, shuffle, n):
     stale_list = []
-    for i in range(n1):
+    for i in range(n[0]):
         stale_list.append(0)
 
     bound = 0
-    for i in n:
-        for j in range(i):
+    for i in range(1, len(n)):
+        for j in range(n[i]):
             while True:
-                s = np.random.randint(bound, bound + step)
+                s = random.randint(bound, bound + step)
                 if s != 0:
                     break
             stale_list.append(s)

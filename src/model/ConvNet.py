@@ -23,7 +23,10 @@ class ConvNet(nn.Module):
         x = self.fc3(x)
         return x
 
-    def train_one_epoch(self, epoch, dev, train_dl, model, loss_func, opti):
+    def train_one_epoch(self, epoch, dev, train_dl, model, loss_func, opti, mu):
+        if mu != 0:
+            global_model = copy.deepcopy(model)
+        data_sum = 0
         for t in range(epoch):
             # 设置迭代次数
             running_loss = 0.0
@@ -40,6 +43,13 @@ class ConvNet(nn.Module):
                 outputs = model(inputs)
                 # loss
                 loss = loss_func(outputs, labels)
+                data_sum += labels.size(0)
+                # 正则项
+                if mu != 0:
+                    proximal_term = 0.0
+                    for w, w_t in zip(model.parameters(), global_model.parameters()):
+                        proximal_term += (w - w_t).norm(2)
+                    loss = loss + (mu / 2) * proximal_term
                 # backward
                 loss.backward()
                 # update weights
@@ -48,7 +58,7 @@ class ConvNet(nn.Module):
         weights = copy.deepcopy(model.state_dict())
         for k, v in weights.items():
             weights[k] = weights[k].cpu().detach()
-        return weights
+        return data_sum, weights
 
 
 if __name__ == '__main__':
