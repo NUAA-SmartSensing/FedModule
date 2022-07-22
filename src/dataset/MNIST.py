@@ -42,33 +42,36 @@ class MNIST:
             self.raw_data = self.raw_data[order]
             self.train_labels = self.train_labels[order]
         total_clients = clients
-        clients = clients // 2
-        shard_size = self.train_data_size // clients // 4
-        for i in range(clients):
-            client_data1 = self.train_data[shard_size * i: shard_size * (i + 1)]
-            client_data2 = self.train_data[
-                           shard_size * clients + shard_size * i: shard_size * clients + shard_size * (i + 1)]
-            client_data3 = self.train_data[
-                           shard_size * clients * 2 + shard_size * i: shard_size * clients * 2 + shard_size * (i + 1)]
-            client_data4 = self.train_data[
-                           shard_size * clients * 3 + shard_size * i: shard_size * clients * 3 + shard_size * (i + 1)]
-            client_data5 = self.train_data[
-                           shard_size * clients * 4 + shard_size * i: shard_size * clients * 3 + shard_size * (i + 1)]
-            client_label1 = self.train_labels[shard_size * i: shard_size * (i + 1)]
-            client_label2 = self.train_labels[
-                            shard_size * clients + shard_size * i: shard_size * clients + shard_size * (i + 1)]
-            client_label3 = self.train_labels[
-                            shard_size * clients * 2 + shard_size * i: shard_size * clients * 2 + shard_size * (i + 1)]
-            client_label4 = self.train_labels[
-                            shard_size * clients * 3 + shard_size * i: shard_size * clients * 3 + shard_size * (i + 1)]
-            client_label5 = self.train_labels[
-                            shard_size * clients * 4 + shard_size * i: shard_size * clients * 3 + shard_size * (i + 1)]
-            client_data, client_label = np.vstack(
-                (client_data1, client_data2, client_data3, client_data4, client_data5)), np.hstack(
-                (client_label1, client_label2, client_label3, client_label4, client_label5))
-            self.datasets.append(TensorDataset(torch.tensor(client_data), torch.tensor(client_label)))
-        for i in range(total_clients - clients):
-            self.datasets.append(copy.deepcopy(self.datasets[i]))
+        label_lists = generate_label_lists([4]*50, 0, 10)
+        data_lists = generate_data_lists(2000,2000,total_clients, label_lists)
+        self.datasets = generate_non_iid_data(self.train_data, self.train_labels, label_lists, data_lists )
+        # clients = clients // 2
+        # shard_size = self.train_data_size // clients // 4
+        # for i in range(clients):
+        #     client_data1 = self.train_data[shard_size * i: shard_size * (i + 1)]
+        #     client_data2 = self.train_data[
+        #                    shard_size * clients + shard_size * i: shard_size * clients + shard_size * (i + 1)]
+        #     client_data3 = self.train_data[
+        #                    shard_size * clients * 2 + shard_size * i: shard_size * clients * 2 + shard_size * (i + 1)]
+        #     client_data4 = self.train_data[
+        #                    shard_size * clients * 3 + shard_size * i: shard_size * clients * 3 + shard_size * (i + 1)]
+        #     client_data5 = self.train_data[
+        #                    shard_size * clients * 4 + shard_size * i: shard_size * clients * 3 + shard_size * (i + 1)]
+        #     client_label1 = self.train_labels[shard_size * i: shard_size * (i + 1)]
+        #     client_label2 = self.train_labels[
+        #                     shard_size * clients + shard_size * i: shard_size * clients + shard_size * (i + 1)]
+        #     client_label3 = self.train_labels[
+        #                     shard_size * clients * 2 + shard_size * i: shard_size * clients * 2 + shard_size * (i + 1)]
+        #     client_label4 = self.train_labels[
+        #                     shard_size * clients * 3 + shard_size * i: shard_size * clients * 3 + shard_size * (i + 1)]
+        #     client_label5 = self.train_labels[
+        #                     shard_size * clients * 4 + shard_size * i: shard_size * clients * 3 + shard_size * (i + 1)]
+        #     client_data, client_label = np.vstack(
+        #         (client_data1, client_data2, client_data3, client_data4, client_data5)), np.hstack(
+        #         (client_label1, client_label2, client_label3, client_label4, client_label5))
+        #     self.datasets.append(TensorDataset(torch.tensor(client_data), torch.tensor(client_label)))
+        # for i in range(total_clients - clients):
+        #     self.datasets.append(copy.deepcopy(self.datasets[i]))
 
     def get_test_dataset(self):
         return self.test_datasets

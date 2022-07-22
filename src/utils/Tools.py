@@ -36,7 +36,7 @@ def generate_non_iid_data(x, y, label_lists, data_lists):
     for i in range(len(label_lists)):
         index_list = []
         for j in range(len(label_lists[i])):
-            ids = np.floatnonzero(y==label_lists[i][j])
+            ids = np.flatnonzero(y==label_lists[i][j])
             ids = np.random.choice(ids, data_lists[i][j], replace=False)
             index_list.append(ids)
         index_list = np.hstack(index_list)
@@ -71,10 +71,11 @@ def generate_label_lists(label_num_list, left, right):
         label_list = []
         for i in range(label_num):
             while True:
-                y = random.randint(left, right)
+                y = np.random.randint(left, right)
                 if y not in label_list:
                     label_list.append(y)
                     break
+        label_lists.append(label_list)
     return label_lists
 
 
