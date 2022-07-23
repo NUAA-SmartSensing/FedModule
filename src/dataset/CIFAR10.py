@@ -5,7 +5,7 @@ from torchvision import transforms
 
 
 class CIFAR10:
-    def __init__(self, clients, is_iid=False):
+    def __init__(self, clients, iid_config):
         # train_transform = transforms.Compose([transforms.RandomHorizontalFlip(), transforms.ToTensor()])
         # test_transform = transforms.Compose([transforms.ToTensor()])
         # 获取数据集
