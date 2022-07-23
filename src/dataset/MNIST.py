@@ -64,8 +64,7 @@ class MNIST:
             else:
                 label_lists = generate_label_lists(label_config, 0, 10)
 
-
-# 生成data lists
+            # 生成data lists
             # {}
             if len(data_config) == 0:
                 size = self.train_data_size // clients
