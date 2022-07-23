@@ -5,11 +5,9 @@ import shutil
 import threading
 import sys
 import wandb
-import pandas as pd
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from utils.Tools import *
 from utils.ConfigManager import *
-from utils.JsonTool import *
 from exception import ClientSumError
 from fedasync import AsyncServer
 from fedsync import SyncServer
