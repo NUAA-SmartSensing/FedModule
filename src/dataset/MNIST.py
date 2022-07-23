@@ -3,10 +3,11 @@ import copy
 from torchvision import datasets, transforms
 from torch.utils.data import TensorDataset
 from utils.Tools import *
+from utils.JsonTool import *
 
 
 class MNIST:
-    def __init__(self, clients, is_iid=False):
+    def __init__(self, clients, iid_config):
         # 获取数据集
         train_datasets = datasets.MNIST(root='../data/', train=True,
                                         transform=transforms.ToTensor(), download=True)
@@ -27,51 +28,56 @@ class MNIST:
 
         self.train_data_size = train_data.shape[0]
         self.datasets = []
+        self.iid_config = iid_config
 
-        if is_iid:
+        if isinstance(iid_config, bool):
+            print("generating iid data...")
             order = np.arange(self.train_data_size)
             np.random.shuffle(order)
             self.train_data = self.train_data[order]
             self.train_labels = self.train_labels[order]
+            shard_size = self.train_data_size // clients // 2
+            for i in range(clients):
+                client_data1 = self.train_data[shard_size * i: shard_size * (i + 1)]
+                client_data2 = self.train_data[
+                               shard_size * clients + shard_size * i: shard_size * clients + shard_size * (i + 1)]
+                client_label1 = self.train_labels[shard_size * i: shard_size * (i + 1)]
+                client_label2 = self.train_labels[
+                                shard_size * clients + shard_size * i: shard_size * clients + shard_size * (i + 1)]
+                client_data, client_label = np.vstack(
+                    (client_data1, client_data2)), np.hstack(
+                    (client_label1, client_label2))
+                self.datasets.append(TensorDataset(torch.tensor(client_data), torch.tensor(client_label)))
         else:
-            print("generating...")
-            order = np.argsort(self.train_labels)
-            # saveOrder("IID/MNIST/order.txt", list(order))
-            # order = get_order_as_tuple("../results/IID/MNIST/order.txt")
-            self.train_data = self.train_data[order]
-            self.raw_data = self.raw_data[order]
-            self.train_labels = self.train_labels[order]
-        total_clients = clients
-        label_lists = generate_label_lists([4]*50, 0, 10)
-        data_lists = generate_data_lists(2000,2000,total_clients, label_lists)
-        self.datasets = generate_non_iid_data(self.train_data, self.train_labels, label_lists, data_lists )
-        # clients = clients // 2
-        # shard_size = self.train_data_size // clients // 4
-        # for i in range(clients):
-        #     client_data1 = self.train_data[shard_size * i: shard_size * (i + 1)]
-        #     client_data2 = self.train_data[
-        #                    shard_size * clients + shard_size * i: shard_size * clients + shard_size * (i + 1)]
-        #     client_data3 = self.train_data[
-        #                    shard_size * clients * 2 + shard_size * i: shard_size * clients * 2 + shard_size * (i + 1)]
-        #     client_data4 = self.train_data[
-        #                    shard_size * clients * 3 + shard_size * i: shard_size * clients * 3 + shard_size * (i + 1)]
-        #     client_data5 = self.train_data[
-        #                    shard_size * clients * 4 + shard_size * i: shard_size * clients * 3 + shard_size * (i + 1)]
-        #     client_label1 = self.train_labels[shard_size * i: shard_size * (i + 1)]
-        #     client_label2 = self.train_labels[
-        #                     shard_size * clients + shard_size * i: shard_size * clients + shard_size * (i + 1)]
-        #     client_label3 = self.train_labels[
-        #                     shard_size * clients * 2 + shard_size * i: shard_size * clients * 2 + shard_size * (i + 1)]
-        #     client_label4 = self.train_labels[
-        #                     shard_size * clients * 3 + shard_size * i: shard_size * clients * 3 + shard_size * (i + 1)]
-        #     client_label5 = self.train_labels[
-        #                     shard_size * clients * 4 + shard_size * i: shard_size * clients * 3 + shard_size * (i + 1)]
-        #     client_data, client_label = np.vstack(
-        #         (client_data1, client_data2, client_data3, client_data4, client_data5)), np.hstack(
-        #         (client_label1, client_label2, client_label3, client_label4, client_label5))
-        #     self.datasets.append(TensorDataset(torch.tensor(client_data), torch.tensor(client_label)))
-        # for i in range(total_clients - clients):
-        #     self.datasets.append(copy.deepcopy(self.datasets[i]))
+            print("generating non_iid data...")
+            label_config = iid_config['label']
+            data_config = iid_config['data']
+            # 生成label lists
+            if isinstance(label_config, dict):
+                # step
+                if "step" in label_config.keys():
+                    label_lists = generate_label_lists_by_step(label_config["step"], label_config["list"], 0, 10)
+                # {[],[],[]}
+                else:
+                    label_lists = dict_to_list(label_config)
+            # []
+            else:
+                label_lists = generate_label_lists(label_config, 0, 10)
+
+
+# 生成data lists
+            # {}
+            if len(data_config) == 0:
+                size = self.train_data_size // clients
+                data_lists = generate_data_lists(size, size, clients, label_lists)
+            # max,min
+            else:
+                data_lists = generate_data_lists(data_config["max"], data_config["min"], clients, label_lists)
+            # 生成datasets
+            self.datasets = generate_non_iid_data(self.train_data, self.train_labels, label_lists, data_lists)
+            # 保存label至配置文件
+            self.iid_config['label'] = list_to_dict(label_lists)
+        print("data generation process completed")
 
     def get_test_dataset(self):
         return self.test_datasets
@@ -79,3 +85,5 @@ class MNIST:
     def get_train_dataset(self):
         return self.datasets
 
+    def get_config(self):
+        return self.iid_config

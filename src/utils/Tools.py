@@ -42,7 +42,7 @@ def generate_non_iid_data(x, y, label_lists, data_lists):
         index_list = np.hstack(index_list)
         client_x = x[index_list]
         client_y = y[index_list]
-        client_datasets.append(TensorDataset(torch.tensor(client_x), torch.tensor(client_y)))
+        client_datasets.append(TensorDataset(client_x.clone().detach(), client_y.clone().detach()))
     return client_datasets
 
 
@@ -76,6 +76,20 @@ def generate_label_lists(label_num_list, left, right):
                     label_list.append(y)
                     break
         label_lists.append(label_list)
+    return label_lists
+
+
+def generate_label_lists_by_step(step, num_list, left, right):
+    label_lists = []
+    bound = 1
+    labels = range(left, right)
+    total = 0
+    for i in range(len(num_list)):
+        total += num_list[i]
+        for j in range(num_list[i]):
+            s = np.random.choice(labels, bound, replace=False)
+            label_lists.append(s.tolist())
+        bound += step
     return label_lists
 
 

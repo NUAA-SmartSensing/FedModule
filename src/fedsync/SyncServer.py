@@ -30,7 +30,8 @@ def _async_raise(tid, exc_type):
 
 
 class SyncServer:
-    def __init__(self, global_config, server_config, client_config, manager_config):
+    def __init__(self, config, global_config, server_config, client_config, manager_config):
+        self.config = config
         # 全局模型
         model_class = ModuleFindTool.find_class_by_string("model", server_config["model_file"],
                                                           server_config["model_name"])
@@ -43,6 +44,7 @@ class SyncServer:
                                                             global_config["data_name"])
         self.dataset = dataset_class(global_config["client_num"], global_config["iid"])
         self.test_data = self.dataset.get_test_dataset()
+        self.config['global']['iid'] = self.dataset.get_config()
         self.T = server_config["epochs"]
 
         # 运行时变量
@@ -111,3 +113,6 @@ class SyncServer:
 
     def get_accuracy_and_loss_list(self):
         return self.accuracy_list, self.loss_list
+
+    def get_config(self):
+        return self.config

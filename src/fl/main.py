@@ -5,9 +5,11 @@ import shutil
 import threading
 import sys
 import wandb
+import pandas as pd
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from utils.Tools import *
 from utils.ConfigManager import *
+from utils.JsonTool import *
 from exception import ClientSumError
 from fedasync import AsyncServer
 from fedsync import SyncServer
@@ -63,14 +65,6 @@ if __name__ == '__main__':
             print("config.json将不会被存储")
             is_cover = False
 
-    if is_cover:
-        try:
-            global_config['stale'] = client_staleness_list
-            with open("../results/" + global_config["experiment"] + "config.json", "w") as r:
-                json.dump(config, r, indent=4)
-        except shutil.SameFileError:
-            pass
-
     # 初始化wandb
     if wandb_config["enabled"]:
         wandb.init(
@@ -89,19 +83,19 @@ if __name__ == '__main__':
 
     accuracy_lists = []
     loss_lists = []
-    # wanda启动配置植入update_config中
+    # wandb启动配置植入update_config中
     server_config['updater']['enabled'] = wandb_config['enabled']
     if global_config['mode'] == 'async':
-        server = AsyncServer.AsyncServer(global_config, server_config, client_config, manager_config)
+        server = AsyncServer.AsyncServer(config, global_config, server_config, client_config, manager_config)
     elif global_config['mode'] == 'sync':
-        server = SyncServer.SyncServer(global_config, server_config, client_config, manager_config)
+        server = SyncServer.SyncServer(config, global_config, server_config, client_config, manager_config)
     else:
-        server = AsyncServer.AsyncServer(global_config, server_config, client_config, manager_config)
+        server = AsyncServer.AsyncServer(config, global_config, server_config, client_config, manager_config)
     server.run()
     print("")
 
     accuracy_list, loss_list = server.get_accuracy_and_loss_list()
-
+    config = server.get_config()
     del server
 
     print("Thread count =", threading.activeCount())
@@ -112,6 +106,15 @@ if __name__ == '__main__':
     print(end_time - start_time)
     print(((end_time - start_time).seconds / 60), "min")
     print(((end_time - start_time).seconds / 3600), "h")
+
+    # 保存配置文件
+    if is_cover:
+        try:
+            global_config['stale'] = client_staleness_list
+            with open("../results/" + global_config["experiment"] + "config.json", "w") as r:
+                json.dump(config, r, indent=4)
+        except shutil.SameFileError:
+            pass
 
     # 保存结果
     saveAns("../results/" + global_config["experiment"] + "accuracy.txt", list(accuracy_list))
