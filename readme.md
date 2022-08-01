@@ -20,8 +20,13 @@ python3.8 + pytorch + macos
 
 ```text
 .
+├── config                                    常见算法配置
+│   ├── FedAsync-config.json
+│   ├── FedAvg-config.json
+│   └── FedProx-config.json
 ├── config_sync.json                          配置文件   
-├── config.json                               配置文件                                
+├── config.json                               配置文件    
+├── framework.png                            
 ├── readme.md                                 
 ├── requirements.txt
 └── src 
@@ -31,6 +36,7 @@ python3.8 + pytorch + macos
     ├── client                                客户端实现
     │   ├── AsyncClient.py                    异步客户端类
     │   ├── Client.py                         客户端基类
+    │   ├── ProxClient.py
     │   ├── SyncClient.py                     同步客户端类
     │   └── __init__.py
     ├── data                                  数据集下载位置
@@ -48,8 +54,7 @@ python3.8 + pytorch + macos
     │   ├── CheckInThread.py                  CheckIn进程
     │   ├── SchedulerThread.py                调度进程
     │   ├── UpdaterThread.py                  聚合进程
-    │   ├── __init__.py
-    │   └── main.py                           主函数
+    │   └── __init__.py
     ├── fedsync                               同步联邦学习
     │   ├── CheckInThread.py                  CheckIn进程
     │   ├── QueueManager.py                   消息队列管理类
@@ -57,11 +62,11 @@ python3.8 + pytorch + macos
     │   ├── SyncClientManager.py              客户端管理类
     │   ├── SyncServer.py                     同步服务器类
     │   ├── UpdaterThread.py                  聚合进程
-    │   ├── __init__.py
-    │   └── main.py                           主函数
+    │   └── __init__.py
     ├── fl                                    fl主函数
     │   ├── __init__.py
-    │   └── main.py
+    │   ├── main.py
+    │   └── wandb                       wandb运行文件夹
     ├── loss                                  loss函数实现
     │   └── __init__.py
     ├── model                                 模型类
@@ -69,8 +74,8 @@ python3.8 + pytorch + macos
     │   ├── ConvNet.py
     │   └── __init__.py
     ├── receiver                              接收器类
-    │       ├── AvgReceiver.py
-    │       └── __init__.py
+    │   ├── AvgReceiver.py
+    │   └── __init__.py
     ├── results                               实验结果
     ├── schedule                              调度算法类
     │   ├── RandomSchedule.py
@@ -83,6 +88,7 @@ python3.8 + pytorch + macos
     │   └── __init__.py
     └── utils                                 工具集
         ├── ConfigManager.py
+        ├── JsonTool.py
         ├── ModuleFindTool.py
         ├── Plot.py
         ├── Queue.py
@@ -129,7 +135,16 @@ Time文件是一个多线程时间获取类的实现，Queue文件是因为mac�
     },
     "data_file": "MNIST",                     数据集类文件
     "data_name": "MNIST",                     数据集类
-    "iid": false,                             是否iid
+    "iid": {                                  non-iid设置
+      "label": {
+        "step": 1,
+        "list": [10, 10, 30]
+      },
+      "data": {
+        "max": 200,
+        "min": 200
+      }
+    },
     "client_num": 50                          客户端数量
   },
   "server": {
@@ -152,6 +167,7 @@ Time文件是一个多线程时间获取类的实现，Queue文件是因为mac�
     "updater": {
       "update_file": "MyFed",                 聚合算法文件
       "update_name": "MyFed",                 聚合算法类
+      "loss": "cross_entropy",                全局损失函数
       "params": {                             聚合算法参数
         "a": 10,
         "b": 4,
@@ -200,7 +216,16 @@ Time文件是一个多线程时间获取类的实现，Queue文件是因为mac�
     },
     "data_file": "MNIST",                     数据集类文件
     "data_name": "MNIST",                     数据集类
-    "iid": false,                             是否iid
+    "iid": {                                  non-iid设置
+      "label": {
+        "step": 1,
+        "list": [10, 10, 30]
+      },
+      "data": {
+        "max": 200,
+        "min": 200
+      }
+    },
     "client_num": 50                          客户端数量
   },
   "server": {
@@ -229,6 +254,7 @@ Time文件是一个多线程时间获取类的实现，Queue文件是因为mac�
     "updater": {
       "update_file": "MyFed",                 聚合算法文件
       "update_name": "MyFed",                 聚合算法类
+      "loss": "cross_entropy",                全局损失函数
       "params": {                             聚合算法参数
         "a": 10,
         "b": 4,
@@ -246,8 +272,8 @@ Time文件是一个多线程时间获取类的实现，Queue文件是因为mac�
       "params": {
       }
     },
-    "client_file": "AsyncClient",
-    "client_name": "AsyncClient"
+    "client_file": "SyncClient",
+    "client_name": "SyncClient"
   },
   "client": {
     "epochs": 2,                              客户端迭代次数
@@ -257,7 +283,7 @@ Time文件是一个多线程时间获取类的实现，Queue文件是因为mac�
     "loss": "cross_entropy",                  loss函数
     "optimizer": {                            优化器
       "name": "Adam",
-      "weight_decay": 0.005,
+      "weight_decay": 0,
       "lr": 0.01
     }
   }
@@ -271,7 +297,13 @@ Time文件是一个多线程时间获取类的实现，Queue文件是因为mac�
 
 也可以自行指定配置文件`python main.py config.json`，需要注意的是config.json的路径是基于根目录的，而非main.py。
 
-也可以运行`fedasync`和`fedsync`下的main文件，但它不会根据配置文件中`mode`选择运行形式。
+根目录下的`config`文件夹提供了部分论文提出的算法文件配置，现提供如下算法实现：
+
+```text
+FedAvg
+FedAsync
+FedProx
+```
 
 ## 特性
 
@@ -283,7 +315,7 @@ Time文件是一个多线程时间获取类的实现，Queue文件是因为mac�
 - [x] 支持替换客户端
 - [x] 同步联邦学习
 - [ ] 收集loss信息（50%）
-- [ ] 自定义非独立同分布
+- [ ] 自定义非独立同分布（50%）
 - [ ] 支持`Synthetic Non-Identical Client Data`生成;[相关论文](https://arxiv.org/pdf/1909.06335.pdf)
 - [x] wandb可视化
 - [ ] leaf相关数据集支持
@@ -328,11 +360,70 @@ stale支持三种设置，其一是上述配置文件中提到的
 
 其二是设置为false，程序会给各客户端延迟设置为0。
 
+```json
+"stale": false
+```
+
 其三是随机数列表，程序直接会将列表指定延迟设置给客户端。
 
 ```json
 "stale": [1, 2, 3, 1, 4]
 ```
+
+## non-iid设置
+
+non-iid设置分为两部分，一个是标签的non-iid设置，一个是数据量的non-iid设置。目前数据量仅提供随机生成，在未来的版本中将引入个性化设置。
+
+当iid设置为true时（其实false也是默认为iid），会以iid的方式将数据分配给各客户端。
+
+```json
+"iid": true
+```
+
+label的设置stale的设置类似，支持两种方式，其一为配置文件中提到的
+
+```json
+"label": {
+    "step": 1,
+    "list": [10, 10, 30]
+}
+```
+
+其上配置程序会生成10个拥有1个标签数据的客户端，10个拥有2个标签数据的客户端，30个拥有3个标签数据的客户端
+step是标签数量的步长，当step为2时，程序会生成10个拥有1个标签数据的客户端，10个拥有3个标签数据的客户端，30个拥有5个标签数据的客户端
+
+其二为随机数二维数组，程序将二维数组直接设置给客户端
+
+```json
+"label": {
+    "0": [1, 2, 3, 8],
+    "1": [2, 4],
+    "2": [4, 7],
+    "3": [0, 2, 3, 6, 9],
+    "4": [5]
+}
+```
+
+data的设置比较简单，目前有两种方式，其一为空
+
+```json
+"data": {}
+```
+
+也就是不对数据量进行非独立同分布设置。
+
+其二为配置文件中提到的
+
+```json
+"data": {
+    "max": 500,
+    "min": 400
+}
+```
+
+也就是说客户端的数据量范围在400-500，程序会自动平均分配到各标签
+
+数据量分布还较初始，之后将会逐步完善
 
 ## 客户端替换
 
