@@ -66,7 +66,7 @@ python3.8 + pytorch + macos
     ├── fl                                    fl主函数
     │   ├── __init__.py
     │   ├── main.py
-    │   └── wandb                       wandb运行文件夹
+    │   └── wandb                             wandb运行文件夹
     ├── loss                                  loss函数实现
     │   └── __init__.py
     ├── model                                 模型类
