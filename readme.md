@@ -314,8 +314,11 @@ FedProx
 - [x] 支持替换loss函数
 - [x] 支持替换客户端
 - [x] 同步联邦学习
-- [ ] 收集loss信息（50%）
-- [ ] 自定义非独立同分布（50%）
+- [ ] 半异步联邦学习
+- [x] 提供test loss信息
+- [ ] 接收客户端loss信息
+- [x] 自定义标签异构
+- [ ] 自定义数据异构
 - [ ] 支持`Synthetic Non-Identical Client Data`生成;[相关论文](https://arxiv.org/pdf/1909.06335.pdf)
 - [x] wandb可视化
 - [ ] leaf相关数据集支持
