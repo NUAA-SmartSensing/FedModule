@@ -3,7 +3,7 @@ import copy
 import torch
 
 
-class Avg:
+class AsyncAvg:
     def __init__(self, config):
         self.config = config
 
