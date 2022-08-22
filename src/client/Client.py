@@ -21,6 +21,7 @@ class Client(threading.Thread):
         self.time_stamp_buffer = 0
         self.received_weights = False
         self.received_time_stamp = False
+        self.params = {}
         self.event_is_set = False
 
     @abstractmethod
@@ -35,6 +36,12 @@ class Client(threading.Thread):
     def get_client_id(self):
         c_id = copy.deepcopy(self.client_id)
         return c_id
+
+    def set_params(self, params):
+        self.params = params
+
+    def get_params(self):
+        return self.params
 
     def set_client_weight(self, weights):
         self.weights_buffer = weights
