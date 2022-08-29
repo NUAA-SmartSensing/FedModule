@@ -445,3 +445,11 @@ for key, var in client_weights.items():
     if torch.cuda.is_available():
         updated_parameters[key] = updated_parameters[key].cuda()
 ```
+
+## 联系我
+
+QQ: 527707607
+
+邮箱: desperado@qq.com
+
+欢迎对项目提出建议～
