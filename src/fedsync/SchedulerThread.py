@@ -6,7 +6,7 @@ from utils import ModuleFindTool
 
 class SchedulerThread(threading.Thread):
     def __init__(self, server_thread_lock, sync_client_manager,
-                 queue, current_t, scheduler_config, checkin_config,
+                 queue, current_t, scheduler_config,
                  server_network, t, mutex_sem, empty_sem, full_sem):
         threading.Thread.__init__(self)
         self.mutex_sem = mutex_sem

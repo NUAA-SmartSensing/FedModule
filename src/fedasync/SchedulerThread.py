@@ -6,7 +6,7 @@ from utils import ModuleFindTool
 
 class SchedulerThread(threading.Thread):
     def __init__(self, server_thread_lock, async_client_manager,
-                 queue, current_t, scheduler_config, checkin_config,
+                 queue, current_t, scheduler_config,
                  server_network, t):
         threading.Thread.__init__(self)
         self.server_thread_lock = server_thread_lock

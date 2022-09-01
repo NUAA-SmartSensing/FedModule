@@ -61,7 +61,7 @@ class AsyncServer:
                                                                           self.stop_event, client_config, manager_config)
         self.scheduler_thread = SchedulerThread.SchedulerThread(self.server_thread_lock, self.async_client_manager,
                                                                 self.queue, self.current_t, server_config["scheduler"],
-                                                                server_config["checkin"], self.server_network, self.T)
+                                                                self.server_network, self.T)
         self.updater_thread = UpdaterThread.UpdaterThread(self.queue, self.server_thread_lock,
                                                           self.T, self.current_t, self.server_network,
                                                           self.async_client_manager, self.stop_event,

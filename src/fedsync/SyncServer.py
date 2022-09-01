@@ -66,7 +66,7 @@ class SyncServer:
                                                                        self.stop_event, client_config, manager_config)
         self.scheduler_thread = SchedulerThread.SchedulerThread(self.server_thread_lock, self.sync_client_manager,
                                                                 self.queue, self.current_t, server_config["scheduler"],
-                                                                server_config["checkin"], self.server_network, self.T,
+                                                                self.server_network, self.T,
                                                                 self.mutex_sem, self.empty_sem, self.full_sem)
         self.updater_thread = UpdaterThread.UpdaterThread(self.queue, self.server_thread_lock,
                                                           self.T, self.current_t, self.server_network,
