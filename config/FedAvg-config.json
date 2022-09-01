@@ -5,6 +5,7 @@
     "name": "1"
   },
   "global": {
+    "multi_gpu": true,
     "mode": "sync",
     "experiment": "FedAvg/1",
     "stale": {

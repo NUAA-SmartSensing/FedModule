@@ -5,6 +5,7 @@
     "name": "1"
   },
   "global": {
+    "multi_gpu": true,
     "mode": "sync",
     "experiment": "FedProx/1",
     "stale": false,

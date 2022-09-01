@@ -312,7 +312,7 @@ FedProx
 - [ ] 支持`Synthetic Non-Identical Client Data`生成;[相关论文](https://arxiv.org/pdf/1909.06335.pdf)
 - [x] wandb可视化
 - [ ] leaf相关数据集支持
-- [ ] 支持多GPU
+- [x] 支持多GPU
 
 ## 添加新的算法
 
@@ -421,6 +421,11 @@ data的设置比较简单，目前有两种方式，其一为空
 ## 客户端替换
 
 目前客户端替换需要继承`AsyncClient`或`SyncClient`，新增的参数通过client配置项传入类中。
+
+## 多GPU
+
+本项目的多GPU特性并不是多GPU并行计算，各客户端训练依旧在单GPU上，但宏观上客户端运行在多个GPU上，也就是每个客户端的训练任务会平均分布到`程序可见`的GPU上，每个客户端绑定的GPU是在初始化时就指定好的，并不是每轮训练时指定，因此依旧会出现各GPU负载严重不均的可能情况。
+该特性通过global下的`multi_gpu`控制开关。
 
 ## 代码尚存问题
 
