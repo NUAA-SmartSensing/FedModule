@@ -51,12 +51,10 @@ python3.8 + pytorch + macos
     ├── fedasync                              异步联邦学习
     │   ├── AsyncClientManager.py             客户端管理类
     │   ├── AsyncServer.py                    异步服务器类
-    │   ├── CheckInThread.py                  CheckIn进程
     │   ├── SchedulerThread.py                调度进程
     │   ├── UpdaterThread.py                  聚合进程
     │   └── __init__.py
     ├── fedsync                               同步联邦学习
-    │   ├── CheckInThread.py                  CheckIn进程
     │   ├── QueueManager.py                   消息队列管理类
     │   ├── SchedulerThread.py                调度进程
     │   ├── SyncClientManager.py              客户端管理类
@@ -151,10 +149,6 @@ Time文件是一个多线程时间获取类的实现，Queue文件是因为mac�
     "epochs": 600,                            服务器全局迭代次数
     "model_file": "CNN",                      全局模型文件
     "model_name": "CNN",                      全局模型类
-    "checkin": {
-      "checkin_interval": 600,
-      "checkin_num": 200
-    },
     "scheduler": {
       "scheduler_interval": 5,                调度间隔
       "schedule_file": "RandomSchedule",      调度算法文件
@@ -232,10 +226,6 @@ Time文件是一个多线程时间获取类的实现，Queue文件是因为mac�
     "epochs": 600,                            服务器全局迭代次数
     "model_file": "CNN",                      全局模型文件
     "model_name": "CNN",                      全局模型类
-    "checkin": {
-      "checkin_interval": 600,
-      "checkin_num": 200
-    },
     "scheduler": {
       "scheduler_interval": 5,                调度间隔
       "schedule_file": "RandomSchedule",      调度算法文件

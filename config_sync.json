@@ -21,10 +21,6 @@
     "epochs": 2,
     "model_file": "CNN",
     "model_name": "CNN",
-    "checkin": {
-      "checkin_interval": 600,
-      "checkin_num": 200
-    },
     "scheduler": {
       "scheduler_interval": 5,
       "schedule_file": "RandomSchedule",

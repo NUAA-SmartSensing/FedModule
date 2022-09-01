@@ -1,6 +1,6 @@
 {
   "wandb": {
-    "enabled": true,
+    "enabled": false,
     "project": "FedProx",
     "name": "1"
   },
@@ -17,10 +17,6 @@
     "epochs": 2,
     "model_file": "CNN",
     "model_name": "CNN",
-    "checkin": {
-      "checkin_interval": 600,
-      "checkin_num": 200
-    },
     "scheduler": {
       "scheduler_interval": 5,
       "schedule_file": "RandomSchedule",
@@ -41,12 +37,6 @@
       "update_name": "FedAvg",
       "loss": "cross_entropy",
       "params": {
-        "a": 10,
-        "b": 4,
-        "alpha": 0.1,
-        "r" : 1,
-        "c" : 2,
-        "d" : 2
       }
     }
   },

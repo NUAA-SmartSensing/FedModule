@@ -1,6 +1,6 @@
 {
   "wandb": {
-    "enabled": true,
+    "enabled": false,
     "project": "FedAsync",
     "name": "1"
   },
@@ -21,10 +21,6 @@
     "epochs": 2,
     "model_file": "CNN",
     "model_name": "CNN",
-    "checkin": {
-      "checkin_interval": 600,
-      "checkin_num": 200
-    },
     "scheduler": {
       "scheduler_interval": 5,
       "schedule_file": "RandomSchedule",
@@ -42,9 +38,7 @@
         "a": 10,
         "b": 4,
         "alpha": 0.1,
-        "r" : 1,
-        "c" : 2,
-        "d" : 2
+        "r" : 1
       }
     }
   },
@@ -58,6 +52,7 @@
     "model_file": "CNN",
     "model_name": "CNN",
     "loss": "cross_entropy",
+    "mu": 0.01,
     "optimizer": {
       "name": "Adam",
       "weight_decay": 0.005,
