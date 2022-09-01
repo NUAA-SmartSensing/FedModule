@@ -61,7 +61,7 @@ class SyncServer:
         self.mutex_sem = threading.Semaphore(1)
         self.empty_sem = threading.Semaphore(1)
         self.full_sem = threading.Semaphore(0)
-        self.sync_client_manager = SyncClientManager.SyncClientManager(init_weights, global_config["client_num"],
+        self.sync_client_manager = SyncClientManager.SyncClientManager(init_weights, global_config["client_num"], global_config["multi_gpu"],
                                                                        datasets, self.queue, self.current_t,
                                                                        self.stop_event, client_config, manager_config)
         self.scheduler_thread = SchedulerThread.SchedulerThread(self.server_thread_lock, self.sync_client_manager,

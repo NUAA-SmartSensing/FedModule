@@ -56,7 +56,7 @@ class AsyncServer:
         init_weights = self.server_network.state_dict()
         datasets = self.dataset.get_train_dataset()
 
-        self.async_client_manager = AsyncClientManager.AsyncClientManager(init_weights, global_config["client_num"],
+        self.async_client_manager = AsyncClientManager.AsyncClientManager(init_weights, global_config["client_num"], global_config["multi_gpu"],
                                                                           datasets, self.queue, self.current_t,
                                                                           self.stop_event, client_config, manager_config)
         self.scheduler_thread = SchedulerThread.SchedulerThread(self.server_thread_lock, self.async_client_manager,

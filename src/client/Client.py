@@ -6,7 +6,7 @@ from abc import abstractmethod
 
 
 class Client(threading.Thread):
-    def __init__(self, c_id, stop_event, delay, train_ds):
+    def __init__(self, c_id, stop_event, delay, train_ds, dev):
         threading.Thread.__init__(self)
         self.client_id = c_id
         self.event = threading.Event()
@@ -15,7 +15,7 @@ class Client(threading.Thread):
         self.delay = delay
         self.train_ds = train_ds
         self.client_thread_lock = threading.Lock()
-        self.dev = 'cuda' if torch.cuda.is_available() else 'cpu'
+        self.dev = dev
         self.weights_buffer = collections.OrderedDict()
         self.time_stamp = 0
         self.time_stamp_buffer = 0

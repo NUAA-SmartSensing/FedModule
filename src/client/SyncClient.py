@@ -8,8 +8,8 @@ from utils import ModuleFindTool
 
 
 class SyncClient(Client.Client):
-    def __init__(self, c_id, queue_manager, stop_event, delay, train_ds, client_config):
-        Client.Client.__init__(self, c_id, stop_event, delay, train_ds)
+    def __init__(self, c_id, queue_manager, stop_event, delay, train_ds, client_config, dev):
+        Client.Client.__init__(self, c_id, stop_event, delay, train_ds, dev)
         self.queue_manager = queue_manager
         self.batch_size = client_config["batch_size"]
         self.epoch = client_config["epochs"]

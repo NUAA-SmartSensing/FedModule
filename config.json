@@ -5,6 +5,7 @@
     "name": "1"
   },
   "global": {
+    "multi_gpu": true,
     "mode": "async",
     "experiment": "TMP/test/4",
     "stale": {

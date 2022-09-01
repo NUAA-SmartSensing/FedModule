@@ -1,11 +1,12 @@
 import threading
 
+import torch.cuda
 from fedsync import QueueManager
 from utils import ModuleFindTool
 
 
 class SyncClientManager:
-    def __init__(self, init_weights, clients_num, datasets, q, current_time, stop_event, client_config, manager_config):
+    def __init__(self, init_weights, clients_num, multi_gpu, datasets, q, current_time, stop_event, client_config, manager_config):
         self.init_weights = init_weights
         self.queue = q
         self.queue_manager = QueueManager.QueueManager(q, current_time, manager_config["checker"])
@@ -20,12 +21,29 @@ class SyncClientManager:
         client_class = ModuleFindTool.find_class_by_string("client", manager_config["client_file"], manager_config["client_name"])
 
         # 初始化clients
+        # 0: 多gpu，1：单gpu，2：cpu
+        if torch.cuda.is_available():
+            if multi_gpu:
+                mode = 0
+                dev_num = 0
+                dev_total = torch.cuda.device_count()
+            else:
+                mode = 1
+        else:
+            mode = 2
         self.client_thread_list = []
         for i in range(clients_num):
+            if mode == 0:
+                dev = f'cuda:{dev_num}'
+                dev_num = (dev_num + 1) % dev_total
+            elif mode == 1:
+                dev = 'cuda'
+            else:
+                dev = 'cpu'
             client_delay = self.client_staleness_list[i]
             dataset = datasets[i]
             self.client_thread_list.append(
-                client_class(i, self.queue_manager, self.stop_event, client_delay, dataset, client_config))
+                client_class(i, self.queue_manager, self.stop_event, client_delay, dataset, client_config, dev))
 
         # 启动 clients
         print("Start clients:")
