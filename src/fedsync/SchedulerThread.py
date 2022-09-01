@@ -14,7 +14,6 @@ class SchedulerThread(threading.Thread):
         self.full_sem = full_sem
         self.server_thread_lock = server_thread_lock
         self.schedule_interval = scheduler_config["scheduler_interval"]
-        self.check_in_interval = checkin_config["checkin_interval"]
         self.sync_client_manager = sync_client_manager
         self.queue = queue
         self.current_t = current_t
@@ -63,6 +62,6 @@ class SchedulerThread(threading.Thread):
                 time.sleep(0.01)
 
     def client_select(self, params):
-        current_checked_client_tl = self.sync_client_manager.get_checked_in_client_thread_list()
-        selected_client_threads = self.schedule.schedule(current_checked_client_tl, params)
+        client_list = self.sync_client_manager.get_client_thread_list()
+        selected_client_threads = self.schedule.schedule(client_list, params)
         return selected_client_threads

@@ -23,8 +23,6 @@ class UpdaterThread(threading.Thread):
         self.stop_event = stop_event
         self.test_data = test_data
 
-        self.check_in_thread_lock = self.sync_client_manager.get_check_in_thread_lock()
-
         self.accuracy_list = []
         self.loss_list = []
         self.config = updater_config
@@ -41,7 +39,6 @@ class UpdaterThread(threading.Thread):
         for epoch in range(self.T):
             self.full_sem.acquire()
             self.mutex_sem.acquire()
-            self.check_in_thread_lock.acquire()
             update_list = []
             # 接收所有的更新
             while not self.queue.empty():
@@ -51,7 +48,6 @@ class UpdaterThread(threading.Thread):
             self.update_server_weights(epoch, update_list)
             self.run_server_test(epoch)
             self.server_thread_lock.release()
-            self.check_in_thread_lock.release()
             time.sleep(0.01)
 
             # self.check_in_thread_lock.release()

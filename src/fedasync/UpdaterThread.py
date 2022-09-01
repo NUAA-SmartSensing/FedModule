@@ -21,8 +21,6 @@ class UpdaterThread(threading.Thread):
         self.stop_event = stop_event
         self.test_data = test_data
 
-        self.check_in_thread_lock = self.async_client_manager.get_check_in_thread_lock()
-
         self.event = threading.Event()
         self.event.clear()
 
@@ -43,7 +41,6 @@ class UpdaterThread(threading.Thread):
     def run(self):
         for epoch in range(self.T):
             while True:
-                self.check_in_thread_lock.acquire()
                 c_r = 0
                 # 接收一个client发回的模型参数和时间戳
                 if not self.queue.empty():
@@ -65,15 +62,11 @@ class UpdaterThread(threading.Thread):
                     self.run_server_test(epoch)
                     self.server_thread_lock.release()
                     self.event.clear()
-                    self.check_in_thread_lock.release()
                     time.sleep(0.01)
                     break
                 else:
-                    # self.event.wait()  # 等待标志位设定
-                    self.check_in_thread_lock.release()
                     time.sleep(0.01)
 
-            # self.check_in_thread_lock.release()
             self.current_time.time_add()
             time.sleep(0.01)
 

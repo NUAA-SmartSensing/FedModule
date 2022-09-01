@@ -11,7 +11,6 @@ class SchedulerThread(threading.Thread):
         threading.Thread.__init__(self)
         self.server_thread_lock = server_thread_lock
         self.schedule_interval = scheduler_config["scheduler_interval"]
-        self.check_in_interval = checkin_config["checkin_interval"]
         self.async_client_manager = async_client_manager
         self.queue = queue
         self.current_t = current_t
@@ -44,7 +43,6 @@ class SchedulerThread(threading.Thread):
                         # 将server的模型参数和时间戳发给client
                         s_client_thread.set_client_weight(server_weights)
                         s_client_thread.set_time_stamp(current_time)
-
                         # 启动一次client线程
                         s_client_thread.set_event()
                     del server_weights
@@ -56,6 +54,6 @@ class SchedulerThread(threading.Thread):
                 time.sleep(0.01)
 
     def client_select(self, params):
-        current_checked_client_tl = self.async_client_manager.get_checked_in_client_thread_list()
-        selected_client_threads = self.schedule.schedule(current_checked_client_tl, params)
+        client_list = self.async_client_manager.get_client_thread_list()
+        selected_client_threads = self.schedule.schedule(client_list, params)
         return selected_client_threads

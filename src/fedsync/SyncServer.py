@@ -3,7 +3,6 @@ import ctypes
 import inspect
 import torch.cuda
 from fedsync import SyncClientManager
-from fedsync import CheckInThread
 from fedsync import SchedulerThread
 from fedsync import UpdaterThread
 from utils import ModuleFindTool, Queue, Time
@@ -74,8 +73,6 @@ class SyncServer:
                                                           self.sync_client_manager, self.stop_event,
                                                           self.test_data, server_config["updater"],
                                                           self.mutex_sem, self.empty_sem, self.full_sem)
-        self.check_in_thread = CheckInThread.CheckInThread(server_config["checkin"], self.sync_client_manager,
-                                                           self.current_t, self.T)
 
     def run(self):
         print("Start server:")
@@ -83,17 +80,14 @@ class SyncServer:
         # 启动server中的两个线程
         self.scheduler_thread.start()
         self.updater_thread.start()
-        self.check_in_thread.start()
 
-        client_thread_list = self.sync_client_manager.get_checked_in_client_thread_list()
+        client_thread_list = self.sync_client_manager.get_client_thread_list()
         for client_thread in client_thread_list:
             client_thread.join()
         self.scheduler_thread.join()
         print("scheduler_thread joined")
         self.updater_thread.join()
         print("updater_thread joined")
-        _async_raise(self.check_in_thread.ident, SystemExit)
-        print("check_in_thread joined")
 
         print("Thread count =", threading.active_count())
         print(*threading.enumerate(), sep="\n")
@@ -108,7 +102,6 @@ class SyncServer:
         del self.scheduler_thread
         del self.updater_thread
         del self.sync_client_manager
-        del self.check_in_thread
         print("End!")
 
     def get_accuracy_and_loss_list(self):
