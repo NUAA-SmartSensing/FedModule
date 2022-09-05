@@ -90,6 +90,7 @@ python3.8 + pytorch + macos
         ├── ModuleFindTool.py
         ├── Plot.py
         ├── Queue.py
+        ├── Random.py
         ├── Time.py
         ├── Tools.py
         └── __init__.py
@@ -373,7 +374,9 @@ non-iid设置分为两部分，一个是标签的non-iid设置，一个是数据
 "iid": true
 ```
 
-label的设置stale的设置类似，支持两种方式，其一为配置文件中提到的
+### label_iid
+
+label的设置stale的设置类似，支持三种方式，其一为配置文件中提到的
 
 ```json
 "label": {
@@ -396,6 +399,16 @@ step是标签数量的步长，当step为2时，程序会生成10个拥有1个�
     "4": [5]
 }
 ```
+
+其三为一维数组，该一维数组为每个客户端拥有的标签数，该数组长度应和客户端数量一致。
+
+```json
+"label": [4, 5, 10, 1, 2, 3, 4]
+```
+
+上述配置即客户端0拥有4个标签数据，客户端1拥有5个标签数据...以此类推。
+
+### data_iid
 
 data的设置比较简单，目前有两种方式，其一为空
 
