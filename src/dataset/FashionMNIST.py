@@ -1,9 +1,7 @@
-import copy
-
 from torchvision import datasets, transforms
-from torch.utils.data import TensorDataset
+
+import utils.Iid
 from utils.Tools import *
-from utils.JsonTool import *
 
 
 class FashionMNIST:
@@ -52,34 +50,7 @@ class FashionMNIST:
             print("generating non_iid data...")
             label_config = iid_config['label']
             data_config = iid_config['data']
-            # 生成label lists
-            # 洗牌算法
-            shuffle = False
-            if "shuffle" in label_config.keys() and not label_config["shuffle"]:
-                shuffle = True
-            if isinstance(label_config, dict):
-                # step
-                if "step" in label_config.keys():
-                    label_lists = generate_label_lists_by_step(label_config["step"], label_config["list"], 0, 10, shuffle)
-                # {[],[],[]}
-                else:
-                    label_lists = dict_to_list(label_config)
-            # []
-            else:
-                label_lists = generate_label_lists(label_config, 0, 10, shuffle)
-
-            # 生成data lists
-            # {}
-            if len(data_config) == 0:
-                size = self.train_data_size // clients
-                data_lists = generate_data_lists(size, size, clients, label_lists)
-            # max,min
-            else:
-                data_lists = generate_data_lists(data_config["max"], data_config["min"], clients, label_lists)
-            # 生成datasets
-            self.datasets = generate_non_iid_data(self.train_data, self.train_labels, label_lists, data_lists)
-            # 保存label至配置文件
-            self.iid_config['label'] = list_to_dict(label_lists)
+            utils.Iid.generate_non_iid_data(label_config, data_config, self, clients)
         print("data generation process completed")
 
     def get_test_dataset(self):
