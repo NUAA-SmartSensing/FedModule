@@ -36,7 +36,7 @@ def generate_non_iid_data(x, y, label_lists, data_lists):
     for i in range(len(label_lists)):
         index_list = []
         for j in range(len(label_lists[i])):
-            ids = np.flatnonzero(y==label_lists[i][j])
+            ids = np.flatnonzero(y == label_lists[i][j])
             ids = np.random.choice(ids, data_lists[i][j], replace=False)
             index_list.append(ids)
         index_list = np.hstack(index_list)
@@ -52,8 +52,8 @@ def generate_data_lists(max_size, min_size, num, label_lists):
     for i in range(len(label_lists)):
         tmp_list = []
         for j in range(len(label_lists[i]) - 1):
-            tmp_list.append(data_list[i]//len(label_lists[i]))
-        tmp_list.append(data_list[i]-data_list[i]//len(label_lists[i])*(len(label_lists[i])-1))
+            tmp_list.append(data_list[i] // len(label_lists[i]))
+        tmp_list.append(data_list[i] - data_list[i] // len(label_lists[i]) * (len(label_lists[i]) - 1))
         data_lists.append(tmp_list)
     return data_lists
 
@@ -67,14 +67,9 @@ def generate_data_list(max_size, min_size, num):
 
 def generate_label_lists(label_num_list, left, right):
     label_lists = []
+    labels = range(left, right)
     for label_num in label_num_list:
-        label_list = []
-        for i in range(label_num):
-            while True:
-                y = np.random.randint(left, right)
-                if y not in label_list:
-                    label_list.append(y)
-                    break
+        label_list = np.random.choice(labels, label_num, replace=False)
         label_lists.append(label_list)
     return label_lists
 
@@ -129,4 +124,4 @@ def result_to_markdown(filename, config):
 
 
 if __name__ == '__main__':
-    generate_stale_list(15, True, [1,2,3])
+    generate_stale_list(15, True, [1, 2, 3])
