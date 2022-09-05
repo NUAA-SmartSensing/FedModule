@@ -53,16 +53,20 @@ class FashionMNIST:
             label_config = iid_config['label']
             data_config = iid_config['data']
             # 生成label lists
+            # 洗牌算法
+            shuffle = False
+            if "shuffle" in label_config.keys() and not label_config["shuffle"]:
+                shuffle = True
             if isinstance(label_config, dict):
                 # step
                 if "step" in label_config.keys():
-                    label_lists = generate_label_lists_by_step(label_config["step"], label_config["list"], 0, 10)
+                    label_lists = generate_label_lists_by_step(label_config["step"], label_config["list"], 0, 10, shuffle)
                 # {[],[],[]}
                 else:
                     label_lists = dict_to_list(label_config)
             # []
             else:
-                label_lists = generate_label_lists(label_config, 0, 10)
+                label_lists = generate_label_lists(label_config, 0, 10, shuffle)
 
             # 生成data lists
             # {}

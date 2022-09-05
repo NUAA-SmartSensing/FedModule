@@ -1,6 +1,7 @@
 import random
 import torch
 import numpy as np
+import Random
 from torch.utils.data import TensorDataset
 
 
@@ -65,26 +66,54 @@ def generate_data_list(max_size, min_size, num):
     return ans
 
 
-def generate_label_lists(label_num_list, left, right):
+def generate_label_lists(label_num_list, left, right, shuffle=False):
     label_lists = []
-    labels = range(left, right)
-    for label_num in label_num_list:
-        label_list = np.random.choice(labels, label_num, replace=False)
-        label_lists.append(label_list)
+    if shuffle:
+        label_total = 0
+        for label_num in label_num_list:
+            label_total = label_total + label_num
+        epoch = int(label_total // (right - left)) + 1
+        label_all_list = []
+        for i in range(epoch):
+            label_all_list = label_all_list + Random.shuffle_random(left, right)
+        pos = 0
+        for label_num in label_num_list:
+            label_lists.append(label_all_list[pos: pos + label_num])
+            pos += label_num
+    else:
+        labels = range(left, right)
+        for label_num in label_num_list:
+            label_list = np.random.choice(labels, label_num, replace=False)
+            label_lists.append(label_list)
     return label_lists
 
 
-def generate_label_lists_by_step(step, num_list, left, right):
+def generate_label_lists_by_step(step, num_list, left, right, shuffle=False):
     label_lists = []
     bound = 1
-    labels = range(left, right)
-    total = 0
-    for i in range(len(num_list)):
-        total += num_list[i]
-        for j in range(num_list[i]):
-            s = np.random.choice(labels, bound, replace=False)
-            label_lists.append(s.tolist())
-        bound += step
+    if shuffle:
+        label_total = 0
+        label_all_lists = []
+        for i in num_list:
+            label_total += bound * i
+            bound += step
+        bound = 1
+        epoch = int(label_total // (right - left)) + 1
+        for i in range(epoch):
+            label_all_lists += Random.shuffle_random(left, right)
+        pos = 0
+        for i in range(len(num_list)):
+            for j in range(num_list[i]):
+                label_lists.append(label_all_lists[pos : pos + bound])
+                pos = pos + bound
+            bound += step
+    else:
+        labels = range(left, right)
+        for i in range(len(num_list)):
+            for j in range(num_list[i]):
+                s = np.random.choice(labels, bound, replace=False)
+                label_lists.append(s.tolist())
+            bound += step
     return label_lists
 
 
@@ -124,4 +153,4 @@ def result_to_markdown(filename, config):
 
 
 if __name__ == '__main__':
-    generate_stale_list(15, True, [1, 2, 3])
+    print(generate_label_lists_by_step(1, [5, 2, 4, 3, 3, 4], 0, 10, True))
