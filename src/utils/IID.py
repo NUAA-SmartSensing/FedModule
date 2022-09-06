@@ -3,7 +3,7 @@ from utils.JsonTool import dict_to_list, list_to_dict
 from utils.Tools import generate_label_lists_by_step, generate_label_lists, generate_data_lists
 
 
-def generate_non_iid_data(label_config, data_config, dataset, clients):
+def generate_non_iid_data(label_config, data_config, dataset, clients, left, right):
     # 生成label lists
     # 洗牌算法
     shuffle = False
@@ -12,10 +12,10 @@ def generate_non_iid_data(label_config, data_config, dataset, clients):
     if isinstance(label_config, dict):
         # step
         if "step" in label_config.keys():
-            label_lists = generate_label_lists_by_step(label_config["step"], label_config["list"], 0, 10, shuffle)
+            label_lists = generate_label_lists_by_step(label_config["step"], label_config["list"], left, right, shuffle)
         # {list:[]}
         elif "list" in label_config.keys():
-            label_lists = generate_label_lists(label_config, 0, 10, shuffle)
+            label_lists = generate_label_lists(label_config["list"], left, right, shuffle)
         # {[],[],[]}
         else:
             label_lists = dict_to_list(label_config)
