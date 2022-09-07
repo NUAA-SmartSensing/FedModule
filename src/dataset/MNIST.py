@@ -50,7 +50,7 @@ class MNIST:
             print("generating non_iid data...")
             label_config = iid_config['label']
             data_config = iid_config['data']
-            utils.Iid.generate_non_iid_data(label_config, data_config, self, clients, 0, 10)
+            utils.IID.generate_non_iid_data(label_config, data_config, self, clients, 0, 10)
         print("data generation process completed")
 
     def get_test_dataset(self):
