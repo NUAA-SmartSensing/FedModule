@@ -1,1 +1,0 @@
-from receiver import AvgReceiver
