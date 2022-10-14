@@ -18,3 +18,9 @@ def find_opti_by_string(s):
     optim_module = getattr(torch_module, "optim")
     ans = getattr(optim_module, s)
     return ans
+
+
+def find_class_by_path(path, class_name):
+    find_module = __import__(path)
+    ans = getattr(find_module, class_name)
+    return ans
