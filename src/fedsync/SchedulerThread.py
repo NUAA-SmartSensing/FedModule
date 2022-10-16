@@ -34,7 +34,7 @@ class SchedulerThread(threading.Thread):
             self.mutex_sem.acquire()
             current_time = self.current_t.get_time()
             if last_s_time != current_time:
-                if current_time == self.T:
+                if current_time > self.T:
                     break
                 print("| current_epoch |", current_time)
                 print("Begin client select")
