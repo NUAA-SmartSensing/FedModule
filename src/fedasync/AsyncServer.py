@@ -45,7 +45,7 @@ class AsyncServer:
         self.T = server_config["epochs"]
 
         # 运行时变量
-        self.current_t = Time.Time(0)
+        self.current_t = Time.Time(1)
         self.queue = Queue.Queue()
         self.accuracy_list = []
         self.loss_list = []

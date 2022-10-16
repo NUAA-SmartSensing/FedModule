@@ -28,7 +28,7 @@ class SchedulerThread(threading.Thread):
 
     def run(self):
         last_s_time = -1
-        while self.current_t.get_time() < self.T:
+        while self.current_t.get_time() <= self.T:
             # 每隔一段时间进行一次schedule
             self.empty_sem.acquire()
             self.mutex_sem.acquire()
