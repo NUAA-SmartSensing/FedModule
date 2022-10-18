@@ -9,3 +9,4 @@ src/utils/Plot.py
 src/fl/wandb/*
 config_test.json
 config_sync_test.json
+config_semi_test.json

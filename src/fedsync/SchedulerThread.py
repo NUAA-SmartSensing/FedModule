@@ -13,7 +13,6 @@ class SchedulerThread(threading.Thread):
         self.empty_sem = empty_sem
         self.full_sem = full_sem
         self.server_thread_lock = server_thread_lock
-        self.schedule_interval = scheduler_config["scheduler_interval"]
         self.sync_client_manager = sync_client_manager
         self.queue = queue
         self.current_t = current_t

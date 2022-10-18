@@ -1,13 +1,8 @@
-from fedasync import UpdaterThread
-import copy
-import torch
-
-
 class FedAvg:
     def __init__(self, config):
         self.config = config
 
-    def update_server_weights(self, updater_thread: UpdaterThread, epoch, update_list):
+    def update_server_weights(self, updater_thread, epoch, update_list):
         total_nums = 0
         for update_dict in update_list:
             total_nums += update_dict["data_sum"]

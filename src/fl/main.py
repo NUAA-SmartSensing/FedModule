@@ -11,6 +11,7 @@ from utils.ConfigManager import *
 from exception import ClientSumError
 from fedasync import AsyncServer
 from fedsync import SyncServer
+from fedsemi import SemiAsyncServer
 
 if __name__ == '__main__':
     # 创建结果文件夹
@@ -87,6 +88,8 @@ if __name__ == '__main__':
         server = AsyncServer.AsyncServer(config, global_config, server_config, client_config, manager_config)
     elif global_config['mode'] == 'sync':
         server = SyncServer.SyncServer(config, global_config, server_config, client_config, manager_config)
+    elif global_config['mode'] == 'semi-async':
+        server = SemiAsyncServer.SemiAsyncServer(config, global_config, server_config, client_config, manager_config)
     else:
         server = AsyncServer.AsyncServer(config, global_config, server_config, client_config, manager_config)
     server.run()

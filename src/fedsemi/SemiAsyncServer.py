@@ -1,12 +1,14 @@
 import threading
+
 import torch.cuda
-from fedsync import SyncClientManager
-from fedsync import SchedulerThread
-from fedsync import UpdaterThread
+
+from fedsemi import SchedulerThread
+from fedsemi import SemiAsyncClientManager
+from fedsemi import UpdaterThread
 from utils import ModuleFindTool, Queue, Time
 
 
-class SyncServer:
+class SemiAsyncServer:
     def __init__(self, config, global_config, server_config, client_config, manager_config):
         self.config = config
         # 全局模型
@@ -26,7 +28,6 @@ class SyncServer:
 
         # 运行时变量
         self.current_t = Time.Time(1)
-        self.queue = Queue.Queue()
         self.accuracy_list = []
         self.loss_list = []
         self.stop_event = threading.Event()
@@ -39,18 +40,33 @@ class SyncServer:
         self.mutex_sem = threading.Semaphore(1)
         self.empty_sem = threading.Semaphore(1)
         self.full_sem = threading.Semaphore(0)
-        self.sync_client_manager = SyncClientManager.SyncClientManager(init_weights, global_config["client_num"], global_config["multi_gpu"],
-                                                                       datasets, self.queue, self.current_t,
-                                                                       self.stop_event, client_config, manager_config)
-        self.scheduler_thread = SchedulerThread.SchedulerThread(self.server_thread_lock, self.sync_client_manager,
-                                                                self.queue, self.current_t, server_config["scheduler"],
-                                                                self.server_network, self.T,
-                                                                self.mutex_sem, self.empty_sem, self.full_sem)
-        self.updater_thread = UpdaterThread.UpdaterThread(self.queue, self.server_thread_lock,
+        grouping_class = ModuleFindTool.find_class_by_path(
+            f"fedsemi.grouping.{server_config['grouping']['grouping_file']}",
+            server_config['grouping']['grouping_name'])
+        self.group_manager = grouping_class(server_config['grouping']["params"])
+        self.network_list = []
+        self.semi_client_manager = SemiAsyncClientManager.SemiAsyncClientManager(init_weights,
+                                                                                 global_config["client_num"],
+                                                                                 global_config["multi_gpu"],
+                                                                                 datasets, self.group_manager,
+                                                                                 self.current_t,
+                                                                                 self.stop_event, client_config,
+                                                                                 manager_config)
+        self.queue_list = [Queue.Queue() for _ in range(self.group_manager.group_num)]
+        self.semi_client_manager.set_queue_list(self.queue_list)
+        self.epoch_list = [0] * self.group_manager.group_num
+        self.updater_thread = UpdaterThread.UpdaterThread(self.queue_list, self.server_thread_lock,
                                                           self.T, self.current_t, self.server_network,
-                                                          self.sync_client_manager, self.stop_event,
+                                                          self.network_list, self.epoch_list,
+                                                          self.semi_client_manager, self.group_manager, self.stop_event,
                                                           self.test_data, server_config["updater"],
                                                           self.mutex_sem, self.empty_sem, self.full_sem)
+        self.scheduler_thread = SchedulerThread.SchedulerThread(self.server_thread_lock, self.semi_client_manager,
+                                                                self.queue_list, self.current_t,
+                                                                server_config["scheduler"], self.epoch_list,
+                                                                self.server_network, self.network_list, self.T,
+                                                                self.group_manager, self.updater_thread,
+                                                                self.mutex_sem, self.empty_sem, self.full_sem)
 
     def run(self):
         print("Start server:")
@@ -59,7 +75,7 @@ class SyncServer:
         self.scheduler_thread.start()
         self.updater_thread.start()
 
-        client_thread_list = self.sync_client_manager.get_client_thread_list()
+        client_thread_list = self.semi_client_manager.get_client_thread_list()
         for client_thread in client_thread_list:
             client_thread.join()
         self.scheduler_thread.join()
@@ -70,16 +86,16 @@ class SyncServer:
         print("Thread count =", threading.active_count())
         print(*threading.enumerate(), sep="\n")
 
-        if not self.queue.empty():
-            print("\nUn-used client weights:", self.queue.qsize())
-            for q in range(self.queue.qsize()):
-                self.queue.get()
-        self.queue.close()
+        # if not self.queue.empty():
+        #     print("\nUn-used client weights:", self.queue.qsize())
+        #     for q in range(self.queue.qsize()):
+        #         self.queue.get()
+        # self.queue.close()
 
         self.accuracy_list, self.loss_list = self.updater_thread.get_accuracy_and_loss_list()
         del self.scheduler_thread
         del self.updater_thread
-        del self.sync_client_manager
+        del self.semi_client_manager
         print("End!")
 
     def get_accuracy_and_loss_list(self):
