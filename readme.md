@@ -1,16 +1,18 @@
 # 联邦学习简易框架
 
->keywords: `federated-learning`, `asynchronous`, `synchronous`
-
-## git分支说明
-
-目前已推出`1.0.0`版本，由于接下来将对系统扩充半异步模式，并且更改项目结构，因此建议使用`1.0.0`运行项目。在新版本推出前并不保证master分支的代码能够运行。
+>keywords: `federated-learning`, `asynchronous`, `synchronous`, `semi-asynchronous`
 
 ## 初衷
 
 本项目的初衷是我本科毕设期间需要完成搭建一个异步联邦学习框架，并且在其之上完成一些实验。
 
 可当我去github尝试搜索项目时，发现异步联邦学习闭源之深，几乎没有开源项目。并且主流框架也基本不兼容异步，只支持同步FL。因此促生了该项目的诞生。
+
+## git分支说明
+
+master分支为主分支，代码为最新，但有部分commit是脏commit，不保证每个commit都能正常运行，建议使用打tag（版本号）的version
+
+checkout分支保留了客户端会随着训练过程进行不断加入框架中，主分支已经移除该功能，checkout分支并不维护，只支持同步和异步。
 
 ## 基本配置
 
@@ -20,27 +22,65 @@ python3.8 + pytorch + macos
 
 支持单GPU，尚未进行多GPU优化
 
+## 运行
+
+### 实验
+直接运行`python main.py`(fl下的main文件)即可，程序会自动读取根目录下的config.json文件，执行完后将结果储存到results下的指定路径下，并将配置文件一并存储。
+
+也可以自行指定配置文件`python main.py config.json`，需要注意的是config.json的路径是基于根目录的，而非main.py。
+
+根目录下的`config`文件夹提供了部分论文提出的算法文件配置，现提供如下算法实现：
+
+```text
+FedAvg
+FedAsync
+FedProx
+FedAT
+```
+
+## 特性
+
+- [x] 异步联邦学习
+- [x] 支持替换模型和数据集
+- [x] 支持替换调度算法
+- [x] 支持替换聚合算法
+- [x] 支持替换loss函数
+- [x] 支持替换客户端
+- [x] 同步联邦学习
+- [x] 半异步联邦学习
+- [x] 提供test loss信息
+- [x] 自定义标签异构
+- [ ] 自定义数据异构
+- [ ] 支持`Synthetic Non-Identical Client Data`生成;[相关论文](https://arxiv.org/pdf/1909.06335.pdf)
+- [x] wandb可视化
+- [ ] leaf相关数据集支持
+- [x] 支持多GPU
+
 ## 项目目录
 
 ```text
 .
 ├── config                                    常见算法配置
+│   ├── FedAT-config.json
 │   ├── FedAsync-config.json
 │   ├── FedAvg-config.json
 │   └── FedProx-config.json
-├── config_sync.json                          配置文件   
-├── config.json                               配置文件    
-├── framework.png                            
-├── readme.md                                 
+├── config.json                               配置文件
+├── config_semi.json                          配置文件
+├── config_semi_test.json                     配置文件
+├── config_sync.json                          配置文件
+├── config_sync_test.json                     配置文件
+├── config_test.json                          配置文件
+├── fedsemi.png
+├── framework.png
+├── readme.md
 ├── requirements.txt
 └── src 
-    ├── checker                               上传器类
-    │   ├── AvgChecker.py
-    │   └── __init__.py
     ├── client                                客户端实现
     │   ├── AsyncClient.py                    异步客户端类
     │   ├── Client.py                         客户端基类
     │   ├── ProxClient.py
+    │   ├── SemiClient.py
     │   ├── SyncClient.py                     同步客户端类
     │   └── __init__.py
     ├── data                                  数据集下载位置
@@ -58,13 +98,32 @@ python3.8 + pytorch + macos
     │   ├── SchedulerThread.py                调度进程
     │   ├── UpdaterThread.py                  聚合进程
     │   └── __init__.py
+    ├── fedsemi                               半异步联邦学习
+    │   ├── QueueManager.py                   队列管理类
+    │   ├── SchedulerThread.py                调度进程
+    │   ├── SemiAsyncClientManager.py         客户端管理类
+    │   ├── SemiAsyncServer.py                服务器类
+    │   ├── UpdaterThread.py                  聚合进程
+    │   ├── __init__.py
+    │   ├── checker                           半异步检查器
+    │   │   └── SemiAvgChecker.py
+    │   ├── grouping                          分组（层）器
+    │   │   ├── Grouping.py
+    │   │   ├── NormalGrouping.py
+    │   │   └── SimpleGrouping.py
+    │   └── receiver                          半异步接收器
+    │       └── SemiAvgReceiver.py
     ├── fedsync                               同步联邦学习
     │   ├── QueueManager.py                   消息队列管理类
     │   ├── SchedulerThread.py                调度进程
     │   ├── SyncClientManager.py              客户端管理类
     │   ├── SyncServer.py                     同步服务器类
     │   ├── UpdaterThread.py                  聚合进程
-    │   └── __init__.py
+    │   ├── __init__.py
+    │   ├── checker                           同步检查器
+    │   │   └── AvgChecker.py
+    │   └── receiver                          同步接收器
+    │       └── AvgReceiver.py
     ├── fl                                    fl主函数
     │   ├── __init__.py
     │   ├── main.py
@@ -75,47 +134,51 @@ python3.8 + pytorch + macos
     │   ├── CNN.py
     │   ├── ConvNet.py
     │   └── __init__.py
-    ├── receiver                              接收器类
-    │   ├── AvgReceiver.py
-    │   └── __init__.py
     ├── results                               实验结果
     ├── schedule                              调度算法类
+    │   ├── FullSchedule.py
     │   ├── RandomSchedule.py
+    │   ├── RoundRobin.py
     │   └── __init__.py
     ├── test                                  测试用
     ├── update                                聚合算法类
-    │   ├── Avg.py
+    │   ├── AsyncAvg.py
+    │   ├── FedAT.py
     │   ├── FedAsync.py
+    │   ├── FedAvg.py
     │   ├── MyFed.py
     │   └── __init__.py
     └── utils                                 工具集
         ├── ConfigManager.py
+        ├── IID.py
         ├── JsonTool.py
         ├── ModuleFindTool.py
         ├── Plot.py
+        ├── ProcessTool.py
         ├── Queue.py
         ├── Random.py
         ├── Time.py
         ├── Tools.py
         └── __init__.py
-
 ```
 
-Time文件是一个多线程时间获取类的实现，Queue文件是因为mac的多线程queue部分功能未实现，对queue相关功能的实现。
+utils包下的Time文件是一个多线程时间获取类的实现；Queue文件是因为mac的多线程queue部分功能未实现，对queue相关功能的实现。
 
 ## 框架结构
 
 ![error](framework.png)
 
+![error](fedsemi.png)
+
 ## 类解释
 
 ### 接收器类
 
-接收器是同步联邦学习为了检查该轮全局迭代接收的更新是否满足设置的条件，如所有指定的客户端均已上传更新，满足条件则会触发updater进程进行全局聚合。
+接收器是同步｜半异步联邦学习为了检查该轮全局迭代接收的更新是否满足设置的条件，如所有指定的客户端均已上传更新，满足条件则会触发updater进程进行全局聚合。
 
 ### 上传器类
 
-同步联邦学习中客户端完成训练后，会将权重上传给上传器类，上传器根据自身逻辑判断是否符合上传标准，选择接收或舍弃该更新。
+同步｜半异步联邦学习中客户端完成训练后，会将权重上传给上传器类，上传器根据自身逻辑判断是否符合上传标准，选择接收或舍弃该更新。
 
 ## 配置文件
 
@@ -129,7 +192,8 @@ Time文件是一个多线程时间获取类的实现，Queue文件是因为mac�
     "name": "1"                               本次运行结果
   },
   "global": {
-    "mode": "async"                           同步｜异步
+    "multi_gpu": true,                        多gpu
+    "mode": "async"                           同步｜异步｜半异步
     "experiment": "TMP/test/1",               实验路径/结果存放路径
     "stale": {                                延迟设置
       "step": 1,                              步长
@@ -187,6 +251,7 @@ Time文件是一个多线程时间获取类的实现，Queue文件是因为mac�
     "model_file": "CNN",                      本地模型文件
     "model_name": "CNN",                      本地模型类
     "loss": "cross_entropy",                  loss函数
+    "mu": 0.01,
     "optimizer": {                            优化器
       "name": "Adam",
       "weight_decay": 0.005,
@@ -206,7 +271,8 @@ Time文件是一个多线程时间获取类的实现，Queue文件是因为mac�
     "name": "1"                               本次运行结果
   },
   "global": {
-    "mode": "async"                           同步｜异步
+    "multi_gpu": true,                        多gpu
+    "mode": "async"                           同步｜异步｜半异步
     "experiment": "TMP/test/1",               实验路径/结果存放路径
     "stale": {                                延迟设置
       "step": 1,                              步长
@@ -247,16 +313,10 @@ Time文件是一个多线程时间获取类的实现，Queue文件是因为mac�
       }
     },
     "updater": {
-      "update_file": "MyFed",                 聚合算法文件
-      "update_name": "MyFed",                 聚合算法类
+      "update_file": "FedAvg",                 聚合算法文件
+      "update_name": "FedAvg",                 聚合算法类
       "loss": "cross_entropy",                全局损失函数
       "params": {                             聚合算法参数
-        "a": 10,
-        "b": 4,
-        "alpha": 0.1,
-        "r" : 1,
-        "c" : 2,
-        "d" : 2
       }
     }
   },
@@ -276,6 +336,7 @@ Time文件是一个多线程时间获取类的实现，Queue文件是因为mac�
     "model_file": "CNN",                      本地模型文件
     "model_name": "CNN",                      本地模型类
     "loss": "cross_entropy",                  loss函数
+    "mu": 0.01,
     "optimizer": {                            优化器
       "name": "Adam",
       "weight_decay": 0,
@@ -285,39 +346,103 @@ Time文件是一个多线程时间获取类的实现，Queue文件是因为mac�
 }
 ```
 
-## 运行
-
-### 实验
-直接运行`python main.py`(fl下的main文件)即可，程序会自动读取根目录下的config.json文件，执行完后将结果储存到results下的指定路径下，并将配置文件一并存储。
-
-也可以自行指定配置文件`python main.py config.json`，需要注意的是config.json的路径是基于根目录的，而非main.py。
-
-根目录下的`config`文件夹提供了部分论文提出的算法文件配置，现提供如下算法实现：
+### 半异步配置文件
 
 ```text
-FedAvg
-FedAsync
-FedProx
+{
+  "wandb": {                                  wandb配置
+    "enabled": false,                         是否启用
+    "project": "FedAT",                       项目名称  
+    "name": "1"                               本次运行结果
+  },
+  "global": {
+    "multi_gpu": true,                        多gpu
+    "mode": "semi-async"                      同步｜异步｜半异步
+    "experiment": "FedAT/1",                  实验路径/结果存放路径
+    "stale": {                                延迟设置
+      "step": 5,                              步长
+      "shuffle": true,                        是否打乱
+      "list": [10, 10, 10, 5, 5, 5, 5]        每个步长对应的客户端数
+    },
+    "data_file": "MNIST",                     数据集类文件
+    "data_name": "MNIST",                     数据集类
+    "iid": {                                  non-iid设置
+      "label": {
+        "step": 2,
+        "list": [10, 10, 30]
+      },
+      "data": {
+        "max": 200,
+        "min": 200
+      }
+    },
+    "client_num": 50                          客户端数量
+  },
+  "server": {
+    "epochs": 600,                            服务器全局迭代次数
+    "model_file": "CNN",                      全局模型文件
+    "model_name": "CNN",                      全局模型类
+    "scheduler": {
+      "scheduler_interval": 5,                调度间隔
+      "schedule_file": "RandomSchedule",      调度算法文件
+      "schedule_name": "RandomSchedule",      调度算法类
+      "params": {                             调度算法相关参数
+        "c_ratio": 0.3,
+        "schedule_interval": 0
+      },
+      "receiver": {
+        "receiver_file": "SemiAvgReceiver",   接收器文件
+        "receiver_name": "SemiAvgReceiver"    接收器类 
+        "params": {
+        }
+      }
+    },
+    "updater": {
+      "update_file": "FedAT",                 组间聚合算法文件
+      "update_name": "FedAT",                 组间聚合算法类
+      "loss": "cross_entropy",                全局损失函数
+      "params": {                             聚合算法参数
+      },
+      "group": {                              组内使用的聚合函数
+        "update_file": "FedAvg",
+        "update_name": "FedAvg",
+        "params": {
+        }
+      }
+    },
+    "grouping": {
+      "grouping_file": "NormalGrouping",      分组管理算法文件
+      "grouping_name": "NormalGrouping",      分组管理算法类
+      "params": {                             分组管理参数
+        "step": 5
+      }
+    }
+  },
+  "client_manager": {
+    "checker": {
+      "checker_file": "SemiAvgChecker",       检查器文件 
+      "checker_name": "SemiAvgChecker",       检查器类
+      "params": {
+      }
+    },
+    "client_file": "SemiClient",
+    "client_name": "SemiClient"
+  },
+  "client": {
+    "epochs": 2,                              客户端迭代次数
+    "batch_size": 50,
+    "model_file": "CNN",                      本地模型文件
+    "model_name": "CNN",                      本地模型类
+    "loss": "cross_entropy",                  loss函数
+    "mu": 0.01,
+    "optimizer": {                            优化器
+      "name": "SGD",
+      "weight_decay": 0,
+      "lr": 0.01
+    }
+  }
+}
 ```
-
-## 特性
-
-- [x] 异步联邦学习
-- [x] 支持替换模型和数据集
-- [x] 支持替换调度算法
-- [x] 支持替换聚合算法
-- [x] 支持替换loss函数
-- [x] 支持替换客户端
-- [x] 同步联邦学习
-- [ ] 半异步联邦学习
-- [x] 提供test loss信息
-- [ ] 接收客户端loss信息
-- [x] 自定义标签异构
-- [ ] 自定义数据异构
-- [ ] 支持`Synthetic Non-Identical Client Data`生成;[相关论文](https://arxiv.org/pdf/1909.06335.pdf)
-- [x] wandb可视化
-- [ ] leaf相关数据集支持
-- [x] 支持多GPU
 
 ## 添加新的算法
 
