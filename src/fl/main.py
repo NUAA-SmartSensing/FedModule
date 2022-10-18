@@ -99,7 +99,7 @@ if __name__ == '__main__':
     config = server.get_config()
     del server
 
-    print("Thread count =", threading.activeCount())
+    print("Thread count =", threading.active_count())
     print(*threading.enumerate(), sep="\n")
 
     print("Time used:")
