@@ -53,7 +53,6 @@
       "group": {
         "update_file": "FedAvg",
         "update_name": "FedAvg",
-        "loss": "cross_entropy",
         "params": {
         }
       }
