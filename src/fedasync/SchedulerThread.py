@@ -24,7 +24,7 @@ class SchedulerThread(threading.Thread):
         last_s_time = -1
         # last_c_time = -1
         while self.current_t.get_time() <= self.T:
-            current_time = self.current_t.get_time()
+            current_time = self.current_t.get_time() - 1
             # 每隔一段时间进行一次schedule
             if current_time % self.schedule_interval == 0 and current_time != last_s_time:
                 print("| current_time |", current_time % self.schedule_interval, "= 0", current_time, "!=", last_s_time)
