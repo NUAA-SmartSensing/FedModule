@@ -31,8 +31,8 @@ class SyncClient(Client.Client):
         if isinstance(client_config["loss"], str):
             self.loss_func = ModuleFindTool.find_F_by_string(client_config["loss"])
         else:
-            self.loss_func = ModuleFindTool.find_class_by_string("loss", client_config["loss"]["loss_file"], client_config["loss"]["loss_name"])
-        self.train_dl = DataLoader(self.train_ds, batch_size=self.batch_size, shuffle=True)
+            loss_func_class = ModuleFindTool.find_class_by_string("loss", client_config["loss"]["loss_file"], client_config["loss"]["loss_name"])
+            self.loss_func = loss_func_class(client_config["loss"], self)
 
     def run(self):
         while not self.stop_event.is_set():

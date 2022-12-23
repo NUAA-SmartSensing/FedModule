@@ -75,3 +75,6 @@ class Client(threading.Thread):
     def get_delay(self):
         delay = copy.deepcopy(self.delay)
         return delay
+
+    def getDataset(self):
+        return self.train_ds
