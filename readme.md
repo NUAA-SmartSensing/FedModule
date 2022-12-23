@@ -66,6 +66,7 @@ FedAvg
 FedAsync
 FedProx
 FedAT
+FedLC
 ```
 
 ## 特性

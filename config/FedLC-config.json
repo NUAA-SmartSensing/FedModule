@@ -1,0 +1,77 @@
+{
+  "wandb": {
+    "enabled": false,
+    "project": "FedLC",
+    "name": "1"
+  },
+  "global": {
+    "multi_gpu": false,
+    "mode": "async",
+    "experiment": "FedLC/1",
+    "stale": {
+      "step": 1,
+      "shuffle": true,
+      "list": [50]
+    },
+    "data_file": "MNIST",
+    "data_name": "MNIST",
+    "iid": {
+      "label": {
+        "step": 1,
+        "list": [0, 0, 0, 0, 50]
+      },
+      "data": {
+
+      }
+    },
+    "client_num": 50
+  },
+  "server": {
+    "epochs": 50,
+    "model_file": "CNN",
+    "model_name": "CNN",
+    "scheduler": {
+      "scheduler_interval": 4,
+      "schedule_file": "RoundRobin",
+      "schedule_name": "RoundRobin",
+      "params": {
+        "c_ratio": 0.1,
+        "schedule_interval": 4
+      }
+    },
+    "updater": {
+      "update_file": "FedAsync",
+      "update_name": "FedAsync",
+      "loss": "cross_entropy",
+      "params": {
+        "a": 10,
+        "b": 4,
+        "alpha": 0.3,
+        "r" : 1,
+        "c" : 2,
+        "d" : 2
+      }
+    }
+  },
+  "client_manager": {
+    "client_file": "AsyncClient",
+    "client_name": "AsyncClient"
+  },
+  "client": {
+    "epochs": 2,
+    "batch_size": 50,
+    "model_file": "CNN",
+    "model_name": "CNN",
+    "loss": {
+      "loss_file": "FedLC",
+      "loss_name": "FedLC",
+      "tau": 0.5
+    },
+    "mu": 0,
+    "optimizer": {
+      "name": "SGD",
+      "weight_decay": 0,
+      "lr": 0.01
+    }
+  }
+}
