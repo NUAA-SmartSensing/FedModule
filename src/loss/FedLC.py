@@ -9,13 +9,10 @@ from client import Client
 class FedLC(nn.Module):
     def __init__(self, config, client: Client):
         super().__init__()
-
         self.z = torch.from_numpy(np.bincount(client.getDataset().tensors[1]))
         self.tau = config['tau']
 
     def forward(self, x, y, reduction="mean"):
-        # input.shape: torch.size([-1, class])
-        # target.shape: torch.size([-1])
         # reduction = "mean" or "sum"
         # input是模型输出的结果，与target求loss
         # target的长度和input第一维的长度一致
