@@ -75,7 +75,7 @@ FedLC
 现在可以直接pull docker镜像进行运行，命令如下：
 
 ```shell
-docker pull async-fl
+docker pull desperadoccy/async-fl
 docker run -it async-fl config/FedAvg-config.json
 ```
 
