@@ -11,6 +11,7 @@
   - [基本配置](#基本配置)
   - [运行](#运行)
     - [实验](#实验)
+    - [docker](#docker)
   - [特性](#特性)
   - [项目目录](#项目目录)
   - [框架结构](#框架结构)
@@ -69,6 +70,24 @@ FedAT
 FedLC
 ```
 
+### docker
+
+现在可以直接pull docker镜像进行运行，命令如下：
+
+```shell
+docker pull async-fl
+docker run -it async-fl config/FedAvg-config.json
+```
+
+类似地，支持传参config文件路径。
+也可以自行build
+
+```shell
+cd docker
+docker build -t async-fl .
+docker run -it async-fl config/FedAvg-config.json 
+```
+
 ## 特性
 
 - [x] 异步联邦学习
@@ -86,6 +105,7 @@ FedLC
 - [x] wandb可视化
 - [ ] leaf相关数据集支持
 - [x] 支持多GPU
+- [x] docker部署
 
 ## 项目目录
 
