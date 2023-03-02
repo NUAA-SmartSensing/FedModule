@@ -1,6 +1,6 @@
 {
   "wandb": {
-    "enabled": true,
+    "enabled": false,
     "project": "non-iid实验对比",
     "name": "1"
   },

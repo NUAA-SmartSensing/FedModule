@@ -1,13 +1,13 @@
 {
   "wandb": {
     "enabled": false,
-    "project": "non-iid实验对比",
+    "project": "FedAvg",
     "name": "1"
   },
   "global": {
     "multi_gpu": true,
-    "mode": "async",
-    "experiment": "TMP/test/4",
+    "mode": "sync",
+    "experiment": "FedAvg/1",
     "stale": {
       "step": 1,
       "shuffle": true,
@@ -29,25 +29,31 @@
       "params": {
         "c_ratio": 0.1,
         "schedule_interval": 5
+      },
+      "receiver": {
+        "receiver_file": "AvgReceiver",
+        "receiver_name": "AvgReceiver",
+        "params": {
+        }
       }
     },
     "updater": {
-      "update_file": "MyFed",
-      "update_name": "MyFed",
+      "update_file": "FedAvg",
+      "update_name": "FedAvg",
       "loss": "cross_entropy",
       "params": {
-        "a": 10,
-        "b": 4,
-        "alpha": 0.1,
-        "r" : 1,
-        "c" : 2,
-        "d" : 2
       }
     }
   },
   "client_manager": {
-    "client_file": "AsyncClient",
-    "client_name": "AsyncClient"
+    "checker": {
+      "checker_file": "AvgChecker",
+      "checker_name": "AvgChecker",
+      "params": {
+      }
+    },
+    "client_file": "SyncClient",
+    "client_name": "SyncClient"
   },
   "client": {
     "epochs": 2,
@@ -55,11 +61,11 @@
     "model_file": "CNN",
     "model_name": "CNN",
     "loss": "cross_entropy",
-    "mu": 0.01,
+    "mu": 0,
     "optimizer": {
       "name": "Adam",
-      "weight_decay": 0.005,
-      "lr": 0.01
+      "lr": 0.01,
+      "weight_decay": 0
     }
   }
 }
