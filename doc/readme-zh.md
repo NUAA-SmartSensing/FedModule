@@ -3,7 +3,7 @@
 <img src="./pic/header.png" style="width:800px"></img>
 
 ![GitHub code size](https://img.shields.io/github/languages/code-size/desperadoccy/async-FL?style=flat-square&logo=github)
-[![license](https://img.shields.io/badge/license-MIT-green?style=flat-square&logo=github)](./LICENSE)
+[![license](https://img.shields.io/badge/license-MIT-green?style=flat-square&logo=github)](../license)
 ![python](https://img.shields.io/badge/python-3.8-blue?style=flat-square&logo=python)
 ![torch](https://img.shields.io/badge/torch-1.11.0-green?style=flat-square&logo=pytorch)
 
