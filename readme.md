@@ -1,4 +1,11 @@
-# 联邦学习简易框架
+# __Async-FL__
+
+<img src="./doc/pic/header.png" style="width:800px"></img>
+
+![GitHub code size](https://img.shields.io/github/languages/code-size/desperadoccy/async-FL?style=flat-square&logo=github)
+[![license](https://img.shields.io/badge/license-MIT-green?style=flat-square&logo=github)](./LICENSE)
+![python](https://img.shields.io/badge/python-3.8-blue?style=flat-square&logo=python)
+![torch](https://img.shields.io/badge/torch-1.11.0-green?style=flat-square&logo=pytorch)
 
 >keywords: `federated-learning`, `asynchronous`, `synchronous`, `semi-asynchronous`
 
@@ -217,9 +224,9 @@ utils包下的Time文件是一个多线程时间获取类的实现；Queue文件
 
 ## 框架结构
 
-![error](framework.png)
+![error](doc/pic/framework.png)
 
-![error](fedsemi.png)
+![error](doc/pic/fedsemi.png)
 
 ## 类解释
 
