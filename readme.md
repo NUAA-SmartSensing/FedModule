@@ -1,4 +1,4 @@
-# __Async-FL__
+# Async-FL
 
 <img src="./doc/pic/header.png" style="width:800px"></img>
 
@@ -7,67 +7,72 @@
 ![python](https://img.shields.io/badge/python-3.8-blue?style=flat-square&logo=python)
 ![torch](https://img.shields.io/badge/torch-1.11.0-green?style=flat-square&logo=pytorch)
 
->keywords: `federated-learning`, `asynchronous`, `synchronous`, `semi-asynchronous`
+> This document is also available in: [中文](doc/readme-zh.md) | [English](readme.md)
 
-## 目录
+> keywords: `federated-learning`, `asynchronous`, `synchronous`, `semi-asynchronous`
 
-- [联邦学习简易框架](#联邦学习简易框架)
-  - [目录](#目录)
-  - [初衷](#初衷)
-  - [git分支说明](#git分支说明)
-  - [基本配置](#基本配置)
-  - [运行](#运行)
-    - [实验](#实验)
-    - [docker](#docker)
-  - [特性](#特性)
-  - [项目目录](#项目目录)
-  - [框架结构](#框架结构)
-  - [类解释](#类解释)
-    - [接收器类](#接收器类)
-    - [上传器类](#上传器类)
-  - [配置文件](#配置文件)
-    - [异步配置文件](#异步配置文件)
-    - [同步配置文件](#同步配置文件)
-    - [半异步配置文件](#半异步配置文件)
-  - [添加新的算法](#添加新的算法)
-    - [loss函数添加](#loss函数添加)
-  - [stale设置](#stale设置)
-  - [non-iid设置](#non-iid设置)
-    - [label_iid](#label_iid)
-    - [data_iid](#data_iid)
-  - [客户端替换](#客户端替换)
-  - [多GPU](#多gpu)
-  - [代码尚存问题](#代码尚存问题)
-  - [联系我](#联系我)
+<details>
+  <summary><b>Table of Contents</b></summary>
+  <p>
 
-## 初衷
+- [Original Intention](#original-intention)
+- [Git Branch Description](#git_branch-description)
+- [Requirements](#requirements)
+- [Getting Started](#getting-started)
+  - [Experiments](#experiments)
+  - [Docker](#docker)
+- [Features](#features)
+- [Project Directory](#project-directory)
+- [Framework](#Framework)
+- [Code Explanations](#code-explanations)
+  - [Receiver Class](#receiver-class)
+  - [Checker Class](#checker-class)
+- [Configuration](#Configuration)
+  - [Asynchronous Configuration](#asynchronous-configuration)
+  - [Synchronous Configuration](#synchronous-configuration)
+  - [Semi-aynchronous Configuration](#semi-aynchronous-configuration)
+- [Adding New Algorithm](#adding-new-algorithm)
+  - [Adding Loss Function](#adding-loss-function)
+- [Staleness Settings](#staleness-settings)
+- [Non-iid Settings](#non-iid-settings)
+  - [label_iid](#label_iid)
+  - [data_iid](#data_iid)
+- [Adding New Client Class](#adding-new-client-class)
+- [Multi-GPU](#multi-gpu)
+- [Existing Bug](#existing-bug)
+- [Contact Us](#contact-us)
 
-本项目的初衷是我本科毕设期间需要完成搭建一个异步联邦学习框架，并且在其之上完成一些实验。
+  </p>
+</details>
 
-可当我去github尝试搜索项目时，发现异步联邦学习闭源之深，几乎没有开源项目。并且主流框架也基本不兼容异步，只支持同步FL。因此促生了该项目。
+## Original Intention
 
-## git分支说明
+The initial intention of this project is to build an asynchronous federated learning framework and conduct experiments on it during my undergraduate thesis.
 
-master分支为主分支，代码为最新，但有部分commit是脏commit，不保证每个commit都能正常运行，建议使用打tag（版本号）的version
+However, when I tried to search for related open-source projects on GitHub, I found that the field of asynchronous federated learning is quite closed-source, with almost no open-source projects available. Additionally, mainstream frameworks also lack compatibility with asynchronous FL and only support synchronous FL. Thus, this project was born.
 
-checkout分支保留了客户端会随着训练过程进行不断加入框架中，主分支已经移除该功能，checkout分支并不维护，只支持同步和异步。
+## Git Branch Description
 
-## 基本配置
+The master branch is the main branch with the latest code, but some of the commits are dirty commits and not guaranteed to run properly. It is recommended to use tagged versions for better stability.
+
+The checkout branch retains the functionality of adding clients to the system during the training process, which has been removed in the main branch. The checkout branch is not actively maintained and only supports synchronous and asynchronous FL.
+
+## Requirements
 
 python3.8 + pytorch + macos
 
-在linux进行过验证
+It has been validated on Linux.
 
-支持单GPU，尚未进行多GPU优化
+It supports single GPU and Multi-GPU.
 
-## 运行
+## Getting Started
 
-### 实验
-直接运行`python main.py`(fl下的main文件)即可，程序会自动读取根目录下的config.json文件，执行完后将结果储存到results下的指定路径下，并将配置文件一并存储。
+### Experiments
+You can run `python main.py` (the main file in the fl directory) directly. The program will automatically read the `config.json` file in the root directory and store the results in the specified path under `results`, along with the configuration file.
 
-也可以自行指定配置文件`python main.py config.json`，需要注意的是config.json的路径是基于根目录的，而非main.py。
+You can also specify the configuration file by `python main.py config.json`. Please note that the path of `config.json` is relative to the root directory, not `main.py`.
 
-根目录下的`config`文件夹提供了部分论文提出的算法文件配置，现提供如下算法实现：
+The `config` folder in the root directory provides some algorithm configuration files proposed in papers. The following algorithm implementations are currently available:
 
 ```text
 FedAvg
@@ -77,17 +82,16 @@ FedAT
 FedLC
 ```
 
-### docker
+### Docker
 
-现在可以直接pull docker镜像进行运行，命令如下：
+Now you can directly pull and run a Docker image, the command is as follows:
 
 ```shell
 docker pull desperadoccy/async-fl
 docker run -it async-fl config/FedAvg-config.json
 ```
 
-类似地，支持传参config文件路径。
-也可以自行build
+Similarly, it supports passing a config file path as a parameter. You can also build the Docker image yourself.
 
 ```shell
 cd docker
@@ -95,118 +99,118 @@ docker build -t async-fl .
 docker run -it async-fl config/FedAvg-config.json 
 ```
 
-## 特性
+## Features
 
-- [x] 异步联邦学习
-- [x] 支持替换模型和数据集
-- [x] 支持替换调度算法
-- [x] 支持替换聚合算法
-- [x] 支持替换loss函数
-- [x] 支持替换客户端
-- [x] 同步联邦学习
-- [x] 半异步联邦学习
-- [x] 提供test loss信息
-- [x] 自定义标签异构
-- [ ] 自定义数据异构
-- [ ] 支持`Synthetic Non-Identical Client Data`生成;[相关论文](https://arxiv.org/pdf/1909.06335.pdf)
-- [x] wandb可视化
-- [ ] leaf相关数据集支持
-- [x] 支持多GPU
-- [x] docker部署
+- [x] Asynchronous Federated Learning
+- [x] Support model and dataset replacement
+- [x] Support scheduling algorithm replacement
+- [x] Support aggregation algorithm replacement
+- [x] Support loss function replacement
+- [x] Support client replacement
+- [x] Synchronous federated learning
+- [x] Semi-asynchronous federated learning
+- [x] Provide test loss information
+- [x] Custom label heterogeneity
+- [ ] Custom data heterogeneity
+- [ ] Support for generating `Synthetic Non-Identical Client Data`生成;[related paper](https://arxiv.org/pdf/1909.06335.pdf)
+- [x] wandb visualization
+- [ ] Support for leaf-related datasets
+- [x] Support for multiple GPUs
+- [x] Docker deployment
 
-## 项目目录
+## Project Directory
 
 ```text
 .
-├── config                                    常见算法配置
+├── config                                    Common algorithm configuration files
 │   ├── FedAT-config.json
 │   ├── FedAsync-config.json
 │   ├── FedAvg-config.json
 │   └── FedProx-config.json
-├── config.json                               配置文件
-├── config_semi.json                          配置文件
-├── config_semi_test.json                     配置文件
-├── config_sync.json                          配置文件
-├── config_sync_test.json                     配置文件
-├── config_test.json                          配置文件
+├── config.json                               configuration files
+├── config_semi.json                          configuration files
+├── config_semi_test.json                     configuration files
+├── config_sync.json                          configuration files
+├── config_sync_test.json                     configuration files
+├── config_test.json                          configuration files
 ├── fedsemi.png
 ├── framework.png
 ├── readme.md
 ├── requirements.txt
 └── src 
-    ├── client                                客户端实现
-    │   ├── AsyncClient.py                    异步客户端类
-    │   ├── Client.py                         客户端基类
+    ├── client                                Client implementation
+    │   ├── AsyncClient.py                    Asynchronous client class
+    │   ├── Client.py                         Client  class
     │   ├── ProxClient.py
     │   ├── SemiClient.py
-    │   ├── SyncClient.py                     同步客户端类
+    │   ├── SyncClient.py                     Synchronous client class
     │   └── __init__.py
-    ├── data                                  数据集下载位置
-    ├── dataset                               数据集类
+    ├── data                                  Dataset download location
+    ├── dataset                               Dataset class
     │   ├── CIFAR10.py
     │   ├── MNIST.py
     │   ├── FashionMNIST.py
     │   └── __init__.py
-    ├── exception                             异常类
+    ├── exception                             Exception class
     │   ├── ClientSumError.py
     │   └── __init__.py
-    ├── fedasync                              异步联邦学习
-    │   ├── AsyncClientManager.py             客户端管理类
-    │   ├── AsyncServer.py                    异步服务器类
-    │   ├── SchedulerThread.py                调度进程
-    │   ├── UpdaterThread.py                  聚合进程
+    ├── fedasync                              Asynchronous Federated Learning
+    │   ├── AsyncClientManager.py             Client Manager class
+    │   ├── AsyncServer.py                    Server class
+    │   ├── SchedulerThread.py                Scheduling Thread
+    │   ├── UpdaterThread.py                  Aggregation Thread
     │   └── __init__.py
-    ├── fedsemi                               半异步联邦学习
-    │   ├── QueueManager.py                   队列管理类
-    │   ├── SchedulerThread.py                调度进程
-    │   ├── SemiAsyncClientManager.py         客户端管理类
-    │   ├── SemiAsyncServer.py                服务器类
-    │   ├── UpdaterThread.py                  聚合进程
+    ├── fedsemi                               Semi-asynchronous Federated Learning
+    │   ├── QueueManager.py                   Message Queue Manager class
+    │   ├── SchedulerThread.py                Scheduling Thread
+    │   ├── SemiAsyncClientManager.py         Client Manager class
+    │   ├── SemiAsyncServer.py                Server class
+    │   ├── UpdaterThread.py                  Aggregation Thread
     │   ├── __init__.py
-    │   ├── checker                           半异步检查器
+    │   ├── checker                           Semi-asynchronous checker
     │   │   └── SemiAvgChecker.py
-    │   ├── grouping                          分组（层）器
+    │   ├── grouping                          Partitioner
     │   │   ├── Grouping.py
     │   │   ├── NormalGrouping.py
     │   │   └── SimpleGrouping.py
-    │   └── receiver                          半异步接收器
+    │   └── receiver                          Semi-asynchronous receiver
     │       └── SemiAvgReceiver.py
-    ├── fedsync                               同步联邦学习
-    │   ├── QueueManager.py                   消息队列管理类
-    │   ├── SchedulerThread.py                调度进程
-    │   ├── SyncClientManager.py              客户端管理类
-    │   ├── SyncServer.py                     同步服务器类
-    │   ├── UpdaterThread.py                  聚合进程
+    ├── fedsync                               Synchronous Federated Learning
+    │   ├── QueueManager.py                   Queue Manager class
+    │   ├── SchedulerThread.py                Scheduling Thread
+    │   ├── SyncClientManager.py              Client Manager class
+    │   ├── SyncServer.py
+    │   ├── UpdaterThread.py
     │   ├── __init__.py
-    │   ├── checker                           同步检查器
+    │   ├── checker                           Synchronous Checker
     │   │   └── AvgChecker.py
-    │   └── receiver                          同步接收器
+    │   └── receiver                          Synchronous Receiver
     │       └── AvgReceiver.py
-    ├── fl                                    fl主函数
+    ├── fl                                    fl main function
     │   ├── __init__.py
     │   ├── main.py
-    │   └── wandb                             wandb运行文件夹
-    ├── loss                                  loss函数实现
+    │   └── wandb                             wandb running directory
+    ├── loss                                  Implementation of Loss Function
     │   └── __init__.py
-    ├── model                                 模型类
+    ├── model
     │   ├── CNN.py
     │   ├── ConvNet.py
     │   └── __init__.py
-    ├── results                               实验结果
-    ├── schedule                              调度算法类
+    ├── results
+    ├── schedule                              Scheduling Algorithm Class
     │   ├── FullSchedule.py
     │   ├── RandomSchedule.py
     │   ├── RoundRobin.py
     │   └── __init__.py
-    ├── test                                  测试用
-    ├── update                                聚合算法类
+    ├── test                                  for test
+    ├── update                                Updating Algorithm Class
     │   ├── AsyncAvg.py
     │   ├── FedAT.py
     │   ├── FedAsync.py
     │   ├── FedAvg.py
     │   ├── MyFed.py
     │   └── __init__.py
-    └── utils                                 工具集
+    └── utils                               
         ├── ConfigManager.py
         ├── IID.py
         ├── JsonTool.py
@@ -220,47 +224,46 @@ docker run -it async-fl config/FedAvg-config.json
         └── __init__.py
 ```
 
-utils包下的Time文件是一个多线程时间获取类的实现；Queue文件是因为mac的多线程queue部分功能未实现，对queue相关功能的实现。
-
-## 框架结构
+The "Time" file under the "utils" package is an implementation of a multi-threaded time acquisition class, and the "Queue" file is an implementation of related functionalities for the "queue" module, as some functionalities of the "queue" module are not yet implemented on macOS.
+## Framework
 
 ![error](doc/pic/framework.png)
 
 ![error](doc/pic/fedsemi.png)
 
-## 类解释
+## Code Explanations
 
-### 接收器类
+### Receiver Class
 
-接收器是同步｜半异步联邦学习为了检查该轮全局迭代接收的更新是否满足设置的条件，如所有指定的客户端均已上传更新，满足条件则会触发updater进程进行全局聚合。
+The receiver in synchronous and semi-asynchronous federated learning is used to check whether the updates received during the current global iteration meet the conditions set, such as whether all designated clients have uploaded their updates. If the conditions are met, the updater process will be triggered to perform global aggregation.
 
-### 上传器类
+### Checker Class
 
-同步｜半异步联邦学习中客户端完成训练后，会将权重上传给上传器类，上传器根据自身逻辑判断是否符合上传标准，选择接收或舍弃该更新。
+In synchronous and semi-asynchronous federated learning, after a client completes its training, it will upload its weights to the uploader class, which will determine whether the update meets the upload criteria based on its own logic, and decide whether to accept or discard the update.
 
-## 配置文件
+## Configuration
 
-### 异步配置文件
+### Asynchronous Configuration
 
 ```text
 {
-  "wandb": {                                  wandb配置
-    "enabled": true,                          是否启用
-    "project": "non-iid test",                项目名称  
-    "name": "1"                               本次运行结果
+  "wandb": {                                  wandb configuration
+    "enabled": true,                         
+    "project": "non-iid test",                  
+    "name": "1"                               Name of this Run Result
   },
   "global": {
-    "multi_gpu": true,                        多gpu
-    "mode": "async"                           同步｜异步｜半异步
-    "experiment": "TMP/test/1",               实验路径/结果存放路径
-    "stale": {                                延迟设置
-      "step": 1,                              步长
-      "shuffle": true,                        是否打乱
-      "list": [10, 10, 10, 5, 5, 5, 5]        每个步长对应的客户端数
+    "multi_gpu": true,                        
+    "mode": "async"                           sync｜async｜semi-async
+    "experiment": "TMP/test/1",               Experiment path/result storage path
+    "stale": {                                staleness setting
+      "step": 1,                              
+      "shuffle": true,                        
+      "list": [10, 10, 10, 5, 5, 5, 5]        The number of clients corresponding to each step size
     },
-    "data_file": "MNIST",                     数据集类文件
-    "data_name": "MNIST",                     数据集类
-    "iid": {                                  non-iid设置
+    "data_file": "MNIST",                     Data set class file
+    "data_name": "MNIST",                     Data set class name
+    "iid": {                                  non-iid setting
       "label": {
         "step": 1,
         "list": [10, 10, 30]
@@ -270,26 +273,26 @@ utils包下的Time文件是一个多线程时间获取类的实现；Queue文件
         "min": 200
       }
     },
-    "client_num": 50                          客户端数量
+    "client_num": 50                          
   },
   "server": {
-    "epochs": 600,                            服务器全局迭代次数
-    "model_file": "CNN",                      全局模型文件
-    "model_name": "CNN",                      全局模型类
+    "epochs": 600,                            global epoch
+    "model_file": "CNN",                      
+    "model_name": "CNN",                      
     "scheduler": {
-      "scheduler_interval": 5,                调度间隔
-      "schedule_file": "RandomSchedule",      调度算法文件
-      "schedule_name": "RandomSchedule",      调度算法类
-      "params": {                             调度算法相关参数
+      "scheduler_interval": 5,                
+      "schedule_file": "RandomSchedule",      
+      "schedule_name": "RandomSchedule",      
+      "params": {                             Scheduling algorithm related parameters
         "c_ratio": 0.1,
         "schedule_interval": 5
       }
     },
     "updater": {
-      "update_file": "MyFed",                 聚合算法文件
-      "update_name": "MyFed",                 聚合算法类
-      "loss": "cross_entropy",                全局损失函数
-      "params": {                             聚合算法参数
+      "update_file": "MyFed",                 
+      "update_name": "MyFed",                 
+      "loss": "cross_entropy",                
+      "params": {                             
         "a": 10,
         "b": 4,
         "alpha": 0.1,
@@ -300,17 +303,17 @@ utils包下的Time文件是一个多线程时间获取类的实现；Queue文件
     }
   },
   "client_manager": {
-    "client_file": "AsyncClient",             客户端文件
-    "client_name": "AsyncClient"              客户端类
+    "client_file": "AsyncClient",             
+    "client_name": "AsyncClient"              
   },
   "client": {
-    "epochs": 2,                              客户端迭代次数
+    "epochs": 2,                              local epoch
     "batch_size": 50,
-    "model_file": "CNN",                      本地模型文件
-    "model_name": "CNN",                      本地模型类
-    "loss": "cross_entropy",                  loss函数
-    "mu": 0.01,
-    "optimizer": {                            优化器
+    "model_file": "CNN",                      
+    "model_name": "CNN",                      
+    "loss": "cross_entropy",                  
+    "mu": 0.01,                               proximal term coefficient
+    "optimizer": {                            
       "name": "Adam",
       "weight_decay": 0.005,
       "lr": 0.01
@@ -319,27 +322,27 @@ utils包下的Time文件是一个多线程时间获取类的实现；Queue文件
 }
 ```
 
-### 同步配置文件
+### Synchronous Configuration
 
 ```text
 {
-  "wandb": {                                  wandb配置
-    "enabled": true,                          是否启用
-    "project": "non-iid test",                项目名称  
-    "name": "1"                               本次运行结果
+  "wandb": {                                  
+    "enabled": true,                          
+    "project": "non-iid test",                  
+    "name": "1"                               
   },
   "global": {
-    "multi_gpu": true,                        多gpu
-    "mode": "async"                           同步｜异步｜半异步
-    "experiment": "TMP/test/1",               实验路径/结果存放路径
-    "stale": {                                延迟设置
-      "step": 1,                              步长
-      "shuffle": true,                        是否打乱
-      "list": [10, 10, 10, 5, 5, 5, 5]        每个步长对应的客户端数
+    "multi_gpu": true,                        
+    "mode": "async"                           sync｜async｜semi-async
+    "experiment": "TMP/test/1",               Experiment path/result storage path
+    "stale": {                                staleness setting
+      "step": 1,                              
+      "shuffle": true,                        
+      "list": [10, 10, 10, 5, 5, 5, 5]        The number of clients corresponding to each step size
     },
-    "data_file": "MNIST",                     数据集类文件
-    "data_name": "MNIST",                     数据集类
-    "iid": {                                  non-iid设置
+    "data_file": "MNIST",                     Data set class file
+    "data_name": "MNIST",                     Data set class name
+    "iid": {                                  non-iid setting
       "label": {
         "step": 1,
         "list": [10, 10, 30]
@@ -349,39 +352,39 @@ utils包下的Time文件是一个多线程时间获取类的实现；Queue文件
         "min": 200
       }
     },
-    "client_num": 50                          客户端数量
+    "client_num": 50                          
   },
   "server": {
-    "epochs": 600,                            服务器全局迭代次数
-    "model_file": "CNN",                      全局模型文件
-    "model_name": "CNN",                      全局模型类
+    "epochs": 600,                            global epoch
+    "model_file": "CNN",                      
+    "model_name": "CNN",                      
     "scheduler": {
-      "scheduler_interval": 5,                调度间隔
-      "schedule_file": "RandomSchedule",      调度算法文件
-      "schedule_name": "RandomSchedule",      调度算法类
-      "params": {                             调度算法相关参数
+      "scheduler_interval": 5,                
+      "schedule_file": "RandomSchedule",      
+      "schedule_name": "RandomSchedule",      
+      "params": {                             Scheduling algorithm related parameters
         "c_ratio": 0.1,
         "schedule_interval": 5
       },
       "receiver": {
-        "receiver_file": "AvgReceiver",       接收器文件
-        "receiver_name": "AvgReceiver"        接收器类 
+        "receiver_file": "AvgReceiver",       
+        "receiver_name": "AvgReceiver"         
         "params": {
         }
       }
     },
     "updater": {
-      "update_file": "FedAvg",                 聚合算法文件
-      "update_name": "FedAvg",                 聚合算法类
-      "loss": "cross_entropy",                全局损失函数
-      "params": {                             聚合算法参数
+      "update_file": "FedAvg",                 
+      "update_name": "FedAvg",                 
+      "loss": "cross_entropy",                
+      "params": {                             
       }
     }
   },
   "client_manager": {
     "checker": {
-      "checker_file": "AvgChecker",           检查器文件 
-      "checker_name": "AvgChecker",           检查器类
+      "checker_file": "AvgChecker",            
+      "checker_name": "AvgChecker",           
       "params": {
       }
     },
@@ -389,13 +392,13 @@ utils包下的Time文件是一个多线程时间获取类的实现；Queue文件
     "client_name": "SyncClient"
   },
   "client": {
-    "epochs": 2,                              客户端迭代次数
+    "epochs": 2,                              local epoch
     "batch_size": 50,
-    "model_file": "CNN",                      本地模型文件
-    "model_name": "CNN",                      本地模型类
-    "loss": "cross_entropy",                  loss函数
-    "mu": 0.01,
-    "optimizer": {                            优化器
+    "model_file": "CNN",                      
+    "model_name": "CNN",                      
+    "loss": "cross_entropy",                  
+    "mu": 0.01,                               proximal term coefficient
+    "optimizer": {                            
       "name": "Adam",
       "weight_decay": 0,
       "lr": 0.01
@@ -404,27 +407,27 @@ utils包下的Time文件是一个多线程时间获取类的实现；Queue文件
 }
 ```
 
-### 半异步配置文件
+### Semi-aynchronous Configuration
 
 ```text
 {
-  "wandb": {                                  wandb配置
-    "enabled": false,                         是否启用
-    "project": "FedAT",                       项目名称  
-    "name": "1"                               本次运行结果
+  "wandb": {                                  
+    "enabled": false,                         
+    "project": "FedAT",                         
+    "name": "1"                               
   },
   "global": {
-    "multi_gpu": true,                        多gpu
-    "mode": "semi-async"                      同步｜异步｜半异步
-    "experiment": "FedAT/1",                  实验路径/结果存放路径
-    "stale": {                                延迟设置
-      "step": 5,                              步长
-      "shuffle": true,                        是否打乱
-      "list": [10, 10, 10, 5, 5, 5, 5]        每个步长对应的客户端数
+    "multi_gpu": true,                        
+    "mode": "semi-async"                      sync｜async｜semi-async
+    "experiment": "FedAT/1",                  Experiment path/result storage path
+    "stale": {                                staleness setting
+      "step": 5,                              
+      "shuffle": true,                        
+      "list": [10, 10, 10, 5, 5, 5, 5]        The number of clients corresponding to each step size
     },
-    "data_file": "MNIST",                     数据集类文件
-    "data_name": "MNIST",                     数据集类
-    "iid": {                                  non-iid设置
+    "data_file": "MNIST",                     Data set class file
+    "data_name": "MNIST",                     Data set class name
+    "iid": {                                  non-iid setting
       "label": {
         "step": 2,
         "list": [10, 10, 30]
@@ -434,34 +437,34 @@ utils包下的Time文件是一个多线程时间获取类的实现；Queue文件
         "min": 200
       }
     },
-    "client_num": 50                          客户端数量
+    "client_num": 50                          
   },
   "server": {
-    "epochs": 600,                            服务器全局迭代次数
-    "model_file": "CNN",                      全局模型文件
-    "model_name": "CNN",                      全局模型类
+    "epochs": 600,                            global epoch
+    "model_file": "CNN",                      
+    "model_name": "CNN",                      
     "scheduler": {
-      "scheduler_interval": 5,                调度间隔
-      "schedule_file": "RandomSchedule",      调度算法文件
-      "schedule_name": "RandomSchedule",      调度算法类
-      "params": {                             调度算法相关参数
+      "scheduler_interval": 5,                
+      "schedule_file": "RandomSchedule",      
+      "schedule_name": "RandomSchedule",      
+      "params": {                             
         "c_ratio": 0.3,
         "schedule_interval": 0
       },
       "receiver": {
-        "receiver_file": "SemiAvgReceiver",   接收器文件
-        "receiver_name": "SemiAvgReceiver"    接收器类 
+        "receiver_file": "SemiAvgReceiver",   
+        "receiver_name": "SemiAvgReceiver"     
         "params": {
         }
       }
     },
     "updater": {
-      "update_file": "FedAT",                 组间聚合算法文件
-      "update_name": "FedAT",                 组间聚合算法类
-      "loss": "cross_entropy",                全局损失函数
-      "params": {                             聚合算法参数
+      "update_file": "FedAT",                 
+      "update_name": "FedAT",                 
+      "loss": "cross_entropy",                
+      "params": {                             
       },
-      "group": {                              组内使用的聚合函数
+      "group": {                              
         "update_file": "FedAvg",
         "update_name": "FedAvg",
         "params": {
@@ -469,17 +472,17 @@ utils包下的Time文件是一个多线程时间获取类的实现；Queue文件
       }
     },
     "grouping": {
-      "grouping_file": "NormalGrouping",      分组管理算法文件
-      "grouping_name": "NormalGrouping",      分组管理算法类
-      "params": {                             分组管理参数
+      "grouping_file": "NormalGrouping",      
+      "grouping_name": "NormalGrouping",      
+      "params": {                             
         "step": 5
       }
     }
   },
   "client_manager": {
     "checker": {
-      "checker_file": "SemiAvgChecker",       检查器文件 
-      "checker_name": "SemiAvgChecker",       检查器类
+      "checker_file": "SemiAvgChecker",        
+      "checker_name": "SemiAvgChecker",       
       "params": {
       }
     },
@@ -487,13 +490,13 @@ utils包下的Time文件是一个多线程时间获取类的实现；Queue文件
     "client_name": "SemiClient"
   },
   "client": {
-    "epochs": 2,                              客户端迭代次数
+    "epochs": 2,                              local epoch
     "batch_size": 50,
-    "model_file": "CNN",                      本地模型文件
-    "model_name": "CNN",                      本地模型类
-    "loss": "cross_entropy",                  loss函数
-    "mu": 0.01,
-    "optimizer": {                            优化器
+    "model_file": "CNN",                      
+    "model_name": "CNN",                      
+    "loss": "cross_entropy",                  
+    "mu": 0.01,                               proximal term coefficient
+    "optimizer": {                            
       "name": "SGD",
       "weight_decay": 0,
       "lr": 0.01
@@ -502,19 +505,19 @@ utils包下的Time文件是一个多线程时间获取类的实现；Queue文件
 }
 ```
 
-## 添加新的算法
+## Adding New Algorithm
 
-需要让客户端/服务器调用自己的算法或实现类，（注意：所有的算法实现必须以类的形式），需要以下几个步骤：
+To allow clients/servers to call your own algorithms or implementation classes (note: all algorithm implementations must be in class form), the following steps are required:
 
-* 在对应的位置加入自己的实现（dataset、model、schedule、update、client、loss）
-* 在对应包的`__init__.py`文件下导入该类，例如`from model import CNN`
-* 在配置文件申明，`model_file`等对应的是新的算法所在文件名，`model_name`等对应的是新的算法的类。
+* Add your own implementation to the corresponding location (dataset, model, schedule, update, client, loss)
+* Import the class in the `__init__.py` file of the corresponding package, for example `from model import CNN`
+* Declare in the configuration file, `model_file` corresponds to the filename where the new algorithm is located, and `model_name` corresponds to the class of the new algorithm.
 
-另外，算法里需要使用到的参数均可在配置项`params`中申明。
+In addition, parameters that the algorithm needs to use can be declared in the `params` configuration item.
 
-### loss函数添加
+### Adding Loss Function
 
-loss函数可以选择torch自带算法，也可以自行实现，自行实现和上述步骤基本相同，在配置项中需进行如下修改：
+The loss function can use the built-in algorithms in PyTorch, or it can be implemented separately. The steps for separate implementation are mostly the same as above. The following modifications need to be made in the configuration item:
 
 ```json
 "client": {
@@ -525,9 +528,9 @@ loss函数可以选择torch自带算法，也可以自行实现，自行实现�
 }
 ```
 
-## stale设置
+## Staleness Settings
 
-stale支持三种设置，其一是上述配置文件中提到的
+`stale` has three settings, one of which is mentioned in the above configuration file.
 
 ```json
 "stale": {
@@ -537,25 +540,25 @@ stale支持三种设置，其一是上述配置文件中提到的
     }
 ```
 
-程序会根据提供的`step`和`list`生成一串随机整数，例如上述代码，程序会生成10个0，10个(0，5)，10个[5,10)......，并会根据`shuffle`判断是否进行打乱。最后将随机数串赋给各客户端，客户端根据数值在每轮训练结束后，自动sleep对应秒。在存储json文件至实验结果时，该设置会自动转为其三。
+The program will generate a string of random integers based on the provided `step` and `list`. For example, in the code above, the program will generate 10 zeros, 10 (0, 5), and 10 [5, 10), and shuffle them if shuffle is set to true. Finally, the random string is assigned to each client, and the client sleeps according to the corresponding number of seconds after each round of training. When storing the JSON file to the experimental results, this setting will be automatically converted to the third setting.
 
-其二是设置为false，程序会给各客户端延迟设置为0。
+The second option is to set it to false, in which case the program will set the delay for each client to 0.
 
 ```json
 "stale": false
 ```
 
-其三是随机数列表，程序直接会将列表指定延迟设置给客户端。
+The third option is a list of random integers, and the program will directly assign the delay settings from the list to the clients.
 
 ```json
 "stale": [1, 2, 3, 1, 4]
 ```
 
-## non-iid设置
+## Non-iid Settings
 
-non-iid设置分为两部分，一个是标签的non-iid设置，一个是数据量的non-iid设置。目前数据量仅提供随机生成，在未来的版本中将引入个性化设置。
+The non-iid setting is divided into two parts, one is for label non-iid setting and the other is for data quantity non-iid setting. Currently, only random generation is provided for data quantity, and personalized settings will be introduced in future versions.
 
-当iid设置为true时（其实false也是默认为iid），会以iid的方式将数据分配给各客户端。
+When `iid` is set to true (in fact, it is also the default when set to false), the data will be distributed to each client in an identical and independent way (iid).
 
 ```json
 "iid": true
@@ -563,7 +566,7 @@ non-iid设置分为两部分，一个是标签的non-iid设置，一个是数据
 
 ### label_iid
 
-label的设置stale的设置类似，支持三种方式，其一为配置文件中提到的
+Label setting is similar to staleness settings and supports three modes. The first one is mentioned in the configuration file.
 
 ```json
 "label": {
@@ -572,10 +575,11 @@ label的设置stale的设置类似，支持三种方式，其一为配置文件�
 }
 ```
 
-其上配置程序会生成10个拥有1个标签数据的客户端，10个拥有2个标签数据的客户端，30个拥有3个标签数据的客户端
-step是标签数量的步长，当step为2时，程序会生成10个拥有1个标签数据的客户端，10个拥有3个标签数据的客户端，30个拥有5个标签数据的客户端
+The above configuration will generate 10 clients with 1 label data, 10 clients with 2 label data, and 30 clients with 3 label data.
 
-其二为随机数二维数组，程序将二维数组直接设置给客户端
+If `step` is set to 2, the program will generate 10 clients with 1 label data, 10 clients with 3 label data, and 30 clients with 5 label data.
+
+The second option is a two-dimensional array of random numbers, and the program will assign the array directly to the clients.
 
 ```json
 "label": {
@@ -587,7 +591,7 @@ step是标签数量的步长，当step为2时，程序会生成10个拥有1个�
 }
 ```
 
-其三为一维数组，该一维数组为每个客户端拥有的标签数，该数组长度应和客户端数量一致。
+The third option is a one-dimensional array, which represents the number of labels each client has, and the length of the array should be the same as the number of clients.
 
 ```json
 "label": {
@@ -595,9 +599,9 @@ step是标签数量的步长，当step为2时，程序会生成10个拥有1个�
 }
 ```
 
-上述配置即客户端0拥有4个标签数据，客户端1拥有5个标签数据...以此类推。
+The above configuration sets the number of label data for each client: client 0 has 4 label data, client 1 has 5 label data, and so on.
 
-目前label_iid生成的随机化分为两种方法，一种纯随机化，这种情况可能会导致所有客户端均缺少一个标签，导致精度下降（虽然概率极低），另一种方式采用洗牌算法，保证每个标签均会选到，这也会导致无法生成标签分布不均匀的数据情况。洗牌算法的开关由`shuffle`控制，示例如下：
+Currently, there are two randomization methods for generating label non-iid data, one is pure randomization, which may lead to all clients missing one label, resulting in a decrease in accuracy (although the probability is extremely low). The other method uses shuffle algorithm to ensure that each label is selected, but it also leads to the inability to generate data with uneven label distributions. The shuffle algorithm is controlled by the shuffle parameter, as shown below:
 
 ```json
 "label": {
@@ -608,15 +612,15 @@ step是标签数量的步长，当step为2时，程序会生成10个拥有1个�
 
 ### data_iid
 
-data的设置比较简单，目前有两种方式，其一为空
+The data setting is relatively simple, currently there are two methods, one of which is empty.
 
 ```json
 "data": {}
 ```
 
-也就是不对数据量进行非独立同分布设置。
+That is, no non-iid setting is performed on the data quantity.
 
-其二为配置文件中提到的
+The second method is mentioned in the configuration file.
 
 ```json
 "data": {
@@ -625,24 +629,25 @@ data的设置比较简单，目前有两种方式，其一为空
 }
 ```
 
-也就是说客户端的数据量范围在400-500，程序会自动平均分配到各标签
+That is, the data quantity for each client will be randomly distributed between 400 and 500, and will be evenly distributed among the labels by default.
 
-数据量分布还较初始，之后将会逐步完善
+The data quantity distribution is still relatively simple at this point, and will be gradually improved in the future.
 
-## 客户端替换
+## Adding New Client Class
 
-目前客户端替换需要继承`AsyncClient`或`SyncClient`，新增的参数通过client配置项传入类中。
+Currently, client replacement needs to inherit from `AsyncClient` or `SyncClient`, and the new parameters are passed into the class through the `client` configuration item.
 
-## 多GPU
+## Multi-GPU
 
-本项目的多GPU特性并不是多GPU并行计算，各客户端训练依旧在单GPU上，但宏观上客户端运行在多个GPU上，也就是每个客户端的训练任务会平均分布到`程序可见`的GPU上，每个客户端绑定的GPU是在初始化时就指定好的，并不是每轮训练时指定，因此依旧会出现各GPU负载严重不均的可能情况。
-该特性通过global下的`multi_gpu`控制开关。
+The multi-GPU feature of this project is not about multi-GPU parallel computing. Each client is still trained on a single GPU, but macroscopically, the clients run on multiple GPUs. That is, the training tasks of each client will be evenly distributed to `the GPUs visible to the program`. The GPU bound to each client is specified at initialization and is not specified on each round of training. Therefore, it is still possible to have a serious imbalance in GPU load.
 
-## 代码尚存问题
+This feature is controlled by the `multi_gpu` switch in the global settings.
 
-目前框架里面有一个核心问题，客户端和服务器之间的通信使用的是`multiprocessing`的queue实现的，但是该队列在接收cuda张量后，当其他进程获取该张量，会导致内存溢出，程序异常退出。
+## Existing Bugs
 
-这个bug是pytorch和queue导致的bug，暂时采取的解决方法是上传非cuda张量，聚合时再将其转为cuda张量，因此在添加聚合算法时，大致会需要出现如下代码：
+Currently, there is a core issue in the framework that the communication between clients and servers is implemented using the `multiprocessing` queues. However, when a CUDA tensor is received by the queue and retrieved by other threads, it can cause a memory leak and may cause the program to crash.
+
+This bug is caused by PyTorch and the multiprocessing queue, and the current solution is to upload non-CUDA tensors to the queue and convert them to CUDA tensors during aggregation. Therefore, when adding aggregation algorithms, the following code will be needed:
 
 ```python
 updated_parameters = {}
@@ -652,10 +657,10 @@ for key, var in client_weights.items():
         updated_parameters[key] = updated_parameters[key].cuda()
 ```
 
-## 联系我
+## Contact us
 
 QQ: 527707607
 
-邮箱: desperado@qq.com
+email: desperado@qq.com
 
-欢迎对项目提出建议～
+Welcome to provide suggestions for the project~
