@@ -39,7 +39,7 @@
   - [data_iid](#data_iid)
 - [Adding New Client Class](#adding-new-client-class)
 - [Multi-GPU](#multi-gpu)
-- [Existing Bug](#existing-bug)
+- [Existing Bugs](#existing-bugs)
 - [Contact Us](#contact-us)
 
   </p>
