@@ -11,7 +11,7 @@
     "stale": false,
     "data_file": "MNIST",
     "data_name": "MNIST",
-    "iid": false,
+    "iid": true,
     "client_num": 50
   },
   "server": {

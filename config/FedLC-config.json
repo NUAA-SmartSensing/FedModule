@@ -16,6 +16,7 @@
     "data_file": "MNIST",
     "data_name": "MNIST",
     "iid": {
+      "customize": true,
       "label": {
         "step": 1,
         "list": [0, 0, 0, 0, 50]

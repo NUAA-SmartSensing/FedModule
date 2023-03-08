@@ -15,7 +15,7 @@
     },
     "data_file": "FashionMNIST",
     "data_name": "FashionMNIST",
-    "iid": false,
+    "iid": true,
     "client_num": 50
   },
   "server": {
