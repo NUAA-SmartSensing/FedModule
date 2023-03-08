@@ -16,7 +16,7 @@
   <p>
 
 - [Original Intention](#original-intention)
-- [Git Branch Description](#git_branch-description)
+- [Git Branch Description](#git-branch-description)
 - [Requirements](#requirements)
 - [Getting Started](#getting-started)
   - [Experiments](#experiments)
@@ -34,9 +34,12 @@
 - [Adding New Algorithm](#adding-new-algorithm)
   - [Adding Loss Function](#adding-loss-function)
 - [Staleness Settings](#staleness-settings)
-- [Non-iid Settings](#non-iid-settings)
-  - [label_iid](#label_iid)
-  - [data_iid](#data_iid)
+- [Data Distribution Settings](#data-distribution-settings)
+  - [iid](#iid)
+  - [dirichlet non-iid](#dirichlet-non-iid)
+  - [customize non-iid](#customize-non-iid)
+    - [label distribution](#label-distribution)
+    - [data distribution](#data-distribution)
 - [Adding New Client Class](#adding-new-client-class)
 - [Multi-GPU](#multi-gpu)
 - [Existing Bugs](#existing-bugs)
@@ -112,6 +115,7 @@ docker run -it async-fl config/FedAvg-config.json
 - [x] Provide test loss information
 - [x] Custom label heterogeneity
 - [ ] Custom data heterogeneity
+- [ ] Support Dirichlet distribution
 - [ ] Support for generating `Synthetic Non-Identical Client Data`生成;[related paper](https://arxiv.org/pdf/1909.06335.pdf)
 - [x] wandb visualization
 - [ ] Support for leaf-related datasets
@@ -554,9 +558,9 @@ The third option is a list of random integers, and the program will directly ass
 "stale": [1, 2, 3, 1, 4]
 ```
 
-## Non-iid Settings
+## Data Distribution Settings
 
-The non-iid setting is divided into two parts, one is for label non-iid setting and the other is for data quantity non-iid setting. Currently, only random generation is provided for data quantity, and personalized settings will be introduced in future versions.
+### iid
 
 When `iid` is set to true (in fact, it is also the default when set to false), the data will be distributed to each client in an identical and independent way (iid).
 
@@ -564,7 +568,40 @@ When `iid` is set to true (in fact, it is also the default when set to false), t
 "iid": true
 ```
 
-### label_iid
+### dirichlet non-iid
+
+When `customize` in iid is set to false or not set, the data will be distributed to each client in a Dirichlet distribution. 
+
+Beta is the parameter of the Dirichlet distribution.
+
+```json
+"iid": {
+    "customize": false,
+    "beta": 0.5
+}
+```
+
+or
+
+```json
+"iid": {
+    "beta": 0.5
+}
+```
+
+### customize non-iid
+
+Customized non-iid settings are divided into two parts, one is for label non-iid setting and the other is for data quantity non-iid setting. Currently, only random generation is provided for data quantity, and personalized settings will be introduced in future versions.
+
+When enabling the customized setting, you need to set `customize` to true and set `label` and `data` separately.
+
+```json
+"iid": {
+    "customize": true
+}
+```
+
+#### label distribution
 
 Label setting is similar to staleness settings and supports three modes. The first one is mentioned in the configuration file.
 
@@ -610,7 +647,7 @@ Currently, there are two randomization methods for generating label non-iid data
 }
 ```
 
-### data_iid
+### data distribution
 
 The data setting is relatively simple, currently there are two methods, one of which is empty.
 

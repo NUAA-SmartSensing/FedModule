@@ -34,11 +34,14 @@
 - [添加新的算法](#添加新的算法)
   - [loss函数添加](#loss函数添加)
 - [staleness设置](#staleness设置)
-- [non-iid设置](#non-iid设置)
-  - [label_iid](#label_iid)
-  - [data_iid](#data_iid)
+- [数据分布设置](#数据分布设置)
+  - [iid](#iid)
+  - [dirichlet non-iid](#dirichlet-non-iid)
+  - [customize non-iid](#customize-non-iid)
+    - [label distribution](#label-distribution)
+    - [data distribution](#data-distribution)
 - [客户端替换](#客户端替换)
-- [多GPU](#多gpu)
+- [多GPU](#多GPU)
 - [代码尚存问题](#代码尚存问题)
 - [联系我](#联系我)
   </p>
@@ -112,6 +115,7 @@ docker run -it async-fl config/FedAvg-config.json
 - [x] 提供test loss信息
 - [x] 自定义标签异构
 - [ ] 自定义数据异构
+- [x] 支持dirichlet distribution
 - [ ] 支持`Synthetic Non-Identical Client Data`生成;[相关论文](https://arxiv.org/pdf/1909.06335.pdf)
 - [x] wandb可视化
 - [ ] leaf相关数据集支持
@@ -238,7 +242,7 @@ utils包下的Time文件是一个多线程时间获取类的实现；Queue文件
 
 接收器是同步｜半异步联邦学习为了检查该轮全局迭代接收的更新是否满足设置的条件，如所有指定的客户端均已上传更新，满足条件则会触发updater进程进行全局聚合。
 
-### 上传器类
+### 检查器类
 
 同步｜半异步联邦学习中客户端完成训练后，会将权重上传给检查器类，检查起根据自身逻辑判断是否符合上传标准，选择接收或舍弃该更新。
 
@@ -555,9 +559,9 @@ stale支持三种设置，其一是上述配置文件中提到的
 "stale": [1, 2, 3, 1, 4]
 ```
 
-## non-iid设置
+## 数据分布设置
 
-non-iid设置分为两部分，一个是标签的non-iid设置，一个是数据量的non-iid设置。目前数据量仅提供随机生成，在未来的版本中将引入个性化设置。
+### iid
 
 当iid设置为true时（其实false也是默认为iid），会以iid的方式将数据分配给各客户端。
 
@@ -565,7 +569,38 @@ non-iid设置分为两部分，一个是标签的non-iid设置，一个是数据
 "iid": true
 ```
 
-### label_iid
+### dirichlet non-iid
+
+当`iid`中`customize`设置为false或者不设置时，会以dirichlet分布的方式将数据分配给各客户端。
+其中beta是dirichlet分布的参数。
+
+```json
+"iid": {
+    "customize": false,
+    "beta": 0.5
+}
+```
+
+或者
+
+```json
+"iid": {
+    "beta": 0.5
+}
+```
+
+### customize non-iid
+
+customize non-iid设置分为两部分，一个是标签的non-iid设置，一个是数据量的non-iid设置。目前数据量仅提供随机生成，在未来的版本中将引入个性化设置。
+在启用customize设置时，需要将`customize`设置为true并分别对`label`和`data`进行设置
+
+```json
+"iid": {
+    "customize": true
+}
+```
+
+#### label distribution
 
 label的设置stale的设置类似，支持三种方式，其一为配置文件中提到的
 
@@ -610,7 +645,7 @@ step是标签数量的步长，当step为2时，程序会生成10个拥有1个�
 }
 ```
 
-### data_iid
+#### data distribution
 
 data的设置比较简单，目前有两种方式，其一为空
 
