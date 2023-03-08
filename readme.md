@@ -268,6 +268,7 @@ In synchronous and semi-asynchronous federated learning, after a client complete
     "data_file": "MNIST",                     Data set class file
     "data_name": "MNIST",                     Data set class name
     "iid": {                                  non-iid setting
+      "customize": true,                      enable customized data distribution
       "label": {
         "step": 1,
         "list": [10, 10, 30]
@@ -347,6 +348,7 @@ In synchronous and semi-asynchronous federated learning, after a client complete
     "data_file": "MNIST",                     Data set class file
     "data_name": "MNIST",                     Data set class name
     "iid": {                                  non-iid setting
+      "customize": true,                      enable customized data distribution
       "label": {
         "step": 1,
         "list": [10, 10, 30]
@@ -432,6 +434,7 @@ In synchronous and semi-asynchronous federated learning, after a client complete
     "data_file": "MNIST",                     Data set class file
     "data_name": "MNIST",                     Data set class name
     "iid": {                                  non-iid setting
+      "customize": true,                      enable customized data distribution
       "label": {
         "step": 2,
         "list": [10, 10, 30]

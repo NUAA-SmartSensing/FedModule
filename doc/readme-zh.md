@@ -269,6 +269,7 @@ utils包下的Time文件是一个多线程时间获取类的实现；Queue文件
     "data_file": "MNIST",                     数据集类文件
     "data_name": "MNIST",                     数据集类
     "iid": {                                  non-iid设置
+      "customize": true,                      启用自定义数据分布
       "label": {
         "step": 1,
         "list": [10, 10, 30]
@@ -348,6 +349,7 @@ utils包下的Time文件是一个多线程时间获取类的实现；Queue文件
     "data_file": "MNIST",                     数据集类文件
     "data_name": "MNIST",                     数据集类
     "iid": {                                  non-iid设置
+      "customize": true,                      启用自定义数据分布
       "label": {
         "step": 1,
         "list": [10, 10, 30]
@@ -433,6 +435,7 @@ utils包下的Time文件是一个多线程时间获取类的实现；Queue文件
     "data_file": "MNIST",                     数据集类文件
     "data_name": "MNIST",                     数据集类
     "iid": {                                  non-iid设置
+      "customize": true,                      启用自定义数据分布
       "label": {
         "step": 2,
         "list": [10, 10, 30]
