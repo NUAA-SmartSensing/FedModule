@@ -19,19 +19,19 @@ class SyncClient(Client.Client):
         self.config = client_config
 
         # 本地模型
-        model_class = ModuleFindTool.find_class_by_string("model", client_config["model_file"], client_config["model_name"])
+        model_class = ModuleFindTool.find_class_by_path(f'model.{client_config["model_file"]}.{client_config["model_name"]}')
         self.model = model_class()
         self.model = self.model.to(self.dev)
 
         # 优化器
-        opti_class = ModuleFindTool.find_opti_by_string(self.optimizer_config["name"])
+        opti_class = ModuleFindTool.find_class_by_path(f'torch.optim.{self.optimizer_config["name"]}')
         self.opti = opti_class(self.model.parameters(), lr=self.optimizer_config["lr"], weight_decay=self.optimizer_config["weight_decay"])
 
         # loss函数
         if isinstance(client_config["loss"], str):
-            self.loss_func = ModuleFindTool.find_F_by_string(client_config["loss"])
+            self.loss_func = ModuleFindTool.find_class_by_path(f'torch.nn.functional.{client_config["loss"]}')
         else:
-            loss_func_class = ModuleFindTool.find_class_by_string("loss", client_config["loss"]["loss_file"], client_config["loss"]["loss_name"])
+            loss_func_class = ModuleFindTool.find_class_by_path(f'loss.{client_config["loss"]["loss_file"]}.{client_config["loss"]["loss_name"]}')
             self.loss_func = loss_func_class(client_config["loss"], self)
         self.train_dl = DataLoader(self.train_ds, batch_size=self.batch_size, shuffle=True)
 

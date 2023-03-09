@@ -29,14 +29,14 @@ class UpdaterThread(threading.Thread):
         self.accuracy_list = []
         self.loss_list = []
         self.config = updater_config
-        update_class = ModuleFindTool.find_class_by_string("update", updater_config["update_file"], updater_config["update_name"])
+        update_class = ModuleFindTool.find_class_by_path(f'update.{updater_config["update_file"]}.{updater_config["update_name"]}')
         self.update = update_class(self.config["params"])
 
         # loss函数
         if isinstance(updater_config["loss"], str):
-            self.loss_func = ModuleFindTool.find_F_by_string(updater_config["loss"])
+            self.loss_func = ModuleFindTool.find_class_by_path(f'torch.nn.functional.{updater_config["loss"]}')
         else:
-            self.loss_func = ModuleFindTool.find_class_by_string("loss", updater_config["loss"]["loss_file"], updater_config["loss"]["loss_name"])
+            self.loss_func = ModuleFindTool.find_class_by_path(f'loss.{updater_config["loss"]["loss_file"]}.{updater_config["loss"]["loss_name"]}')
 
     def run(self):
         for epoch in range(self.T):

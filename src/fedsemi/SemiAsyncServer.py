@@ -12,15 +12,13 @@ class SemiAsyncServer:
     def __init__(self, config, global_config, server_config, client_config, manager_config):
         self.config = config
         # 全局模型
-        model_class = ModuleFindTool.find_class_by_string("model", server_config["model_file"],
-                                                          server_config["model_name"])
+        model_class = ModuleFindTool.find_class_by_path(f'model.{server_config["model_file"]}.{server_config["model_name"]}')
         self.server_network = model_class()
         self.dev = 'cuda' if torch.cuda.is_available() else 'cpu'
         self.server_network = self.server_network.to(self.dev)
 
         # 数据集
-        dataset_class = ModuleFindTool.find_class_by_string("dataset", global_config["data_file"],
-                                                            global_config["data_name"])
+        dataset_class = ModuleFindTool.find_class_by_path(f'dataset.{global_config["data_file"]}.{global_config["data_name"]}')
         self.dataset = dataset_class(global_config["client_num"], global_config["iid"])
         self.test_data = self.dataset.get_test_dataset()
         self.config['global']['iid'] = self.dataset.get_config()
@@ -40,9 +38,7 @@ class SemiAsyncServer:
         self.mutex_sem = threading.Semaphore(1)
         self.empty_sem = threading.Semaphore(1)
         self.full_sem = threading.Semaphore(0)
-        grouping_class = ModuleFindTool.find_class_by_path(
-            f"fedsemi.grouping.{server_config['grouping']['grouping_file']}",
-            server_config['grouping']['grouping_name'])
+        grouping_class = ModuleFindTool.find_class_by_path(f"fedsemi.grouping.{server_config['grouping']['grouping_file']}.{server_config['grouping']['grouping_name']}")
         self.group_manager = grouping_class(server_config['grouping']["params"])
         self.network_list = []
         self.semi_client_manager = SemiAsyncClientManager.SemiAsyncClientManager(init_weights,

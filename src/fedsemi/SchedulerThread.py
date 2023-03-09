@@ -25,12 +25,10 @@ class SchedulerThread(threading.Thread):
         self.network_list = network_list
         self.num_list = []
         self.T = t
-        schedule_class = ModuleFindTool.find_class_by_string("schedule", scheduler_config["schedule_file"],
-                                                             scheduler_config["schedule_name"])
+        schedule_class = ModuleFindTool.find_class_by_path(f'schedule.{scheduler_config["schedule_file"]}.{scheduler_config["schedule_name"]}')
         self.schedule = schedule_class()
         receiver_config = scheduler_config["receiver"]
-        receiver_class = ModuleFindTool.find_class_by_path(f'fedsemi.receiver.{receiver_config["receiver_file"]}',
-                                                           receiver_config["receiver_name"])
+        receiver_class = ModuleFindTool.find_class_by_path(f'fedsemi.receiver.{receiver_config["receiver_file"]}.{receiver_config["receiver_name"]}')
         self.receiver = receiver_class(queue_list, receiver_config)
         self.config = scheduler_config
 
