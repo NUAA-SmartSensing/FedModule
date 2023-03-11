@@ -13,8 +13,7 @@
       "shuffle": true,
       "list": [0, 10, 10, 20, 10]
     },
-    "data_file": "MNIST",
-    "data_name": "MNIST",
+    "dataset_path": "dataset.FashionMNIST.FashionMNIST",
     "iid": {
       "customize": true,
       "label": {
@@ -28,39 +27,33 @@
   },
   "server": {
     "epochs": 50,
-    "model_file": "CNN",
-    "model_name": "CNN",
+    "model_path": "model.CNN.CNN",
     "scheduler": {
       "scheduler_interval": 5,
-      "schedule_file": "RandomSchedule",
-      "schedule_name": "RandomSchedule",
+      "scheduler_path": "schedule.RandomSchedule.RandomSchedule",
       "params": {
         "c_ratio": 0.3,
         "schedule_interval": 0
       },
       "receiver": {
-        "receiver_file": "SemiAvgReceiver",
-        "receiver_name": "SemiAvgReceiver",
+        "receiver_path": "fedsemi.receiver.SemiAvgReceiver.SemiAvgReceiver",
         "params": {
         }
       }
     },
     "updater": {
-      "update_file": "FedAT",
-      "update_name": "FedAT",
+      "updater_path": "update.FedAT.FedAT",
       "loss": "cross_entropy",
       "params": {
       },
       "group": {
-        "update_file": "FedAvg",
-        "update_name": "FedAvg",
+        "updater_path": "update.FedAvg.FedAvg",
         "params": {
         }
       }
     },
     "grouping": {
-      "grouping_file": "NormalGrouping",
-      "grouping_name": "NormalGrouping",
+      "grouping_path": "fedsemi.grouping.NormalGrouping.NormalGrouping",
       "params": {
         "step": 5
       }
@@ -68,23 +61,20 @@
   },
   "client_manager": {
     "checker": {
-      "checker_file": "SemiAvgChecker",
-      "checker_name": "SemiAvgChecker",
+      "checker_path": "fedsemi.checker.SemiAvgChecker.SemiAvgChecker",
       "params": {
       }
     },
-    "client_file": "SemiClient",
-    "client_name": "SemiClient"
+    "client_path": "client.SemiClient.SemiClient"
   },
   "client": {
     "epochs": 2,
     "batch_size": 50,
-    "model_file": "CNN",
-    "model_name": "CNN",
+    "model_path": "model.CNN.CNN",
     "loss": "cross_entropy",
     "mu": 0.01,
     "optimizer": {
-      "name": "SGD",
+      "path": "torch.optim.SGD",
       "lr": 0.01,
       "weight_decay": 0
     }

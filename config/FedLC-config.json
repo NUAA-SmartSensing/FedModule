@@ -13,8 +13,7 @@
       "shuffle": true,
       "list": [50]
     },
-    "data_file": "MNIST",
-    "data_name": "MNIST",
+    "dataset_path": "dataset.MNIST.MNIST",
     "iid": {
       "customize": true,
       "label": {
@@ -29,20 +28,17 @@
   },
   "server": {
     "epochs": 50,
-    "model_file": "CNN",
-    "model_name": "CNN",
+    "model_path": "model.CNN.CNN",
     "scheduler": {
       "scheduler_interval": 4,
-      "schedule_file": "RoundRobin",
-      "schedule_name": "RoundRobin",
+      "scheduler_path": "schedule.RoundRobin.RoundRobin",
       "params": {
         "c_ratio": 0.1,
         "schedule_interval": 4
       }
     },
     "updater": {
-      "update_file": "FedAsync",
-      "update_name": "FedAsync",
+      "updater_path": "update.FedAsync.FedAsync",
       "loss": "cross_entropy",
       "params": {
         "a": 10,
@@ -55,14 +51,12 @@
     }
   },
   "client_manager": {
-    "client_file": "AsyncClient",
-    "client_name": "AsyncClient"
+    "client_path": "client.AsyncClient.AsyncClient"
   },
   "client": {
     "epochs": 2,
     "batch_size": 50,
-    "model_file": "CNN",
-    "model_name": "CNN",
+    "model_path": "model.CNN.CNN",
     "loss": {
       "loss_file": "FedLC",
       "loss_name": "FedLC",
@@ -70,7 +64,7 @@
     },
     "mu": 0,
     "optimizer": {
-      "name": "SGD",
+      "path": "torch.optim.SGD",
       "weight_decay": 0,
       "lr": 0.01
     }
