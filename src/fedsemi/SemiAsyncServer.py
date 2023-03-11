@@ -38,7 +38,7 @@ class SemiAsyncServer:
         self.mutex_sem = threading.Semaphore(1)
         self.empty_sem = threading.Semaphore(1)
         self.full_sem = threading.Semaphore(0)
-        grouping_class = ModuleFindTool.find_class_by_path(f"fedsemi.grouping.{server_config['grouping']['grouping_file']}.{server_config['grouping']['grouping_name']}")
+        grouping_class = ModuleFindTool.find_class_by_path(server_config['grouping']['grouping_path'])
         self.group_manager = grouping_class(server_config['grouping']["params"])
         self.network_list = []
         self.semi_client_manager = SemiAsyncClientManager.SemiAsyncClientManager(init_weights,

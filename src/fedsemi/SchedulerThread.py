@@ -28,7 +28,7 @@ class SchedulerThread(threading.Thread):
         schedule_class = ModuleFindTool.find_class_by_path(scheduler_config["scheduler_path"])
         self.schedule = schedule_class()
         receiver_config = scheduler_config["receiver"]
-        receiver_class = ModuleFindTool.find_class_by_path(receiver_config["receiver_file"])
+        receiver_class = ModuleFindTool.find_class_by_path(receiver_config["receiver_path"])
         self.receiver = receiver_class(queue_list, receiver_config)
         self.config = scheduler_config
 

@@ -16,7 +16,7 @@ class SchedulerThread(threading.Thread):
         self.current_t = current_t
         self.server_network = server_network
         self.T = t
-        schedule_class = ModuleFindTool.find_class_by_path(scheduler_config["scheduler_file"])
+        schedule_class = ModuleFindTool.find_class_by_path(scheduler_config["scheduler_path"])
         self.schedule = schedule_class()
         self.config = scheduler_config
 
