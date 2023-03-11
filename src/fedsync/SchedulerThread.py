@@ -18,10 +18,10 @@ class SchedulerThread(threading.Thread):
         self.current_t = current_t
         self.server_network = server_network
         self.T = t
-        schedule_class = ModuleFindTool.find_class_by_path(f'schedule.{scheduler_config["schedule_file"]}.{scheduler_config["schedule_name"]}')
+        schedule_class = ModuleFindTool.find_class_by_path(scheduler_config["scheduler_path"])
         self.schedule = schedule_class()
         receiver_config = scheduler_config["receiver"]
-        receiver_class = ModuleFindTool.find_class_by_path(f'fedsync.receiver.{receiver_config["receiver_file"]}.{receiver_config["receiver_name"]}')
+        receiver_class = ModuleFindTool.find_class_by_path(receiver_config["receiver_path"])
         self.receiver = receiver_class(queue, receiver_config)
         self.config = scheduler_config
 

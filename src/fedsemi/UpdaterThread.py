@@ -31,9 +31,9 @@ class UpdaterThread(threading.Thread):
         self.accuracy_list = []
         self.loss_list = []
         self.config = updater_config
-        update_class = ModuleFindTool.find_class_by_path(f'update.{updater_config["update_file"]}.{updater_config["update_name"]}')
+        update_class = ModuleFindTool.find_class_by_path(updater_config["updater_path"])
         self.update = update_class(self.config["params"])
-        group_update_class = ModuleFindTool.find_class_by_path(f'update.{updater_config["group"]["update_file"]}.{updater_config["group"]["update_name"]}')
+        group_update_class = ModuleFindTool.find_class_by_path(updater_config["group"]["updater_path"])
         self.group_update = group_update_class(self.config["group"]["params"])
 
         # loss函数

@@ -7,7 +7,7 @@ class QueueManager:
     def __init__(self, queue_list, current_time, config):
         self.queue_list = queue_list
         self.config = config
-        checker_class = ModuleFindTool.find_class_by_path(f'fedsemi.checker.{config["checker_file"]}.{config["checker_name"]}')
+        checker_class = ModuleFindTool.find_class_by_path(config["checker_path"])
         self.checker = checker_class(current_time, config["params"])
         self.lock = threading.Lock()
 

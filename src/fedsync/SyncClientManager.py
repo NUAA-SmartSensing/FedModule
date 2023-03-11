@@ -18,7 +18,7 @@ class SyncClientManager:
         self.thread_lock = threading.Lock()
         self.epoch = client_config["epochs"]
 
-        client_class = ModuleFindTool.find_class_by_path(f'client.{manager_config["client_file"]}.{manager_config["client_name"]}')
+        client_class = ModuleFindTool.find_class_by_path(manager_config["client_path"])
 
         # 初始化clients
         # 0: 多gpu，1：单gpu，2：cpu

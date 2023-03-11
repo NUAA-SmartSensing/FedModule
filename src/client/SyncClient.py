@@ -19,12 +19,12 @@ class SyncClient(Client.Client):
         self.config = client_config
 
         # 本地模型
-        model_class = ModuleFindTool.find_class_by_path(f'model.{client_config["model_file"]}.{client_config["model_name"]}')
+        model_class = ModuleFindTool.find_class_by_path(client_config["model_path"])
         self.model = model_class()
         self.model = self.model.to(self.dev)
 
         # 优化器
-        opti_class = ModuleFindTool.find_class_by_path(f'torch.optim.{self.optimizer_config["name"]}')
+        opti_class = ModuleFindTool.find_class_by_path(self.optimizer_config["path"])
         self.opti = opti_class(self.model.parameters(), lr=self.optimizer_config["lr"], weight_decay=self.optimizer_config["weight_decay"])
 
         # loss函数
