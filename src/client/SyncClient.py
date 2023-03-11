@@ -13,7 +13,6 @@ class SyncClient(Client.Client):
         self.queue_manager = queue_manager
         self.batch_size = client_config["batch_size"]
         self.epoch = client_config["epochs"]
-        self.model_name = client_config["model_name"]
         self.optimizer_config = client_config["optimizer"]
         self.mu = client_config["mu"]
         self.config = client_config
