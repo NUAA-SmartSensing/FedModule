@@ -265,8 +265,7 @@ In synchronous and semi-asynchronous federated learning, after a client complete
       "shuffle": true,                        
       "list": [10, 10, 10, 5, 5, 5, 5]        The number of clients corresponding to each step size
     },
-    "data_file": "MNIST",                     Data set class file
-    "data_name": "MNIST",                     Data set class name
+    "dataset_path": "dataset.MNIST.MNIST",    Dataset path
     "iid": {                                  non-iid setting
       "customize": true,                      enable customized data distribution
       "label": {
@@ -282,20 +281,17 @@ In synchronous and semi-asynchronous federated learning, after a client complete
   },
   "server": {
     "epochs": 600,                            global epoch
-    "model_file": "CNN",                      
-    "model_name": "CNN",                      
+    "model_path": "model.CNN.CNN",                
     "scheduler": {
-      "scheduler_interval": 5,                
-      "schedule_file": "RandomSchedule",      
-      "schedule_name": "RandomSchedule",      
+      "scheduler_interval": 5,             
+      "scheduler_path": "schedule.RandomSchedule.RandomSchedule",    
       "params": {                             Scheduling algorithm related parameters
         "c_ratio": 0.1,
         "schedule_interval": 5
       }
     },
     "updater": {
-      "update_file": "MyFed",                 
-      "update_name": "MyFed",                 
+      "updater_path": "update.FedAsync.FedAsync",               
       "loss": "cross_entropy",                
       "params": {                             
         "a": 10,
@@ -308,18 +304,16 @@ In synchronous and semi-asynchronous federated learning, after a client complete
     }
   },
   "client_manager": {
-    "client_file": "AsyncClient",             
-    "client_name": "AsyncClient"              
+    "client_path": "client.AsyncClient.AsyncClient"          
   },
   "client": {
     "epochs": 2,                              local epoch
     "batch_size": 50,
-    "model_file": "CNN",                      
-    "model_name": "CNN",                      
+    "model_path": "model.CNN.CNN",                
     "loss": "cross_entropy",                  
     "mu": 0.01,                               proximal term coefficient
-    "optimizer": {                            
-      "name": "Adam",
+    "optimizer": {               
+      "path": "torch.optim.Adam",
       "weight_decay": 0.005,
       "lr": 0.01
     }
@@ -338,15 +332,14 @@ In synchronous and semi-asynchronous federated learning, after a client complete
   },
   "global": {
     "multi_gpu": true,                        
-    "mode": "async"                           sync｜async｜semi-async
+    "mode": "sync"                            sync｜async｜semi-async
     "experiment": "TMP/test/1",               Experiment path/result storage path
     "stale": {                                staleness setting
       "step": 1,                              
       "shuffle": true,                        
       "list": [10, 10, 10, 5, 5, 5, 5]        The number of clients corresponding to each step size
     },
-    "data_file": "MNIST",                     Data set class file
-    "data_name": "MNIST",                     Data set class name
+    "dataset_path": "dataset.MNIST.MNIST",    Dataset path
     "iid": {                                  non-iid setting
       "customize": true,                      enable customized data distribution
       "label": {
@@ -362,26 +355,22 @@ In synchronous and semi-asynchronous federated learning, after a client complete
   },
   "server": {
     "epochs": 600,                            global epoch
-    "model_file": "CNN",                      
-    "model_name": "CNN",                      
+    "model_path": "model.CNN.CNN",                  
     "scheduler": {
       "scheduler_interval": 5,                
-      "schedule_file": "RandomSchedule",      
-      "schedule_name": "RandomSchedule",      
+      "scheduler_path": "schedule.RandomSchedule.RandomSchedule",
       "params": {                             Scheduling algorithm related parameters
         "c_ratio": 0.1,
         "schedule_interval": 5
       },
       "receiver": {
-        "receiver_file": "AvgReceiver",       
-        "receiver_name": "AvgReceiver"         
+        "receiver_path": "fedsync.receiver.AvgReceiver.AvgReceiver",     
         "params": {
         }
       }
     },
     "updater": {
-      "update_file": "FedAvg",                 
-      "update_name": "FedAvg",                 
+      "updater_path": "update.FedAvg.FedAvg",               
       "loss": "cross_entropy",                
       "params": {                             
       }
@@ -389,23 +378,20 @@ In synchronous and semi-asynchronous federated learning, after a client complete
   },
   "client_manager": {
     "checker": {
-      "checker_file": "AvgChecker",            
-      "checker_name": "AvgChecker",           
+      "checker_path": "fedsync.checker.AvgChecker.AvgChecker",         
       "params": {
       }
     },
-    "client_file": "SyncClient",
-    "client_name": "SyncClient"
+    "client_path": "client.SyncClient.SyncClient"
   },
   "client": {
     "epochs": 2,                              local epoch
     "batch_size": 50,
-    "model_file": "CNN",                      
-    "model_name": "CNN",                      
+    "model_path": "model.CNN.CNN",    
     "loss": "cross_entropy",                  
     "mu": 0.01,                               proximal term coefficient
-    "optimizer": {                            
-      "name": "Adam",
+    "optimizer": {    
+      "path": "torch.optim.Adam",
       "weight_decay": 0,
       "lr": 0.01
     }
@@ -431,8 +417,7 @@ In synchronous and semi-asynchronous federated learning, after a client complete
       "shuffle": true,                        
       "list": [10, 10, 10, 5, 5, 5, 5]        The number of clients corresponding to each step size
     },
-    "data_file": "MNIST",                     Data set class file
-    "data_name": "MNIST",                     Data set class name
+    "dataset_path": "dataset.MNIST.MNIST",    Dataset path
     "iid": {                                  non-iid setting
       "customize": true,                      enable customized data distribution
       "label": {
@@ -448,39 +433,33 @@ In synchronous and semi-asynchronous federated learning, after a client complete
   },
   "server": {
     "epochs": 600,                            global epoch
-    "model_file": "CNN",                      
-    "model_name": "CNN",                      
+    "model_path": "model.CNN.CNN",                  
     "scheduler": {
       "scheduler_interval": 5,                
-      "schedule_file": "RandomSchedule",      
-      "schedule_name": "RandomSchedule",      
+      "scheduler_path": "schedule.RandomSchedule.RandomSchedule", 
       "params": {                             
         "c_ratio": 0.3,
         "schedule_interval": 0
       },
       "receiver": {
-        "receiver_file": "SemiAvgReceiver",   
-        "receiver_name": "SemiAvgReceiver"     
+        "receiver_path": "fedsemi.receiver.SemiAvgReceiver.SemiAvgReceiver",
         "params": {
         }
       }
     },
     "updater": {
-      "update_file": "FedAT",                 
-      "update_name": "FedAT",                 
+      "updater_path": "update.FedAT.FedAT",              
       "loss": "cross_entropy",                
       "params": {                             
       },
-      "group": {                              
-        "update_file": "FedAvg",
-        "update_name": "FedAvg",
+      "group": {                       
+        "updater_path": "update.FedAvg.FedAvg",
         "params": {
         }
       }
     },
     "grouping": {
-      "grouping_file": "NormalGrouping",      
-      "grouping_name": "NormalGrouping",      
+      "grouping_path": "fedsemi.grouping.NormalGrouping.NormalGrouping",    
       "params": {                             
         "step": 5
       }
@@ -488,23 +467,20 @@ In synchronous and semi-asynchronous federated learning, after a client complete
   },
   "client_manager": {
     "checker": {
-      "checker_file": "SemiAvgChecker",        
-      "checker_name": "SemiAvgChecker",       
+      "checker_path": "fedsemi.checker.SemiAvgChecker.SemiAvgChecker",    
       "params": {
       }
     },
-    "client_file": "SemiClient",
-    "client_name": "SemiClient"
+    "client_path": "client.SemiClient.SemiClient"
   },
   "client": {
     "epochs": 2,                              local epoch
     "batch_size": 50,
-    "model_file": "CNN",                      
-    "model_name": "CNN",                      
+    "model_path": "model.CNN.CNN",                  
     "loss": "cross_entropy",                  
     "mu": 0.01,                               proximal term coefficient
-    "optimizer": {                            
-      "name": "SGD",
+    "optimizer": {         
+      "path": "torch.optim.SGD",
       "weight_decay": 0,
       "lr": 0.01
     }
@@ -518,7 +494,7 @@ To allow clients/servers to call your own algorithms or implementation classes (
 
 * Add your own implementation to the corresponding location (dataset, model, schedule, update, client, loss)
 * Import the class in the `__init__.py` file of the corresponding package, for example `from model import CNN`
-* Declare in the configuration file, `model_file` corresponds to the filename where the new algorithm is located, and `model_name` corresponds to the class of the new algorithm.
+* Declare in the configuration file, `model_path` corresponds to the path where the new algorithm is located.
 
 In addition, parameters that the algorithm needs to use can be declared in the `params` configuration item.
 

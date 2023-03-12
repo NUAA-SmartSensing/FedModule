@@ -266,8 +266,7 @@ utils包下的Time文件是一个多线程时间获取类的实现；Queue文件
       "shuffle": true,                        是否打乱
       "list": [10, 10, 10, 5, 5, 5, 5]        每个步长对应的客户端数
     },
-    "data_file": "MNIST",                     数据集类文件
-    "data_name": "MNIST",                     数据集类
+    "dataset_path": "dataset.MNIST.MNIST",    Dataset路径
     "iid": {                                  non-iid设置
       "customize": true,                      启用自定义数据分布
       "label": {
@@ -283,8 +282,7 @@ utils包下的Time文件是一个多线程时间获取类的实现；Queue文件
   },
   "server": {
     "epochs": 600,                            服务器全局迭代次数
-    "model_file": "CNN",                      全局模型文件
-    "model_name": "CNN",                      全局模型类
+    "model_path": "model.CNN.CNN",            全局模型文件
     "scheduler": {
       "scheduler_interval": 5,                调度间隔
       "schedule_file": "RandomSchedule",      调度算法文件
@@ -295,8 +293,7 @@ utils包下的Time文件是一个多线程时间获取类的实现；Queue文件
       }
     },
     "updater": {
-      "update_file": "MyFed",                 聚合算法文件
-      "update_name": "MyFed",                 聚合算法类
+      "updater_path": "update.FedAsync.FedAsync",
       "loss": "cross_entropy",                全局损失函数
       "params": {                             聚合算法参数
         "a": 10,
@@ -309,18 +306,16 @@ utils包下的Time文件是一个多线程时间获取类的实现；Queue文件
     }
   },
   "client_manager": {
-    "client_file": "AsyncClient",             客户端文件
-    "client_name": "AsyncClient"              客户端类
+    "client_path": "client.AsyncClient.AsyncClient"     
   },
   "client": {
     "epochs": 2,                              客户端迭代次数
     "batch_size": 50,
-    "model_file": "CNN",                      本地模型文件
-    "model_name": "CNN",                      本地模型类
+    "model_path": "model.CNN.CNN",                
     "loss": "cross_entropy",                  loss函数
     "mu": 0.01,
     "optimizer": {                            优化器
-      "name": "Adam",
+      "path": "torch.optim.Adam",
       "weight_decay": 0.005,
       "lr": 0.01
     }
@@ -339,15 +334,14 @@ utils包下的Time文件是一个多线程时间获取类的实现；Queue文件
   },
   "global": {
     "multi_gpu": true,                        多gpu
-    "mode": "async"                           同步｜异步｜半异步
+    "mode": "sync"                            同步｜异步｜半异步
     "experiment": "TMP/test/1",               实验路径/结果存放路径
     "stale": {                                延迟设置
       "step": 1,                              步长
       "shuffle": true,                        是否打乱
       "list": [10, 10, 10, 5, 5, 5, 5]        每个步长对应的客户端数
     },
-    "data_file": "MNIST",                     数据集类文件
-    "data_name": "MNIST",                     数据集类
+    "dataset_path": "dataset.MNIST.MNIST",    Dataset路径
     "iid": {                                  non-iid设置
       "customize": true,                      启用自定义数据分布
       "label": {
@@ -363,26 +357,22 @@ utils包下的Time文件是一个多线程时间获取类的实现；Queue文件
   },
   "server": {
     "epochs": 600,                            服务器全局迭代次数
-    "model_file": "CNN",                      全局模型文件
-    "model_name": "CNN",                      全局模型类
+    "model_path": "model.CNN.CNN", 
     "scheduler": {
       "scheduler_interval": 5,                调度间隔
-      "schedule_file": "RandomSchedule",      调度算法文件
-      "schedule_name": "RandomSchedule",      调度算法类
+      "scheduler_path": "schedule.RandomSchedule.RandomSchedule",
       "params": {                             调度算法相关参数
         "c_ratio": 0.1,
         "schedule_interval": 5
       },
       "receiver": {
-        "receiver_file": "AvgReceiver",       接收器文件
-        "receiver_name": "AvgReceiver"        接收器类 
+        "receiver_path": "fedsync.receiver.AvgReceiver.AvgReceiver", 
         "params": {
         }
       }
     },
     "updater": {
-      "update_file": "FedAvg",                 聚合算法文件
-      "update_name": "FedAvg",                 聚合算法类
+      "updater_path": "update.FedAvg.FedAvg",  
       "loss": "cross_entropy",                全局损失函数
       "params": {                             聚合算法参数
       }
@@ -390,23 +380,20 @@ utils包下的Time文件是一个多线程时间获取类的实现；Queue文件
   },
   "client_manager": {
     "checker": {
-      "checker_file": "AvgChecker",           检查器文件 
-      "checker_name": "AvgChecker",           检查器类
+      "checker_path": "fedsync.checker.AvgChecker.AvgChecker",        
       "params": {
       }
     },
-    "client_file": "SyncClient",
-    "client_name": "SyncClient"
+    "client_path": "client.SyncClient.SyncClient"
   },
   "client": {
     "epochs": 2,                              客户端迭代次数
     "batch_size": 50,
-    "model_file": "CNN",                      本地模型文件
-    "model_name": "CNN",                      本地模型类
+    "model_path": "model.CNN.CNN", 
     "loss": "cross_entropy",                  loss函数
     "mu": 0.01,
     "optimizer": {                            优化器
-      "name": "Adam",
+      "path": "torch.optim.Adam",
       "weight_decay": 0,
       "lr": 0.01
     }
@@ -432,8 +419,7 @@ utils包下的Time文件是一个多线程时间获取类的实现；Queue文件
       "shuffle": true,                        是否打乱
       "list": [10, 10, 10, 5, 5, 5, 5]        每个步长对应的客户端数
     },
-    "data_file": "MNIST",                     数据集类文件
-    "data_name": "MNIST",                     数据集类
+    "dataset_path": "dataset.MNIST.MNIST",    Dataset路径
     "iid": {                                  non-iid设置
       "customize": true,                      启用自定义数据分布
       "label": {
@@ -449,39 +435,33 @@ utils包下的Time文件是一个多线程时间获取类的实现；Queue文件
   },
   "server": {
     "epochs": 600,                            服务器全局迭代次数
-    "model_file": "CNN",                      全局模型文件
-    "model_name": "CNN",                      全局模型类
+    "model_path": "model.CNN.CNN",  
     "scheduler": {
       "scheduler_interval": 5,                调度间隔
-      "schedule_file": "RandomSchedule",      调度算法文件
-      "schedule_name": "RandomSchedule",      调度算法类
+      "scheduler_path": "schedule.RandomSchedule.RandomSchedule", 
       "params": {                             调度算法相关参数
         "c_ratio": 0.3,
         "schedule_interval": 0
       },
       "receiver": {
-        "receiver_file": "SemiAvgReceiver",   接收器文件
-        "receiver_name": "SemiAvgReceiver"    接收器类 
+        "receiver_path": "fedsemi.receiver.SemiAvgReceiver.SemiAvgReceiver",
         "params": {
         }
       }
     },
     "updater": {
-      "update_file": "FedAT",                 组间聚合算法文件
-      "update_name": "FedAT",                 组间聚合算法类
+      "updater_path": "update.FedAT.FedAT",     
       "loss": "cross_entropy",                全局损失函数
       "params": {                             聚合算法参数
       },
       "group": {                              组内使用的聚合函数
-        "update_file": "FedAvg",
-        "update_name": "FedAvg",
+        "updater_path": "update.FedAvg.FedAvg",
         "params": {
         }
       }
     },
     "grouping": {
-      "grouping_file": "NormalGrouping",      分组管理算法文件
-      "grouping_name": "NormalGrouping",      分组管理算法类
+      "grouping_path": "fedsemi.grouping.NormalGrouping.NormalGrouping",  
       "params": {                             分组管理参数
         "step": 5
       }
@@ -489,23 +469,20 @@ utils包下的Time文件是一个多线程时间获取类的实现；Queue文件
   },
   "client_manager": {
     "checker": {
-      "checker_file": "SemiAvgChecker",       检查器文件 
-      "checker_name": "SemiAvgChecker",       检查器类
+      "checker_path": "fedsemi.checker.SemiAvgChecker.SemiAvgChecker", 
       "params": {
       }
     },
-    "client_file": "SemiClient",
-    "client_name": "SemiClient"
+    "client_path": "client.SemiClient.SemiClient"
   },
   "client": {
     "epochs": 2,                              客户端迭代次数
     "batch_size": 50,
-    "model_file": "CNN",                      本地模型文件
-    "model_name": "CNN",                      本地模型类
+    "model_path": "model.CNN.CNN",      
     "loss": "cross_entropy",                  loss函数
     "mu": 0.01,
     "optimizer": {                            优化器
-      "name": "SGD",
+      "path": "torch.optim.SGD",
       "weight_decay": 0,
       "lr": 0.01
     }
@@ -519,7 +496,7 @@ utils包下的Time文件是一个多线程时间获取类的实现；Queue文件
 
 * 在对应的位置加入自己的实现（dataset、model、schedule、update、client、loss）
 * 在对应包的`__init__.py`文件下导入该类，例如`from model import CNN`
-* 在配置文件申明，`model_file`等对应的是新的算法所在文件名，`model_name`等对应的是新的算法的类。
+* 在配置文件申明，`model_path`等对应的是新的算法所在路径。
 
 另外，算法里需要使用到的参数均可在配置项`params`中申明。
 
