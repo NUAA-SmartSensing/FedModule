@@ -32,7 +32,7 @@ def get_stale_list(filename):
     return stale_list
 
 
-def generate_non_iid_data(x, y, label_lists, data_lists):
+def generate_non_iid_data(x, y, label_lists, data_lists, target_dataset, params):
     client_datasets = []
     for i in range(len(label_lists)):
         index_list = []
@@ -43,7 +43,7 @@ def generate_non_iid_data(x, y, label_lists, data_lists):
         index_list = np.hstack(index_list)
         client_x = x[index_list]
         client_y = y[index_list]
-        client_datasets.append(TensorDataset(client_x.clone().detach(), client_y.clone().detach()))
+        client_datasets.append(target_dataset(client_x.clone().detach(), client_y.clone().detach(), **params))
     return client_datasets
 
 
@@ -142,10 +142,10 @@ def result_to_markdown(filename, config):
     md = open(filename, "w")
     md.write("实验架构：" + config["global"]["mode"] + "\n")
     md.write("实验数据集: " + config["global"]["dataset_path"] + "\n")
-    md.write("实验服务器模型: " + config["server"]["model_path"] + "\n")
+    md.write("实验服务器模型: " + config["server"]["model"]["path"] + "\n")
     md.write("聚合算法: " + config["server"]["updater"]["updater_path"] + "\n")
     md.write("调度算法: " + config["server"]["scheduler"]["scheduler_path"] + "\n")
-    md.write("实验客户端模型: " + config["client"]["model_path"] + "\n")
+    md.write("实验客户端模型: " + config["client"]["model"]["path"] + "\n")
     md.write("客户端数量: " + str(config["global"]["client_num"]) + "\n")
     md.write("全局迭代次数: " + str(config["server"]["epochs"]) + "\n")
     md.write("数据集分布: " + "iid" if isinstance(config["global"]["iid"], bool) else "non-iid" + "\n")

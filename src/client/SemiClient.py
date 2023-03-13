@@ -2,6 +2,7 @@ import copy
 import time
 
 from client import SyncClient
+from utils.ModelTraining import train_one_epoch
 
 
 class SemiClient(SyncClient.SyncClient):
@@ -25,8 +26,7 @@ class SemiClient(SyncClient.SyncClient):
             if self.event.is_set():
                 self.client_thread_lock.acquire()
                 # 该client进行训练
-                r_weights = copy.deepcopy(self.model.state_dict())
-                data_sum, weights = self.train_one_epoch(r_weights)
+                data_sum, weights = train_one_epoch(self.epoch, self.dev, self.train_dl, self.model, self.loss_func, self.opti, self.mu)
 
                 # client传回server的信息具有延迟
                 print("Client", self.client_id, "trained")

@@ -20,8 +20,8 @@ class SemiAsyncServer:
         # 数据集
         dataset_class = ModuleFindTool.find_class_by_path(global_config["dataset_path"])
         self.dataset = dataset_class(global_config["client_num"], global_config["iid"])
-        self.test_data = self.dataset.get_test_dataset()
-        self.config['global']['iid'] = self.dataset.get_config()
+        self.test_data = self.dataset.get_test_dataset(client_config["model"]["path"])
+        self.config['global']['iid'] = self.dataset.get_config(**client_config["model"]["params"])
         self.T = server_config["epochs"]
 
         # 运行时变量

@@ -5,6 +5,7 @@ from torch.utils.data import DataLoader
 
 from client import Client
 from utils import ModuleFindTool
+from utils.ModelTraining import train_one_epoch
 
 
 class SyncClient(Client.Client):
@@ -18,8 +19,8 @@ class SyncClient(Client.Client):
         self.config = client_config
 
         # 本地模型
-        model_class = ModuleFindTool.find_class_by_path(client_config["model_path"])
-        self.model = model_class()
+        model_class = ModuleFindTool.find_class_by_path(client_config["model"]["path"])
+        self.model = model_class(**client_config["model"]["params"])
         self.model = self.model.to(self.dev)
 
         # 优化器
@@ -50,8 +51,7 @@ class SyncClient(Client.Client):
             if self.event.is_set():
                 self.client_thread_lock.acquire()
                 # 该client进行训练
-                r_weights = copy.deepcopy(self.model.state_dict())
-                data_sum, weights = self.train_one_epoch(r_weights)
+                data_sum, weights = train_one_epoch(self.epoch, self.dev, self.train_dl, self.model, self.loss_func, self.opti, self.mu)
 
                 # client传回server的信息具有延迟
                 print("Client", self.client_id, "trained")
@@ -66,5 +66,3 @@ class SyncClient(Client.Client):
             else:
                 self.event.wait()
 
-    def train_one_epoch(self, r_weights):
-        return self.model.train_one_epoch(self.epoch, self.dev, self.train_dl, self.model, self.loss_func, self.opti, self.mu)

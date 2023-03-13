@@ -5,16 +5,16 @@ from utils.Tools import generate_label_lists_by_step, generate_label_lists, gene
 from torch.utils.data import TensorDataset
 
 
-def generate_non_iid_data(iid_config, dataset, clients, left, right):
+def generate_non_iid_data(iid_config, dataset, clients, left, right, target_dataset=None, params=None):
     if "customize" in iid_config.keys() and iid_config["customize"]:
         label_config = iid_config['label']
         data_config = iid_config['data']
-        customize_distribution(label_config, data_config, dataset, clients, left, right)
+        customize_distribution(label_config, data_config, dataset, clients, left, right, target_dataset if target_dataset is not None else TensorDataset, params)
     else:
-        dirichlet_distribution(iid_config, dataset, clients, left, right)
+        dirichlet_distribution(iid_config, dataset, clients, left, right, target_dataset if target_dataset is not None else TensorDataset, params)
 
 
-def customize_distribution(label_config, data_config, dataset, clients, left, right):
+def customize_distribution(label_config, data_config, dataset, clients, left, right, target_dataset, params):
     # 生成label lists
     # 洗牌算法
     shuffle = False
@@ -40,12 +40,12 @@ def customize_distribution(label_config, data_config, dataset, clients, left, ri
         data_lists = generate_data_lists(data_config["max"], data_config["min"], clients, label_lists)
     # 生成datasets
     dataset.datasets = utils.Tools.generate_non_iid_data(dataset.train_data, dataset.train_labels, label_lists,
-                                                         data_lists)
+                                                         data_lists, target_dataset, params)
     # 保存label至配置文件
     dataset.iid_config['label'] = list_to_dict(label_lists)
 
 
-def dirichlet_distribution(iid_config, dataset, clients, left, right):
+def dirichlet_distribution(iid_config, dataset, clients, left, right, target_dataset, params):
     beta = iid_config["beta"]
     label_distribution = np.random.dirichlet([beta] * clients, right - left)
     class_idx = [np.argwhere(dataset.train_labels == y).flatten() for y in range(right-left)]
@@ -60,5 +60,5 @@ def dirichlet_distribution(iid_config, dataset, clients, left, right):
     for i in range(len(client_idx)):
         y = dataset.train_labels[client_idx[i]]
         x = dataset.train_data[client_idx[i]]
-        client_datasets.append(TensorDataset(x.clone().detach(), y.clone().detach()))
+        client_datasets.append(target_dataset(x.clone().detach(), y.clone().detach(), **params))
     dataset.datasets = client_datasets

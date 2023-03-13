@@ -10,8 +10,8 @@ class SyncServer:
     def __init__(self, config, global_config, server_config, client_config, manager_config):
         self.config = config
         # 全局模型
-        model_class = ModuleFindTool.find_class_by_path(server_config["model_path"])
-        self.server_network = model_class()
+        model_class = ModuleFindTool.find_class_by_path(server_config["model"]["path"])
+        self.server_network = model_class(**client_config["model"]["params"])
         self.dev = 'cuda' if torch.cuda.is_available() else 'cpu'
         self.server_network = self.server_network.to(self.dev)
 
