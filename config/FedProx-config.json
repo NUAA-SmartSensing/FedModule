@@ -15,7 +15,10 @@
   },
   "server": {
     "epochs": 2,
-    "model_path": "model.CNN.CNN",
+    "model": {
+      "path": "model.CNN.CNN",
+      "params": {}
+    },
     "scheduler": {
       "scheduler_interval": 5,
       "scheduler_path": "schedule.RandomSchedule.RandomSchedule",
@@ -47,7 +50,10 @@
   "client": {
     "epochs": 2,
     "batch_size": 50,
-    "model_path": "model.CNN.CNN",
+    "model": {
+      "path": "model.CNN.CNN",
+      "params": {}
+    },
     "loss": "cross_entropy",
     "mu": 0.01,
     "optimizer": {
