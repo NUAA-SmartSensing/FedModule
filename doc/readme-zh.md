@@ -124,6 +124,10 @@ docker run -it async-fl config/FedAvg-config.json
 
 ## 项目目录
 
+<details>
+  <summary><b>Project Directory</b></summary>
+  <p>
+
 ```text
 .
 ├── config                                    常见算法配置
@@ -137,6 +141,15 @@ docker run -it async-fl config/FedAvg-config.json
 ├── config_sync.json                          配置文件
 ├── config_sync_test.json                     配置文件
 ├── config_test.json                          配置文件
+├── doc
+│   ├── pic
+│   │   ├── fedsemi.png
+│   │   ├── framework.png
+│   │   └── header.png
+│   └── readme-zh.md
+├── docker
+│   └── Dockerfile
+├── license
 ├── fedsemi.png
 ├── framework.png
 ├── readme.md
@@ -219,6 +232,7 @@ docker run -it async-fl config/FedAvg-config.json
         ├── IID.py
         ├── JsonTool.py
         ├── ModuleFindTool.py
+        ├── ModelTraining.py
         ├── Plot.py
         ├── ProcessTool.py
         ├── Queue.py
@@ -227,6 +241,9 @@ docker run -it async-fl config/FedAvg-config.json
         ├── Tools.py
         └── __init__.py
 ```
+
+  </p>
+</details>
 
 utils包下的Time文件是一个多线程时间获取类的实现；Queue文件是因为mac的多线程queue部分功能未实现，对queue相关功能的实现。
 
@@ -249,6 +266,10 @@ utils包下的Time文件是一个多线程时间获取类的实现；Queue文件
 ## 配置文件
 
 ### 异步配置文件
+
+<details>
+  <summary><b>配置详情</b></summary>
+  <p>
 
 ```text
 {
@@ -282,7 +303,10 @@ utils包下的Time文件是一个多线程时间获取类的实现；Queue文件
   },
   "server": {
     "epochs": 600,                            服务器全局迭代次数
-    "model_path": "model.CNN.CNN",            全局模型文件
+    "model": {
+      "path": "model.CNN.CNN",
+      "params": {}
+    },
     "scheduler": {
       "scheduler_interval": 5,                调度间隔
       "schedule_file": "RandomSchedule",      调度算法文件
@@ -311,7 +335,10 @@ utils包下的Time文件是一个多线程时间获取类的实现；Queue文件
   "client": {
     "epochs": 2,                              客户端迭代次数
     "batch_size": 50,
-    "model_path": "model.CNN.CNN",                
+    "model": {
+      "path": "model.CNN.CNN",
+      "params": {}
+    },
     "loss": "cross_entropy",                  loss函数
     "mu": 0.01,
     "optimizer": {                            优化器
@@ -323,7 +350,14 @@ utils包下的Time文件是一个多线程时间获取类的实现；Queue文件
 }
 ```
 
+  </p>
+</details>
+
 ### 同步配置文件
+
+<details>
+  <summary><b>配置详情</b></summary>
+  <p>
 
 ```text
 {
@@ -357,7 +391,10 @@ utils包下的Time文件是一个多线程时间获取类的实现；Queue文件
   },
   "server": {
     "epochs": 600,                            服务器全局迭代次数
-    "model_path": "model.CNN.CNN", 
+    "model": {
+      "path": "model.CNN.CNN",
+      "params": {}
+    },
     "scheduler": {
       "scheduler_interval": 5,                调度间隔
       "scheduler_path": "schedule.RandomSchedule.RandomSchedule",
@@ -389,7 +426,10 @@ utils包下的Time文件是一个多线程时间获取类的实现；Queue文件
   "client": {
     "epochs": 2,                              客户端迭代次数
     "batch_size": 50,
-    "model_path": "model.CNN.CNN", 
+    "model": {
+      "path": "model.CNN.CNN",
+      "params": {}
+    },
     "loss": "cross_entropy",                  loss函数
     "mu": 0.01,
     "optimizer": {                            优化器
@@ -401,7 +441,14 @@ utils包下的Time文件是一个多线程时间获取类的实现；Queue文件
 }
 ```
 
+  </p>
+</details>
+
 ### 半异步配置文件
+
+<details>
+  <summary><b>配置详情</b></summary>
+  <p>
 
 ```text
 {
@@ -435,7 +482,10 @@ utils包下的Time文件是一个多线程时间获取类的实现；Queue文件
   },
   "server": {
     "epochs": 600,                            服务器全局迭代次数
-    "model_path": "model.CNN.CNN",  
+    "model": {
+      "path": "model.CNN.CNN",
+      "params": {}
+    },
     "scheduler": {
       "scheduler_interval": 5,                调度间隔
       "scheduler_path": "schedule.RandomSchedule.RandomSchedule", 
@@ -478,7 +528,10 @@ utils包下的Time文件是一个多线程时间获取类的实现；Queue文件
   "client": {
     "epochs": 2,                              客户端迭代次数
     "batch_size": 50,
-    "model_path": "model.CNN.CNN",      
+    "model": {
+      "path": "model.CNN.CNN",
+      "params": {}
+    }, 
     "loss": "cross_entropy",                  loss函数
     "mu": 0.01,
     "optimizer": {                            优化器
@@ -490,15 +543,30 @@ utils包下的Time文件是一个多线程时间获取类的实现；Queue文件
 }
 ```
 
+  </p>
+</details>
+
 ## 添加新的算法
 
 需要让客户端/服务器调用自己的算法或实现类，（注意：所有的算法实现必须以类的形式），需要以下几个步骤：
 
 * 在对应的位置加入自己的实现（dataset、model、schedule、update、client、loss）
 * 在对应包的`__init__.py`文件下导入该类，例如`from model import CNN`
-* 在配置文件申明，`model_path`等对应的是新的算法所在路径。
+* 在配置文件申明，`model.path`等对应的是新的算法所在路径。
 
 另外，算法里需要使用到的参数均可在配置项`params`中申明。
+
+现在`model`、`optim`、`loss`模块支持引入`torch`等模块自带实现，例：
+
+```json
+"model": {
+      "path": "torchvision.models.resnet18",
+      "params": {
+        "pretrained": true,
+        "num_classes": 10 
+      }
+}
+```
 
 ### loss函数添加
 

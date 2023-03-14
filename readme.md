@@ -124,21 +124,38 @@ docker run -it async-fl config/FedAvg-config.json
 
 ## Project Directory
 
+<details>
+  <summary><b>Project Directory</b></summary>
+  <p>
+
 ```text
 .
 ├── config                                    Common algorithm configuration files
 │   ├── FedAT-config.json
 │   ├── FedAsync-config.json
 │   ├── FedAvg-config.json
-│   └── FedProx-config.json
+│   └── FedLC-config.json
+│   ├── FedProx-config.json
+│   ├── config.json
+│   └── model_config
+│       ├── CIFAR10-config.json
+│       ├── ResNet18-config.json
+│       └── ResNet50-config.json
 ├── config.json                               configuration files
 ├── config_semi.json                          configuration files
 ├── config_semi_test.json                     configuration files
 ├── config_sync.json                          configuration files
 ├── config_sync_test.json                     configuration files
 ├── config_test.json                          configuration files
-├── fedsemi.png
-├── framework.png
+├── doc
+│   ├── pic
+│   │   ├── fedsemi.png
+│   │   ├── framework.png
+│   │   └── header.png
+│   └── readme-zh.md
+├── docker
+│   └── Dockerfile
+├── license
 ├── readme.md
 ├── requirements.txt
 └── src 
@@ -214,10 +231,11 @@ docker run -it async-fl config/FedAvg-config.json
     │   ├── FedAvg.py
     │   ├── MyFed.py
     │   └── __init__.py
-    └── utils                               
+    └── utils
         ├── ConfigManager.py
         ├── IID.py
         ├── JsonTool.py
+        ├── ModelTraining.py
         ├── ModuleFindTool.py
         ├── Plot.py
         ├── ProcessTool.py
@@ -227,6 +245,9 @@ docker run -it async-fl config/FedAvg-config.json
         ├── Tools.py
         └── __init__.py
 ```
+
+  </p>
+</details>
 
 The "Time" file under the "utils" package is an implementation of a multi-threaded time acquisition class, and the "Queue" file is an implementation of related functionalities for the "queue" module, as some functionalities of the "queue" module are not yet implemented on macOS.
 ## Framework
@@ -248,6 +269,10 @@ In synchronous and semi-asynchronous federated learning, after a client complete
 ## Configuration
 
 ### Asynchronous Configuration
+
+<details>
+  <summary><b>config</b></summary>
+  <p>
 
 ```text
 {
@@ -281,7 +306,10 @@ In synchronous and semi-asynchronous federated learning, after a client complete
   },
   "server": {
     "epochs": 600,                            global epoch
-    "model_path": "model.CNN.CNN",                
+    "model": {
+      "path": "model.CNN.CNN",
+      "params": {}
+    },              
     "scheduler": {
       "scheduler_interval": 5,             
       "scheduler_path": "schedule.RandomSchedule.RandomSchedule",    
@@ -309,7 +337,10 @@ In synchronous and semi-asynchronous federated learning, after a client complete
   "client": {
     "epochs": 2,                              local epoch
     "batch_size": 50,
-    "model_path": "model.CNN.CNN",                
+    "model": {
+      "path": "model.CNN.CNN",
+      "params": {}
+    },               
     "loss": "cross_entropy",                  
     "mu": 0.01,                               proximal term coefficient
     "optimizer": {               
@@ -321,7 +352,14 @@ In synchronous and semi-asynchronous federated learning, after a client complete
 }
 ```
 
+  </p>
+</details>
+
 ### Synchronous Configuration
+
+<details>
+  <summary><b>config</b></summary>
+  <p>
 
 ```text
 {
@@ -355,7 +393,10 @@ In synchronous and semi-asynchronous federated learning, after a client complete
   },
   "server": {
     "epochs": 600,                            global epoch
-    "model_path": "model.CNN.CNN",                  
+    "model": {
+      "path": "model.CNN.CNN",
+      "params": {}
+    },               
     "scheduler": {
       "scheduler_interval": 5,                
       "scheduler_path": "schedule.RandomSchedule.RandomSchedule",
@@ -387,7 +428,10 @@ In synchronous and semi-asynchronous federated learning, after a client complete
   "client": {
     "epochs": 2,                              local epoch
     "batch_size": 50,
-    "model_path": "model.CNN.CNN",    
+    "model": {
+      "path": "model.CNN.CNN",
+      "params": {}
+    },   
     "loss": "cross_entropy",                  
     "mu": 0.01,                               proximal term coefficient
     "optimizer": {    
@@ -399,7 +443,14 @@ In synchronous and semi-asynchronous federated learning, after a client complete
 }
 ```
 
+  </p>
+</details>
+
 ### Semi-aynchronous Configuration
+
+<details>
+  <summary><b>config</b></summary>
+  <p>
 
 ```text
 {
@@ -433,7 +484,10 @@ In synchronous and semi-asynchronous federated learning, after a client complete
   },
   "server": {
     "epochs": 600,                            global epoch
-    "model_path": "model.CNN.CNN",                  
+    "model": {
+      "path": "model.CNN.CNN",
+      "params": {}
+    },                
     "scheduler": {
       "scheduler_interval": 5,                
       "scheduler_path": "schedule.RandomSchedule.RandomSchedule", 
@@ -476,7 +530,10 @@ In synchronous and semi-asynchronous federated learning, after a client complete
   "client": {
     "epochs": 2,                              local epoch
     "batch_size": 50,
-    "model_path": "model.CNN.CNN",                  
+    "model": {
+      "path": "model.CNN.CNN",
+      "params": {}
+    },              
     "loss": "cross_entropy",                  
     "mu": 0.01,                               proximal term coefficient
     "optimizer": {         
@@ -488,6 +545,9 @@ In synchronous and semi-asynchronous federated learning, after a client complete
 }
 ```
 
+  </p>
+</details>
+
 ## Adding New Algorithm
 
 To allow clients/servers to call your own algorithms or implementation classes (note: all algorithm implementations must be in class form), the following steps are required:
@@ -497,6 +557,18 @@ To allow clients/servers to call your own algorithms or implementation classes (
 * Declare in the configuration file, `model_path` corresponds to the path where the new algorithm is located.
 
 In addition, parameters that the algorithm needs to use can be declared in the `params` configuration item.
+
+Now the `model`, `optim`, and `loss` modules support the introduction of built-in implementation classes such as `torch`, for example:
+
+```json
+"model": {
+      "path": "torchvision.models.resnet18",
+      "params": {
+        "pretrained": true,
+        "num_classes": 10 
+      }
+}
+```
 
 ### Adding Loss Function
 
