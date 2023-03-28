@@ -9,13 +9,14 @@ import torch.nn.functional as F
 
 
 class UpdaterThread(threading.Thread):
-    def __init__(self, queue, server_thread_lock, t, current_t, server_network,
-                 async_client_manager, stop_event, test_data, updater_config):
+    def __init__(self, queue, server_thread_lock, t, current_t, schedule_t, server_network,
+                 async_client_manager, stop_event, test_data, updater_config, receiver_config):
         threading.Thread.__init__(self)
         self.queue = queue
         self.server_thread_lock = server_thread_lock
         self.T = t
         self.current_time = current_t
+        self.schedule_t = schedule_t
         self.server_network = server_network
         self.async_client_manager = async_client_manager
         self.stop_event = stop_event
@@ -31,6 +32,8 @@ class UpdaterThread(threading.Thread):
         self.config = updater_config
         update_class = ModuleFindTool.find_class_by_path(updater_config["updater_path"])
         self.update = update_class(self.config["params"])
+        receiver_class = ModuleFindTool.find_class_by_path(receiver_config["receiver_path"])
+        self.receiver = receiver_class(queue, receiver_config)
 
         # loss函数
         if isinstance(updater_config["loss"], str):
@@ -38,27 +41,37 @@ class UpdaterThread(threading.Thread):
         else:
             self.loss_func = ModuleFindTool.find_class_by_path(f'loss.{updater_config["loss"]["loss_file"]}.{updater_config["loss"]["loss_name"]}')
 
+        if isinstance(updater_config["nums"], int):
+            self.update_mode = "static"
+            self.nums = updater_config["nums"]
+        else:
+            self.update_mode = "dynamic"
+            determineClientUpdateNumClass = ModuleFindTool.find_class_by_path(updater_config["nums"]["nums_path"])
+            self.determineClientUpdateNum = determineClientUpdateNumClass(self, updater_config["nums"]["params"])
+            self.nums = self.determineClientUpdateNum.init()
+
     def run(self):
         for epoch in range(self.T):
             while True:
-                c_r = 0
                 # 接收一个client发回的模型参数和时间戳
                 if not self.queue.empty():
-                    # (c_id, client_weights, data_sum, time_stamp) = self.queue.get()
-                    update_dict = self.queue.get()
-                    c_id = update_dict["client_id"]
-                    time_stamp = update_dict["time_stamp"]
-                    self.sum_delay += (self.current_time.get_time() - time_stamp)
-                    print("Updater received data from client", c_id, "| staleness =", time_stamp, "-",
-                          self.current_time.get_time(), "| queue size = ", self.queue.qsize())
+                    # 等待上传
+                    self.receiver.receive(self.nums)
+                    update_list = []
+                    for i in range(self.nums):
+                        update_list.append(self.queue.get())
+                        c_id = update_list[i]["client_id"]
+                        time_stamp = update_list[i]["time_stamp"]
+                        self.sum_delay += (self.current_time.get_time() - time_stamp)
+                        print("Updater received data from client", c_id, "| staleness =", time_stamp, "-", self.current_time.get_time(), "| queue size = ", self.queue.qsize())
                     self.event.set()
                 else:
-                    update_dict = {}
+                    update_list = []
 
                 if self.event.is_set():
                     # 使用接收的client发回的模型参数和时间戳对全局模型进行更新
                     self.server_thread_lock.acquire()
-                    self.update_server_weights(epoch, update_dict)
+                    self.update_server_weights(epoch, update_list)
                     self.run_server_test(epoch)
                     self.server_thread_lock.release()
                     self.event.clear()
@@ -75,8 +88,8 @@ class UpdaterThread(threading.Thread):
         # 终止所有client线程
         self.async_client_manager.stop_all_clients()
 
-    def update_server_weights(self, epoch, update_dict):
-        updated_parameters = self.update.update_server_weights(self, epoch, update_dict)
+    def update_server_weights(self, epoch, update_list):
+        updated_parameters = self.update.update_server_weights(self, epoch, update_list)
         for key, var in updated_parameters.items():
             if torch.cuda.is_available():
                 updated_parameters[key] = updated_parameters[key].cuda()

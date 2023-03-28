@@ -24,6 +24,7 @@ class AsyncServer:
 
         # 运行时变量
         self.current_t = Time.Time(1)
+        self.schedule_t = Time.Time(1)
         self.queue = Queue.Queue()
         self.accuracy_list = []
         self.loss_list = []
@@ -35,15 +36,15 @@ class AsyncServer:
         datasets = self.dataset.get_train_dataset()
 
         self.async_client_manager = AsyncClientManager.AsyncClientManager(init_weights, global_config["client_num"], global_config["multi_gpu"],
-                                                                          datasets, self.queue, self.current_t,
+                                                                          datasets, self.queue, self.current_t, self.schedule_t,
                                                                           self.stop_event, client_config, manager_config)
         self.scheduler_thread = SchedulerThread.SchedulerThread(self.server_thread_lock, self.async_client_manager,
-                                                                self.queue, self.current_t, server_config["scheduler"],
+                                                                self.queue, self.current_t, self.schedule_t, server_config["scheduler"],
                                                                 self.server_network, self.T)
         self.updater_thread = UpdaterThread.UpdaterThread(self.queue, self.server_thread_lock,
-                                                          self.T, self.current_t, self.server_network,
+                                                          self.T, self.current_t, self.schedule_t, self.server_network,
                                                           self.async_client_manager, self.stop_event,
-                                                          self.test_data, server_config["updater"])
+                                                          self.test_data, server_config["updater"], server_config["scheduler"]["receiver"])
 
     def run(self):
         print("Start server:")

@@ -7,7 +7,8 @@ class FedAsync:
     def __init__(self, config):
         self.config = config
 
-    def update_server_weights(self, updater_thread: UpdaterThread, epoch, update_dict):
+    def update_server_weights(self, updater_thread: UpdaterThread, epoch, update_list):
+        update_dict = update_list[0]
         client_weights = update_dict["weights"]
         time_stamp = update_dict["time_stamp"]
         b = self.config["b"]

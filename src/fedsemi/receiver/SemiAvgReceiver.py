@@ -4,7 +4,7 @@ class SemiAvgReceiver:
         self.config = config
         self.len = len(queue_list)
 
-    def receive(self, nums):
+    def receive(self, nums=1):
         # 第i组/层全都上传完成
         while True:
             for i in range(self.len):

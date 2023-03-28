@@ -6,6 +6,6 @@ class AvgReceiver:
         self.queue = queue
         self.config = config
 
-    def receive(self, nums):
+    def receive(self, nums=1):
         while self.queue.qsize() < nums:
             time.sleep(0.01)

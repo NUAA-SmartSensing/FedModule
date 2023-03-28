@@ -6,14 +6,15 @@ from utils import ModuleFindTool
 
 class SchedulerThread(threading.Thread):
     def __init__(self, server_thread_lock, async_client_manager,
-                 queue, current_t, scheduler_config,
+                 queue, current_t, schedule_t, scheduler_config,
                  server_network, t):
         threading.Thread.__init__(self)
         self.server_thread_lock = server_thread_lock
-        self.schedule_interval = scheduler_config["scheduler_interval"]
+        self.schedule_interval = scheduler_config["params"]["schedule_interval"]
         self.async_client_manager = async_client_manager
         self.queue = queue
         self.current_t = current_t
+        self.schedule_t = schedule_t
         self.server_network = server_network
         self.T = t
         schedule_class = ModuleFindTool.find_class_by_path(scheduler_config["scheduler_path"])

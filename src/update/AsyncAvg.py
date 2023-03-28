@@ -7,7 +7,8 @@ class AsyncAvg:
     def __init__(self, config):
         self.config = config
 
-    def update_server_weights(self, updater_thread: UpdaterThread, epoch, update_dict):
+    def update_server_weights(self, updater_thread: UpdaterThread, epoch, update_list):
+        update_dict = update_list[0]
         client_weights = update_dict["weights"]
         updated_parameters = {}
         server_weights = copy.deepcopy(updater_thread.server_network.state_dict())
