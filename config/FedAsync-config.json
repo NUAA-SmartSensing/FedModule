@@ -24,16 +24,21 @@
       "params": {}
     },
     "scheduler": {
-      "scheduler_interval": 5,
       "scheduler_path": "schedule.RandomSchedule.RandomSchedule",
       "params": {
         "c_ratio": 0.1,
         "schedule_interval": 5
+      },
+      "receiver": {
+        "receiver_path": "fedasync.receiver.AvgReceiver.AvgReceiver",
+        "params": {
+        }
       }
     },
     "updater": {
       "updater_path": "update.FedAsync.FedAsync",
       "loss": "cross_entropy",
+      "nums": 1,
       "params": {
         "a": 10,
         "b": 4,
