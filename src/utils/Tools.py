@@ -1,8 +1,9 @@
 import random
-import torch
+
 import numpy as np
+import torch
+
 from utils import Random
-from torch.utils.data import TensorDataset
 
 
 def generate_stale_list(step, shuffle, n):
@@ -104,7 +105,7 @@ def generate_label_lists_by_step(step, num_list, left, right, shuffle=False):
         pos = 0
         for i in range(len(num_list)):
             for j in range(num_list[i]):
-                label_lists.append(label_all_lists[pos : pos + bound])
+                label_lists.append(label_all_lists[pos: pos + bound])
                 pos = pos + bound
             bound += step
     else:

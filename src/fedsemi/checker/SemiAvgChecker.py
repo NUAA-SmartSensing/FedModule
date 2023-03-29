@@ -1,4 +1,3 @@
-
 class SemiAvgChecker:
     def __init__(self, current_time, config):
         self.current_time = current_time

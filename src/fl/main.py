@@ -2,9 +2,11 @@ import copy
 import datetime
 import os
 import shutil
-import threading
 import sys
+import threading
+
 import wandb
+
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from utils.Tools import *
 from utils.ConfigManager import *

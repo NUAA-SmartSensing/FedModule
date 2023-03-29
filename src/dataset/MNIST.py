@@ -1,3 +1,4 @@
+from torch.utils.data.dataset import TensorDataset
 from torchvision import datasets, transforms
 
 import utils.IID
@@ -48,7 +49,8 @@ class MNIST:
                 self.datasets.append(TensorDataset(torch.tensor(client_data), torch.tensor(client_label)))
         else:
             print("generating non_iid data...")
-            utils.IID.generate_non_iid_data(iid_config, self, clients, self.train_labels.min(), self.train_labels.max()+1)
+            utils.IID.generate_non_iid_data(iid_config, self, clients, self.train_labels.min(),
+                                            self.train_labels.max() + 1)
         print("data generation process completed")
 
     def get_test_dataset(self):

@@ -7,7 +7,8 @@ from utils import ModuleFindTool
 
 
 class AsyncClientManager:
-    def __init__(self, init_weights, clients_num, multi_gpu, datasets, q, current_time, schedule_t, stop_event, client_config, manager_config, global_var):
+    def __init__(self, init_weights, clients_num, multi_gpu, datasets, q, current_time, schedule_t, stop_event,
+                 client_config, manager_config, global_var):
         self.init_weights = init_weights
         self.queue = q
         self.queue_manager = QueueManager.QueueManager(q, current_time, manager_config["checker"])
@@ -46,7 +47,8 @@ class AsyncClientManager:
             client_delay = self.client_staleness_list[i]
             dataset = datasets[i]
             self.client_thread_list.append(
-                client_class(i, self.queue_manager, self.stop_event, client_delay, dataset, client_config, dev, global_var))
+                client_class(i, self.queue_manager, self.stop_event, client_delay, dataset, client_config, dev,
+                             global_var))
 
         # 启动clients
         self.global_var['client_list'] = self.client_thread_list

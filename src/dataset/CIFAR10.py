@@ -1,10 +1,11 @@
 from typing import Tuple, Any
 
+from PIL import Image
+from torch.utils.data.dataset import TensorDataset
 from torchvision import datasets, transforms
 
 import utils.IID
 from utils.Tools import *
-from PIL import Image
 
 
 class CIFAR10:
@@ -17,9 +18,9 @@ class CIFAR10:
         ])
         # 获取数据集
         train_datasets = datasets.CIFAR10(root='../data/', train=True,
-                                        transform=transformer, download=True)
+                                          transform=transformer, download=True)
         test_datasets = datasets.CIFAR10(root='../data/', train=False,
-                                        transform=transformer, download=True)
+                                         transform=transformer, download=True)
         self.raw_data = train_datasets.data
         self.train_labels = np.array(train_datasets.targets)
         self.test_datasets = test_datasets
@@ -47,11 +48,13 @@ class CIFAR10:
                 client_data, client_label = np.vstack(
                     (client_data1, client_data2)), np.hstack(
                     (client_label1, client_label2))
-                self.datasets.append(PicTensorDataset(torch.tensor(client_data), torch.tensor(client_label), transform=transformer))
+                self.datasets.append(
+                    PicTensorDataset(torch.tensor(client_data), torch.tensor(client_label), transform=transformer))
         else:
             print("generating non_iid data...")
             utils.IID.generate_non_iid_data(iid_config, self, clients, self.train_labels.min(),
-                                            self.train_labels.max() + 1, PicTensorDataset, params={'transform': transformer})
+                                            self.train_labels.max() + 1, PicTensorDataset,
+                                            params={'transform': transformer})
         print("data generation process completed")
 
     def get_test_dataset(self):

@@ -1,13 +1,15 @@
 import copy
 import threading
 import time
+
 from utils import ModuleFindTool
 
 
 class SchedulerThread(threading.Thread):
     def __init__(self, server_thread_lock, sync_client_manager,
                  queue_list, current_t, scheduler_config, epoch_list,
-                 server_network, network_list, t, group_manager, updater_thread, mutex_sem, empty_sem, full_sem, global_var):
+                 server_network, network_list, t, group_manager, updater_thread, mutex_sem, empty_sem, full_sem,
+                 global_var):
         threading.Thread.__init__(self)
         self.mutex_sem = mutex_sem
         self.empty_sem = empty_sem

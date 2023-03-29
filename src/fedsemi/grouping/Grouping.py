@@ -1,6 +1,3 @@
-from utils import ModuleFindTool
-
-
 class Grouping:
     def __init__(self, config):
         self.config = config

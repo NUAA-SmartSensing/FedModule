@@ -4,6 +4,7 @@ import time
 import torch.utils.data
 import wandb
 from torch.utils.data import DataLoader
+
 from utils import ModuleFindTool
 
 
@@ -34,7 +35,8 @@ class UpdaterThread(threading.Thread):
         if isinstance(updater_config["loss"], str):
             self.loss_func = ModuleFindTool.find_class_by_path(f'torch.nn.functional.{updater_config["loss"]}')
         else:
-            self.loss_func = ModuleFindTool.find_class_by_path(f'loss.{updater_config["loss"]["loss_file"]}.{updater_config["loss"]["loss_name"]}')
+            self.loss_func = ModuleFindTool.find_class_by_path(
+                f'loss.{updater_config["loss"]["loss_file"]}.{updater_config["loss"]["loss_name"]}')
 
     def run(self):
         for epoch in range(self.T):

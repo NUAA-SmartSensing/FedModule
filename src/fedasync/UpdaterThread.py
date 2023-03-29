@@ -4,8 +4,8 @@ import time
 import torch.utils.data
 import wandb
 from torch.utils.data import DataLoader
+
 from utils import ModuleFindTool
-import torch.nn.functional as F
 
 
 class UpdaterThread(threading.Thread):
@@ -40,7 +40,8 @@ class UpdaterThread(threading.Thread):
         if isinstance(updater_config["loss"], str):
             self.loss_func = ModuleFindTool.find_class_by_path(f'torch.nn.functional.{updater_config["loss"]}')
         else:
-            self.loss_func = ModuleFindTool.find_class_by_path(f'loss.{updater_config["loss"]["loss_file"]}.{updater_config["loss"]["loss_name"]}')
+            self.loss_func = ModuleFindTool.find_class_by_path(
+                f'loss.{updater_config["loss"]["loss_file"]}.{updater_config["loss"]["loss_name"]}')
 
         if isinstance(updater_config["nums"], int):
             self.update_mode = "static"
@@ -64,7 +65,8 @@ class UpdaterThread(threading.Thread):
                         c_id = update_list[i]["client_id"]
                         time_stamp = update_list[i]["time_stamp"]
                         self.sum_delay += (self.current_time.get_time() - time_stamp)
-                        print("Updater received data from client", c_id, "| staleness =", time_stamp, "-", self.current_time.get_time(), "| queue size = ", self.queue.qsize())
+                        print("Updater received data from client", c_id, "| staleness =", time_stamp, "-",
+                              self.current_time.get_time(), "| queue size = ", self.queue.qsize())
                     self.event.set()
                 else:
                     update_list = []

@@ -1,6 +1,8 @@
-from fedasync import UpdaterThread
 import copy
+
 import torch
+
+from fedasync import UpdaterThread
 
 
 class AsyncAvg:

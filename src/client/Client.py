@@ -1,7 +1,6 @@
-import threading
-import torch
 import collections
 import copy
+import threading
 from abc import abstractmethod
 
 

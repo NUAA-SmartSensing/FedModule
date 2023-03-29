@@ -1,6 +1,4 @@
 from fedsemi import UpdaterThread
-import copy
-import torch
 
 
 class FedAT:
@@ -13,8 +11,8 @@ class FedAT:
         updated_parameters = {}
         for key, var in update_list[0]["weights"].items():
             updated_parameters[key] = update_list[0]["weights"][key] * epoch_list[group_num - 1 - 0] / epoch
-        for i in range(len(update_list)-1):
-            update_dict = update_list[i+1]
+        for i in range(len(update_list) - 1):
+            update_dict = update_list[i + 1]
             client_weights = update_dict["weights"]
             for key, var in client_weights.items():
                 updated_parameters[key] += client_weights[key] * epoch_list[group_num - 1 - i] / epoch

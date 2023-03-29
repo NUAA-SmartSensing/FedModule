@@ -59,14 +59,16 @@ class SemiAsyncServer:
                                                           self.network_list, self.epoch_list,
                                                           self.group_manager, self.stop_event,
                                                           self.test_data, server_config["updater"],
-                                                          self.mutex_sem, self.empty_sem, self.full_sem, self.global_var)
+                                                          self.mutex_sem, self.empty_sem, self.full_sem,
+                                                          self.global_var)
         self.global_var['updater'] = self.updater_thread
         self.scheduler_thread = SchedulerThread.SchedulerThread(self.server_thread_lock, self.semi_client_manager,
                                                                 self.queue_list, self.current_t,
                                                                 server_config["scheduler"], self.epoch_list,
                                                                 self.server_network, self.network_list, self.T,
                                                                 self.group_manager, self.updater_thread,
-                                                                self.mutex_sem, self.empty_sem, self.full_sem, self.global_var)
+                                                                self.mutex_sem, self.empty_sem, self.full_sem,
+                                                                self.global_var)
         self.global_var['scheduler'] = self.scheduler_thread
 
     def run(self):

@@ -1,6 +1,7 @@
 import threading
 
 import torch.cuda
+
 from fedsemi import QueueManager
 from utils import ModuleFindTool
 
@@ -44,7 +45,8 @@ class SemiAsyncClientManager:
             client_delay = self.client_staleness_list[i]
             dataset = datasets[i]
             self.client_thread_list.append(
-                client_class(i, self.queue_manager, self.stop_event, client_delay, dataset, client_config, dev, global_var))
+                client_class(i, self.queue_manager, self.stop_event, client_delay, dataset, client_config, dev,
+                             global_var))
 
         # 预分组
         self.group_manager.init(self.client_thread_list, self.client_staleness_list)

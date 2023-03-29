@@ -1,17 +1,20 @@
-import utils
 import numpy as np
+from torch.utils.data import TensorDataset
+
+import utils
 from utils.JsonTool import dict_to_list, list_to_dict
 from utils.Tools import generate_label_lists_by_step, generate_label_lists, generate_data_lists
-from torch.utils.data import TensorDataset
 
 
 def generate_non_iid_data(iid_config, dataset, clients, left, right, target_dataset=None, params={}):
     if "customize" in iid_config.keys() and iid_config["customize"]:
         label_config = iid_config['label']
         data_config = iid_config['data']
-        customize_distribution(label_config, data_config, dataset, clients, left, right, target_dataset if target_dataset is not None else TensorDataset, params)
+        customize_distribution(label_config, data_config, dataset, clients, left, right,
+                               target_dataset if target_dataset is not None else TensorDataset, params)
     else:
-        dirichlet_distribution(iid_config, dataset, clients, left, right, target_dataset if target_dataset is not None else TensorDataset, params)
+        dirichlet_distribution(iid_config, dataset, clients, left, right,
+                               target_dataset if target_dataset is not None else TensorDataset, params)
 
 
 def customize_distribution(label_config, data_config, dataset, clients, left, right, target_dataset, params):
@@ -48,7 +51,7 @@ def customize_distribution(label_config, data_config, dataset, clients, left, ri
 def dirichlet_distribution(iid_config, dataset, clients, left, right, target_dataset, params):
     beta = iid_config["beta"]
     label_distribution = np.random.dirichlet([beta] * clients, right - left)
-    class_idx = [np.argwhere(dataset.train_labels == y).flatten() for y in range(right-left)]
+    class_idx = [np.argwhere(dataset.train_labels == y).flatten() for y in range(right - left)]
     client_idx = [[] for _ in range(clients)]
     for c, fracs in zip(class_idx, label_distribution):
         # np.split按照比例将类别为k的样本划分为了N个子集

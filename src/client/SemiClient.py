@@ -1,4 +1,3 @@
-import copy
 import time
 
 from client import NormalClient
@@ -26,7 +25,8 @@ class SemiClient(NormalClient.NormalClient):
             if self.event.is_set():
                 self.client_thread_lock.acquire()
                 # 该client进行训练
-                data_sum, weights = train_one_epoch(self.epoch, self.dev, self.train_dl, self.model, self.loss_func, self.opti, self.mu)
+                data_sum, weights = train_one_epoch(self.epoch, self.dev, self.train_dl, self.model, self.loss_func,
+                                                    self.opti, self.mu)
 
                 # client传回server的信息具有延迟
                 print("Client", self.client_id, "trained")
