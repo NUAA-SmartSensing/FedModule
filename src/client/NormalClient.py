@@ -8,7 +8,7 @@ from utils import ModuleFindTool
 from utils.ModelTraining import train_one_epoch
 
 
-class SyncClient(Client.Client):
+class NormalClient(Client.Client):
     def __init__(self, c_id, queue_manager, stop_event, delay, train_ds, client_config, dev, global_var):
         Client.Client.__init__(self, c_id, stop_event, delay, train_ds, dev, global_var)
         self.queue_manager = queue_manager

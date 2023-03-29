@@ -1,10 +1,10 @@
 import random
 
-from client import SyncClient
+from client import NormalClient
 from utils.ModelTraining import train_one_epoch
 
 
-class ProxClient(SyncClient.SyncClient):
+class ProxClient(NormalClient.NormalClient):
     def train_one_epoch(self, r_weights):
         if self.config["params"]["straggler"]:
             self.epoch = random.randint(1, self.config["params"]["local_epoch"])
