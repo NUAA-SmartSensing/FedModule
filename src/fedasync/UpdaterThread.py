@@ -10,7 +10,7 @@ import torch.nn.functional as F
 
 class UpdaterThread(threading.Thread):
     def __init__(self, queue, server_thread_lock, t, current_t, schedule_t, server_network,
-                 async_client_manager, stop_event, test_data, updater_config, receiver_config):
+                 stop_event, test_data, updater_config, receiver_config, global_var):
         threading.Thread.__init__(self)
         self.queue = queue
         self.server_thread_lock = server_thread_lock
@@ -18,9 +18,10 @@ class UpdaterThread(threading.Thread):
         self.current_time = current_t
         self.schedule_t = schedule_t
         self.server_network = server_network
-        self.async_client_manager = async_client_manager
         self.stop_event = stop_event
         self.test_data = test_data
+        self.global_var = global_var
+        self.async_client_manager = self.global_var['client_manager']
 
         self.event = threading.Event()
         self.event.clear()

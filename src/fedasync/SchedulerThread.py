@@ -7,7 +7,7 @@ from utils import ModuleFindTool
 class SchedulerThread(threading.Thread):
     def __init__(self, server_thread_lock, async_client_manager,
                  queue, current_t, schedule_t, scheduler_config,
-                 server_network, t):
+                 server_network, t, global_var):
         threading.Thread.__init__(self)
         self.server_thread_lock = server_thread_lock
         self.schedule_interval = scheduler_config["params"]["schedule_interval"]
@@ -20,6 +20,7 @@ class SchedulerThread(threading.Thread):
         schedule_class = ModuleFindTool.find_class_by_path(scheduler_config["scheduler_path"])
         self.schedule = schedule_class()
         self.config = scheduler_config
+        self.global_var = global_var
 
     def run(self):
         last_s_time = -1

@@ -6,7 +6,7 @@ from abc import abstractmethod
 
 
 class Client(threading.Thread):
-    def __init__(self, c_id, stop_event, delay, train_ds, dev):
+    def __init__(self, c_id, stop_event, delay, train_ds, dev, global_var):
         threading.Thread.__init__(self)
         self.client_id = c_id
         self.event = threading.Event()
@@ -23,6 +23,7 @@ class Client(threading.Thread):
         self.received_time_stamp = False
         self.params = {}
         self.event_is_set = False
+        self.global_var = global_var
 
     @abstractmethod
     def run(self):

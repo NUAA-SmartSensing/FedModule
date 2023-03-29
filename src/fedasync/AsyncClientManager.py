@@ -2,13 +2,15 @@ import threading
 
 import torch.cuda
 
+from fedasync import QueueManager
 from utils import ModuleFindTool
 
 
 class AsyncClientManager:
-    def __init__(self, init_weights, clients_num, multi_gpu, datasets, q, current_time, schedule_t, stop_event, client_config, manager_config):
+    def __init__(self, init_weights, clients_num, multi_gpu, datasets, q, current_time, schedule_t, stop_event, client_config, manager_config, global_var):
         self.init_weights = init_weights
         self.queue = q
+        self.queue_manager = QueueManager.QueueManager(q, current_time, manager_config["checker"])
         self.clients_num = clients_num
         self.batch_size = client_config["batch_size"]
         self.current_time = current_time
@@ -17,6 +19,7 @@ class AsyncClientManager:
         self.client_staleness_list = client_config["stale_list"]
         self.thread_lock = threading.Lock()
         self.epoch = client_config["epochs"]
+        self.global_var = global_var
 
         client_class = ModuleFindTool.find_class_by_path(manager_config["client_path"])
 
@@ -43,9 +46,10 @@ class AsyncClientManager:
             client_delay = self.client_staleness_list[i]
             dataset = datasets[i]
             self.client_thread_list.append(
-                client_class(i, self.queue, self.stop_event, client_delay, dataset, client_config, dev))
+                client_class(i, self.queue_manager, self.stop_event, client_delay, dataset, client_config, dev, global_var))
 
         # 启动clients
+        self.global_var['client_list'] = self.client_thread_list
         print("Start clients:")
         for client_thread in self.client_thread_list:
             client_thread.start()

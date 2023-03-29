@@ -9,9 +9,9 @@ from utils.ModelTraining import train_one_epoch
 
 
 class AsyncClient(Client.Client):
-    def __init__(self, c_id, queue, stop_event, delay, train_ds, client_config, dev):
-        Client.Client.__init__(self, c_id, stop_event, delay, train_ds, dev)
-        self.queue = queue
+    def __init__(self, c_id, queue_manager, stop_event, delay, train_ds, client_config, dev, global_var):
+        Client.Client.__init__(self, c_id, stop_event, delay, train_ds, dev, global_var)
+        self.queue_manager = queue_manager
         self.batch_size = client_config["batch_size"]
         self.epoch = client_config["epochs"]
         self.optimizer_config = client_config["optimizer"]
@@ -59,7 +59,7 @@ class AsyncClient(Client.Client):
 
                 # 返回其ID、模型参数和时间戳
                 update_dict = {"client_id": self.client_id, "weights": weights, "data_sum": data_sum, "time_stamp": self.time_stamp}
-                self.queue.put(update_dict)
+                self.queue_manager.put(update_dict)
                 self.event.clear()
                 self.client_thread_lock.release()
             # 该client等待被选中
