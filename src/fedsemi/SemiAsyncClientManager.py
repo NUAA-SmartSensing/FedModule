@@ -7,7 +7,7 @@ from utils import ModuleFindTool
 
 class SemiAsyncClientManager:
     def __init__(self, init_weights, clients_num, multi_gpu, datasets, group_manager, current_time, stop_event,
-                 client_config, manager_config):
+                 client_config, manager_config, global_var):
         self.init_weights = init_weights
         self.group_manager = group_manager
         self.clients_num = clients_num
@@ -19,6 +19,7 @@ class SemiAsyncClientManager:
         self.epoch = client_config["epochs"]
         self.queue_manager = QueueManager.QueueManager([], current_time, manager_config["checker"])
         client_class = ModuleFindTool.find_class_by_path(manager_config["client_path"])
+        self.global_var = global_var
 
         # 初始化clients
         # 0: 多gpu，1：单gpu，2：cpu
@@ -43,7 +44,7 @@ class SemiAsyncClientManager:
             client_delay = self.client_staleness_list[i]
             dataset = datasets[i]
             self.client_thread_list.append(
-                client_class(i, self.queue_manager, self.stop_event, client_delay, dataset, client_config, dev))
+                client_class(i, self.queue_manager, self.stop_event, client_delay, dataset, client_config, dev, global_var))
 
         # 预分组
         self.group_manager.init(self.client_thread_list, self.client_staleness_list)

@@ -5,7 +5,7 @@ from utils.Tools import generate_label_lists_by_step, generate_label_lists, gene
 from torch.utils.data import TensorDataset
 
 
-def generate_non_iid_data(iid_config, dataset, clients, left, right, target_dataset=None, params=None):
+def generate_non_iid_data(iid_config, dataset, clients, left, right, target_dataset=None, params={}):
     if "customize" in iid_config.keys() and iid_config["customize"]:
         label_config = iid_config['label']
         data_config = iid_config['data']

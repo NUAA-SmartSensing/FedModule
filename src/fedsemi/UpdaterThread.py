@@ -9,8 +9,8 @@ from utils import ModuleFindTool
 
 class UpdaterThread(threading.Thread):
     def __init__(self, queue_list, server_thread_lock, t, current_t, server_network, network_list, epoch_list,
-                 sync_client_manager, group_manager, stop_event, test_data, updater_config, mutex_sem, empty_sem,
-                 full_sem):
+                 group_manager, stop_event, test_data, updater_config, mutex_sem, empty_sem,
+                 full_sem, global_var):
         threading.Thread.__init__(self)
         self.mutex_sem = mutex_sem
         self.empty_sem = empty_sem
@@ -21,7 +21,8 @@ class UpdaterThread(threading.Thread):
         self.current_time = current_t
         self.server_network = server_network
         self.network_list = network_list
-        self.sync_client_manager = sync_client_manager
+        self.global_var = global_var
+        self.sync_client_manager = global_var['client_manager']
         self.group_manager = group_manager
         self.group_no = 0
         self.epoch_list = epoch_list
