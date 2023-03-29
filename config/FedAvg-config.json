@@ -49,7 +49,7 @@
       "params": {
       }
     },
-    "client_path": "client.SyncClient.SyncClient"
+    "client_path": "client.NormalClient.NormalClient"
   },
   "client": {
     "epochs": 2,
