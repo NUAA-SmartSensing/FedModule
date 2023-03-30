@@ -43,6 +43,7 @@
 - [Adding New Client Class](#adding-new-client-class)
 - [Multi-GPU](#multi-gpu)
 - [Existing Bugs](#existing-bugs)
+- [Contributors](#contributors)
 - [Contact Us](#contact-us)
 
   </p>
@@ -744,6 +745,11 @@ for key, var in client_weights.items():
     if torch.cuda.is_available():
         updated_parameters[key] = updated_parameters[key].cuda()
 ```
+
+## Contributors
+
+<!-- readme: contributors -start -->
+<!-- readme: contributors -end -->
 
 ## Contact us
 
