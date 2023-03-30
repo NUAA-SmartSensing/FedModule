@@ -749,6 +749,23 @@ for key, var in client_weights.items():
 ## Contributors
 
 <!-- readme: contributors -start -->
+<table>
+<tr>
+    <td align="center">
+        <a href="https://github.com/desperadoccy">
+            <img src="https://avatars.githubusercontent.com/u/44546125?v=4" width="100;" alt="desperadoccy"/>
+            <br />
+            <sub><b>desperadoccy</b></sub>
+        </a>
+    </td>
+    <td align="center">
+        <a href="https://github.com/jzj007">
+            <img src="https://avatars.githubusercontent.com/u/73173984?v=4" width="100;" alt="jzj007"/>
+            <br />
+            <sub><b>jzj007</b></sub>
+        </a>
+    </td></tr>
+</table>
 <!-- readme: contributors -end -->
 
 ## Contact us
