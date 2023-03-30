@@ -43,6 +43,7 @@
 - [客户端替换](#客户端替换)
 - [多GPU](#多GPU)
 - [代码尚存问题](#代码尚存问题)
+- [Contributors](#contributors)
 - [联系我](#联系我)
   </p>
 </details>
@@ -738,6 +739,11 @@ for key, var in client_weights.items():
     if torch.cuda.is_available():
         updated_parameters[key] = updated_parameters[key].cuda()
 ```
+
+## Contributors
+
+<!-- readme: contributors -start -->
+<!-- readme: contributors -end -->
 
 ## 联系我
 
