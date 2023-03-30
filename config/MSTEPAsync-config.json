@@ -1,0 +1,73 @@
+{
+  "wandb": {
+    "enabled": false,
+    "project": "FedAsync",
+    "name": "1"
+  },
+  "global": {
+    "multi_gpu": true,
+    "mode": "async",
+    "experiment": "FedAsync/1",
+    "stale": {
+      "step": 1,
+      "shuffle": true,
+      "list": [10, 10, 10, 5, 5, 5, 5]
+    },
+    "dataset_path": "dataset.FashionMNIST.FashionMNIST",
+    "iid":  {
+      "beta": 0.5
+    },
+    "client_num": 50
+  },
+  "server": {
+    "epochs": 20,
+    "model": {
+      "path": "model.CNN.CNN",
+      "params": {}
+    },
+    "scheduler": {
+      "scheduler_path": "schedule.RandomSchedule.RandomSchedule",
+      "params": {
+        "c_ratio": 0.1,
+        "schedule_interval": 1
+      },
+      "receiver": {
+        "receiver_path": "fedasync.receiver.AvgReceiver.AvgReceiver",
+        "params": {
+        }
+      }
+    },
+    "updater": {
+      "updater_path": "update.StepAsyncAvg.StepAsyncAvg",
+      "loss": "cross_entropy",
+      "nums": 3,
+      "params": {
+        "rho": 0.2,
+        "alpha": 0.5
+      }
+    }
+  },
+  "client_manager": {
+    "client_path": "client.NormalClient.NormalClient",
+    "checker": {
+      "checker_path": "fedasync.checker.AllChecker.AllChecker",
+      "params": {
+      }
+    }
+  },
+  "client": {
+    "epochs": 1,
+    "batch_size": 50,
+    "model": {
+      "path": "model.CNN.CNN",
+      "params": {}
+    },
+    "loss": "cross_entropy",
+    "mu": 0.01,
+    "optimizer": {
+      "path": "torch.optim.Adam",
+      "weight_decay": 0.005,
+      "lr": 0.01
+    }
+  }
+}
