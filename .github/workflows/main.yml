@@ -12,5 +12,16 @@ jobs:
     steps:
       - name: Contribute List
         uses: akhilmhdh/contributors-readme-action@v2.3.4
+        with:
+          image_size: 100
+          readme_path: readme.md
         env:
           GITHUB_TOKEN: ${{ secrets.CONTRIBUTORS_TOKEN }}
+      - name: Contribute List2
+        uses: akhilmhdh/contributors-readme-action@v2.3.4
+        with:
+          image_size: 100
+          readme_path: doc/readme-zh.md
+        env:
+          GITHUB_TOKEN: ${{ secrets.CONTRIBUTORS_TOKEN }}
+
