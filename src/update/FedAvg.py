@@ -1,8 +1,9 @@
 class FedAvg:
-    def __init__(self, config):
+    def __init__(self, config, updater_thread):
         self.config = config
+        self.updater_thread = updater_thread
 
-    def update_server_weights(self, updater_thread, epoch, update_list):
+    def update_server_weights(self, epoch, update_list):
         total_nums = 0
         for update_dict in update_list:
             total_nums += update_dict["data_sum"]

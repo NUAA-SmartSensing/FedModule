@@ -2,12 +2,13 @@ from fedsemi import UpdaterThread
 
 
 class FedAT:
-    def __init__(self, config):
+    def __init__(self, config, updater_thread):
         self.config = config
+        self.updater_thread = updater_thread
 
-    def update_server_weights(self, updater_thread: UpdaterThread, epoch, update_list):
+    def update_server_weights(self, epoch, update_list):
         group_num = len(update_list)
-        epoch_list = updater_thread.get_epoch_list()
+        epoch_list = self.updater_thread.get_epoch_list()
         updated_parameters = {}
         for key, var in update_list[0]["weights"].items():
             updated_parameters[key] = update_list[0]["weights"][key] * epoch_list[group_num - 1 - 0] / epoch

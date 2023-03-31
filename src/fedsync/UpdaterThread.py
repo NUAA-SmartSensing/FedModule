@@ -29,7 +29,7 @@ class UpdaterThread(threading.Thread):
         self.loss_list = []
         self.config = updater_config
         update_class = ModuleFindTool.find_class_by_path(updater_config["updater_path"])
-        self.update = update_class(self.config["params"])
+        self.update = update_class(self.config["params"], self)
 
         # loss函数
         if isinstance(updater_config["loss"], str):
@@ -66,7 +66,7 @@ class UpdaterThread(threading.Thread):
         if not isinstance(update_list, list):
             print("-------------- !!!error!!! --------------")
             print("using asynchronous update method")
-        updated_parameters = self.update.update_server_weights(self, epoch, update_list)
+        updated_parameters = self.update.update_server_weights(epoch, update_list)
         for key, var in updated_parameters.items():
             if torch.cuda.is_available():
                 updated_parameters[key] = updated_parameters[key].cuda()

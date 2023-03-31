@@ -4,16 +4,17 @@ import torch
 
 
 class StepAsyncAvg:
-    def __init__(self, config):
+    def __init__(self, config, updater_thread):
         self.config = config
         self.num_cnt = {}
         self.sum_cnt = 0
+        self.updater_thread = updater_thread
 
-    def update_server_weights(self, updater_thread: UpdaterThread, epoch, update_list):
+    def update_server_weights(self, epoch, update_list):
         rho = self.config["rho"]
         self.sum_cnt += len(update_list)
         alpha = self.config["alpha"]
-        server_weights = copy.deepcopy(updater_thread.server_network.state_dict())
+        server_weights = copy.deepcopy(self.updater_thread.server_network.state_dict())
 
         for i in range(len(update_list)):
             for key, var in update_list[i]["weights"].items():

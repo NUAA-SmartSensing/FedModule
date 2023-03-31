@@ -32,7 +32,7 @@ class UpdaterThread(threading.Thread):
         self.loss_list = []
         self.config = updater_config
         update_class = ModuleFindTool.find_class_by_path(updater_config["updater_path"])
-        self.update = update_class(self.config["params"])
+        self.update = update_class(self.config["params"], self)
         receiver_class = ModuleFindTool.find_class_by_path(receiver_config["receiver_path"])
         self.receiver = receiver_class(queue, receiver_config)
 
@@ -92,7 +92,7 @@ class UpdaterThread(threading.Thread):
         self.async_client_manager.stop_all_clients()
 
     def update_server_weights(self, epoch, update_list):
-        updated_parameters = self.update.update_server_weights(self, epoch, update_list)
+        updated_parameters = self.update.update_server_weights(epoch, update_list)
         for key, var in updated_parameters.items():
             if torch.cuda.is_available():
                 updated_parameters[key] = updated_parameters[key].cuda()
