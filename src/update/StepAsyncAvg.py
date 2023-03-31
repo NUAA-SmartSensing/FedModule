@@ -23,7 +23,7 @@ class StepAsyncAvg:
         # 求每个客户端的上传频率q
         q = []
         for i in range(len(update_list)):
-            if update_list[i]["client_id"] in self.num_cnt.items():
+            if update_list[i]["client_id"] in self.num_cnt.keys():
                 self.num_cnt[update_list[i]["client_id"]] += 1
             else:
                 self.num_cnt[update_list[i]["client_id"]] = 1
