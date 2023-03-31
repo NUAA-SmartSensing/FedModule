@@ -35,7 +35,7 @@ class FedDL:
                 updated_parameter = updated_parameter / len(cluster)
                 for i in cluster:
                     self.client_weights[i][key] = updated_parameter
-        return self.client_weights
+        return self.updater_thread.server_network.state_dict()
 
     def kld_cluster(self, key, update_list, clusters: dict, id_update_idx_map):
         label = 0
