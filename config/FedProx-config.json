@@ -20,7 +20,6 @@
       "params": {}
     },
     "scheduler": {
-      "scheduler_interval": 5,
       "scheduler_path": "schedule.RandomSchedule.RandomSchedule",
       "params": {
         "c_ratio": 0.1,

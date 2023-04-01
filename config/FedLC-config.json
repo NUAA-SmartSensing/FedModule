@@ -33,7 +33,6 @@
       "params": {}
     },
     "scheduler": {
-      "scheduler_interval": 4,
       "scheduler_path": "schedule.RoundRobin.RoundRobin",
       "params": {
         "c_ratio": 0.1,

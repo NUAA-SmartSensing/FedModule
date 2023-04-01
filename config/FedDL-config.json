@@ -1,24 +1,24 @@
 {
   "wandb": {
     "enabled": false,
-    "project": "FedAvg",
+    "project": "FedDL",
     "name": "1"
   },
   "global": {
     "multi_gpu": true,
     "mode": "sync",
-    "experiment": "FedAvg/1",
+    "experiment": "FedDL/1",
     "stale": {
       "step": 1,
       "shuffle": true,
-      "list": [10, 10, 10, 5, 5, 5, 5]
+      "list": [30]
     },
-    "dataset_path": "dataset.FashionMNIST.FashionMNIST",
+    "dataset_path": "dataset.MNIST.MNIST",
     "iid": true,
-    "client_num": 50
+    "client_num": 30
   },
   "server": {
-    "epochs": 20,
+    "epochs": 5,
     "model": {
       "path": "model.CNN.CNN",
       "params": {}
@@ -26,7 +26,7 @@
     "scheduler": {
       "scheduler_path": "schedule.RandomSchedule.RandomSchedule",
       "params": {
-        "c_ratio": 0.1,
+        "c_ratio": 0.2,
         "schedule_interval": 5
       },
       "receiver": {
@@ -36,9 +36,10 @@
       }
     },
     "updater": {
-      "updater_path": "update.FedAvg.FedAvg",
+      "updater_path": "update.FedDL.FedDL",
       "loss": "cross_entropy",
       "params": {
+        "n_clusters": 1
       }
     }
   },
@@ -48,11 +49,14 @@
       "params": {
       }
     },
-    "client_path": "client.NormalClient.NormalClient"
+    "client_path": "client.DLClient.DLClient"
   },
   "client": {
-    "epochs": 2,
-    "batch_size": 50,
+    "epochs": 5,
+    "batch_size": 24,
+    "alpha": 1,
+    "test_size": 0.1,
+    "test_batch_size": 24,
     "model": {
       "path": "model.CNN.CNN",
       "params": {}
