@@ -18,6 +18,7 @@ class SchedulerThread(threading.Thread):
         self.queue = queue
         self.current_t = current_t
         self.server_network = server_network
+        self.server_weights = copy.deepcopy(self.server_network.state_dict())
         self.T = t
         schedule_class = ModuleFindTool.find_class_by_path(scheduler_config["scheduler_path"])
         self.schedule = schedule_class()
@@ -42,18 +43,14 @@ class SchedulerThread(threading.Thread):
                 last_s_time = current_time
                 selected_client_threads = self.client_select(self.config["params"])
                 print("\nSchedulerThread select(", len(selected_client_threads), "clients):")
-                self.server_thread_lock.acquire()
-                server_weights = copy.deepcopy(self.server_network.state_dict())
-                self.server_thread_lock.release()
                 for s_client_thread in selected_client_threads:
                     print(s_client_thread.get_client_id(), end=" | ")
                     # 将server的模型参数和时间戳发给client
-                    s_client_thread.set_client_weight(server_weights)
+                    s_client_thread.set_client_weight(self.server_weights)
                     s_client_thread.set_time_stamp(current_time)
 
                     # 启动一次client线程
                     s_client_thread.set_event()
-                del server_weights
                 print("\n-----------------------------------------------------------------Schedule complete")
                 # 等待所有客户端上传更新
                 self.receiver.receive(len(selected_client_threads))

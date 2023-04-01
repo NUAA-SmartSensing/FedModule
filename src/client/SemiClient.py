@@ -5,8 +5,8 @@ from utils.ModelTraining import train_one_epoch
 
 
 class SemiClient(NormalClient.NormalClient):
-    def __init__(self, c_id, queue_manager, stop_event, delay, train_ds, client_config, dev, global_var):
-        super().__init__(c_id, queue_manager, stop_event, delay, train_ds, client_config, dev, global_var)
+    def __init__(self, c_id, queue_manager, stop_event, delay, train_ds, client_config, dev, print_lock,  global_var):
+        super().__init__(c_id, queue_manager, stop_event, delay, train_ds, client_config, dev, print_lock,  global_var)
         self.group_id = 0
 
     def run(self):

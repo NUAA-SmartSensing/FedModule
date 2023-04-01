@@ -19,6 +19,7 @@ class AsyncClientManager:
         self.stop_event = stop_event
         self.client_staleness_list = client_config["stale_list"]
         self.thread_lock = threading.Lock()
+        self.print_lock = threading.Lock()
         self.epoch = client_config["epochs"]
         self.global_var = global_var
 
@@ -47,7 +48,7 @@ class AsyncClientManager:
             client_delay = self.client_staleness_list[i]
             dataset = datasets[i]
             self.client_thread_list.append(
-                client_class(i, self.queue_manager, self.stop_event, client_delay, dataset, client_config, dev,
+                client_class(i, self.queue_manager, self.stop_event, client_delay, dataset, client_config, dev, self.print_lock,
                              global_var))
 
         # 启动clients

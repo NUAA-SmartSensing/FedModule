@@ -24,6 +24,7 @@ class SchedulerThread(threading.Thread):
         # 各组迭代次数
         self.epoch_list = epoch_list
         self.server_network = server_network
+        self.server_weights = copy.deepcopy(self.server_network.state_dict())
         self.network_list = network_list
         self.num_list = []
         self.T = t
@@ -51,9 +52,6 @@ class SchedulerThread(threading.Thread):
                 if current_time == 1:
                     print("starting all groups")
                     last_s_time = current_time
-                    self.server_thread_lock.acquire()
-                    server_weights = copy.deepcopy(self.server_network.state_dict())
-                    self.server_thread_lock.release()
                     for i in range(self.group_manager.get_group_num()):
                         for j in self.group_manager.get_group_list()[i]:
                             j.set_group_id(i)
@@ -63,11 +61,11 @@ class SchedulerThread(threading.Thread):
                         # 存储调度的客户端数量
                         self.num_list.append(len(selected_client_threads))
                         # 全局存储各组模型列表
-                        self.network_list.append(server_weights)
+                        self.network_list.append(self.server_weights)
                         for s_client_thread in selected_client_threads:
                             print(s_client_thread.get_client_id(), end=" | ")
                             # 将server的模型参数和时间戳发给client
-                            s_client_thread.set_client_weight(server_weights)
+                            s_client_thread.set_client_weight(self.server_weights)
                             s_client_thread.set_time_stamp(current_time)
                             # 启动一次client线程
                             s_client_thread.set_event()

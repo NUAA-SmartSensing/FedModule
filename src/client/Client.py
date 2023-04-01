@@ -5,7 +5,7 @@ from abc import abstractmethod
 
 
 class Client(threading.Thread):
-    def __init__(self, c_id, stop_event, delay, train_ds, dev, global_var):
+    def __init__(self, c_id, stop_event, delay, train_ds, dev, print_lock, global_var):
         threading.Thread.__init__(self)
         self.client_id = c_id
         self.event = threading.Event()
@@ -14,6 +14,7 @@ class Client(threading.Thread):
         self.delay = delay
         self.train_ds = train_ds
         self.client_thread_lock = threading.Lock()
+        self.print_lock = print_lock
         self.dev = dev
         self.weights_buffer = collections.OrderedDict()
         self.time_stamp = 0

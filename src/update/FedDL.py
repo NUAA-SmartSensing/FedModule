@@ -8,11 +8,12 @@ class FedDL:
     def __init__(self, config, updater_thread):
         self.config = config
         self.updater_thread = updater_thread
-        self.client_weights = {client_id: copy.deepcopy(self.updater_thread.server_network.state_dict()) for client_id in
-                               range(self.updater_thread.global_var["client_manager"].clients_num)}
+        self.client_weights = {'global': copy.deepcopy(self.updater_thread.server_network.state_dict())}
+        self.updater_thread.global_var['scheduler'].server_weights = self.client_weights
         self.clusterer = KMeans(n_clusters=self.config['n_clusters'], random_state=0)
 
     def update_server_weights(self, epoch, update_list):
+        self.client_weights = {'global': copy.deepcopy(self.updater_thread.server_network.state_dict())}
         cluster_group = {}
         # 计算kld
         clusters = {0: [k["client_id"] for k in update_list]}
@@ -26,15 +27,21 @@ class FedDL:
         for key, clusters in cluster_group.items():
             for _, cluster in clusters.items():
                 updated_parameter = None
+                data_sum = 0
                 for i in cluster:
+                    data_sum += update_list[id_update_idx_map[i]]["data_sum"]
                     if updated_parameter is None:
-                        updated_parameter = self.client_weights[id_update_idx_map[i]][key]
+                        updated_parameter = update_list[id_update_idx_map[i]]["weights"][key] * update_list[id_update_idx_map[i]]["data_sum"]
                     else:
-                        updated_parameter += self.client_weights[id_update_idx_map[i]][key]
+                        updated_parameter += update_list[id_update_idx_map[i]]["weights"][key] * update_list[id_update_idx_map[i]]["data_sum"]
 
-                updated_parameter = updated_parameter / len(cluster)
+                updated_parameter = updated_parameter / data_sum
                 for i in cluster:
-                    self.client_weights[i][key] = updated_parameter
+                    if i not in self.client_weights.keys():
+                        self.client_weights[i] = {}
+                    self.client_weights[i][key] = copy.deepcopy(updated_parameter)
+        # 下发给客户端的权重
+        self.updater_thread.global_var['scheduler'].server_weights = copy.deepcopy(self.client_weights)
         return self.updater_thread.server_network.state_dict()
 
     def kld_cluster(self, key, update_list, clusters: dict, id_update_idx_map):
