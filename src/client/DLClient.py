@@ -46,9 +46,6 @@ class DLClient(NormalClient.NormalClient):
                 # 该client进行训练
                 data_sum, weights = train_one_epoch(self.epoch, self.dev, self.train_dl, self.model, self.loss_func,
                                                     self.opti, self.mu)
-                self.print_lock.acquire()
-                print("Client", self.client_id, data_sum)
-                self.print_lock.release()
                 # client传回server的信息具有延迟
                 # 本地测试
                 self.run_server_test()
