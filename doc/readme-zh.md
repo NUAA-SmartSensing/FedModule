@@ -9,7 +9,7 @@
 
 > This document is also available in: [中文](readme-zh.md) | [English](../readme.md)
 
->keywords: `federated-learning`, `asynchronous`, `synchronous`, `semi-asynchronous`
+>keywords: `federated-learning`, `asynchronous`, `synchronous`, `semi-asynchronous`, `personalized`
 
 <details>
   <summary><b>目录</b></summary>
@@ -83,6 +83,8 @@ FedAsync
 FedProx
 FedAT
 FedLC
+FedDL
+M-Step AsyncFL
 ```
 
 ### Docker
