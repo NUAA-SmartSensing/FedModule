@@ -48,7 +48,7 @@
     }
   },
   "client_manager": {
-    "client_path": "client.NormalClient.NormalClient",
+    "client_path": "client.AsyncClient.AsyncClient",
     "checker": {
       "checker_path": "fedasync.checker.AllChecker.AllChecker",
       "params": {
