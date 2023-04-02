@@ -39,7 +39,7 @@ class FedDL:
                 for i in cluster:
                     if i not in self.client_weights.keys():
                         self.client_weights[i] = {}
-                    self.client_weights[i][key] = copy.deepcopy(updated_parameter)
+                    self.client_weights[i][key] = updated_parameter.clone()
         # 下发给客户端的权重
         self.updater_thread.global_var['scheduler'].server_weights = copy.deepcopy(self.client_weights)
         return self.updater_thread.server_network.state_dict()
