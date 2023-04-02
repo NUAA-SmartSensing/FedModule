@@ -31,8 +31,7 @@ class TestClient(NormalClient.NormalClient):
             if self.event.is_set():
                 self.client_thread_lock.acquire()
                 # 该client进行训练
-                data_sum, weights = train_one_epoch(self.epoch, self.dev, self.train_dl, self.model, self.loss_func,
-                                                    self.opti, self.mu)
+                self.train_one_epoch()
 
                 # client传回server的信息具有延迟
                 self.run_test()

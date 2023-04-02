@@ -1,20 +1,15 @@
 import time
 
 from client import NormalClient
-from utils.ModelTraining import train_one_epoch
 
 
-class SemiClient(NormalClient.NormalClient):
-    def __init__(self, c_id, queue_manager, stop_event, delay, train_ds, client_config, dev, print_lock,  global_var):
-        super().__init__(c_id, queue_manager, stop_event, delay, train_ds, client_config, dev, print_lock,  global_var)
-        self.group_id = 0
-
+class ActiveClient(NormalClient.NormalClient):
     def run(self):
         while not self.stop_event.is_set():
+            # 初始化
             if self.received_weights:
-                # 更新模型参数
                 self.model.load_state_dict(self.weights_buffer, strict=True)
-                self.received_weights = False
+                self.event_is_set = False
             if self.received_time_stamp:
                 self.time_stamp = self.time_stamp_buffer
                 self.received_time_stamp = False
@@ -26,20 +21,16 @@ class SemiClient(NormalClient.NormalClient):
                 self.client_thread_lock.acquire()
                 # 该client进行训练
                 data_sum, weights = self.train_one_epoch()
-
                 # client传回server的信息具有延迟
-                print("Client", self.client_id, "trained")
                 time.sleep(self.delay)
 
                 # 返回其ID、模型参数和时间戳
                 update_dict = {"client_id": self.client_id, "weights": weights, "data_sum": data_sum,
-                               "time_stamp": self.time_stamp, "group_id": self.group_id}
+                               "time_stamp": self.time_stamp}
                 self.queue_manager.put(update_dict)
-                self.event.clear()
+                # 获取服务器最新模型
+                self.model.load_state_dict(self.global_var['scheduler'].server_weights)
                 self.client_thread_lock.release()
             # 该client等待被选中
             else:
                 self.event.wait()
-
-    def set_group_id(self, group_id):
-        self.group_id = group_id
