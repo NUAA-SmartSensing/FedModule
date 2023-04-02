@@ -18,7 +18,7 @@
     "client_num": 30
   },
   "server": {
-    "epochs": 5,
+    "epochs": 50,
     "model": {
       "path": "model.CNN.CNN",
       "params": {}
@@ -52,7 +52,7 @@
     "client_path": "client.DLClient.DLClient"
   },
   "client": {
-    "epochs": 5,
+    "epochs": 1,
     "batch_size": 24,
     "alpha": 0.3,
     "test_size": 0.1,
@@ -64,7 +64,7 @@
     "loss": "cross_entropy",
     "mu": 0,
     "optimizer": {
-      "path": "torch.optim.Adam",
+      "path": "torch.optim.SGD",
       "lr": 0.01,
       "weight_decay": 0
     }
