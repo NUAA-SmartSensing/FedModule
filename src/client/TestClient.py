@@ -62,6 +62,5 @@ class TestClient(NormalClient.NormalClient):
         accuracy = (test_correct * 100) / (len(dl) * self.config['test_batch_size'])
         loss = test_loss / len(dl)
         self.print_lock.acquire()
-        print("Client", self.client_id, "trained")
         print("Client", self.client_id, "trained, accuracy:", accuracy, 'loss', loss)
         self.print_lock.release()
