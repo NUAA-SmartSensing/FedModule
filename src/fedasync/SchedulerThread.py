@@ -29,6 +29,7 @@ class SchedulerThread(threading.Thread):
         # last_c_time = -1
         while self.current_t.get_time() <= self.T:
             current_time = self.current_t.get_time() - 1
+            schedule_time = self.schedule_t.get_time()
             # 每隔一段时间进行一次schedule
             if current_time % self.schedule_interval == 0 and current_time != last_s_time:
                 print("| current_time |", current_time % self.schedule_interval, "= 0", current_time, "!=", last_s_time)
@@ -44,9 +45,11 @@ class SchedulerThread(threading.Thread):
                         # 将server的模型参数和时间戳发给client
                         s_client_thread.set_client_weight(self.server_weights)
                         s_client_thread.set_time_stamp(current_time)
+                        s_client_thread.set_schedule_time_stamp(schedule_time)
                         # 启动一次client线程
                         s_client_thread.set_event()
                     print("\n-----------------------------------------------------------------Schedule complete")
+                    self.schedule_t.time_add()
                 else:
                     print("\n-----------------------------------------------------------------No Schedule")
                 time.sleep(0.01)
