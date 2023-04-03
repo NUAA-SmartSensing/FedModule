@@ -9,7 +9,7 @@ class ActiveClient(NormalClient.NormalClient):
             # 初始化
             if self.received_weights:
                 self.model.load_state_dict(self.weights_buffer, strict=True)
-                self.event_is_set = False
+                self.received_weights = False
             if self.received_time_stamp:
                 self.time_stamp = self.time_stamp_buffer
                 self.received_time_stamp = False

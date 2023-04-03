@@ -4,7 +4,7 @@ class RandomSchedule:
 
     def schedule(self, client_list, params):
         if self.init:
-            self.init = True
             return []
         else:
+            self.init = True
             return client_list
