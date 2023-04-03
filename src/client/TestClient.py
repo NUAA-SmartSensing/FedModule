@@ -30,16 +30,14 @@ class TestClient(NormalClient.NormalClient):
             if self.event.is_set():
                 self.client_thread_lock.acquire()
                 # 该client进行训练
-                self.train_one_epoch()
 
+                data_sum, weights = self.train_one_epoch()
                 # client传回server的信息具有延迟
                 self.run_test()
                 time.sleep(self.delay)
 
                 # 返回其ID、模型参数和时间戳
-                update_dict = {"client_id": self.client_id, "weights": weights, "data_sum": data_sum,
-                               "time_stamp": self.time_stamp}
-                self.queue_manager.put(update_dict)
+                self.upload(data_sum, weights)
                 self.event.clear()
                 self.client_thread_lock.release()
             # 该client等待被选中
