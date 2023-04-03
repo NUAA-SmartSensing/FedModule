@@ -1,4 +1,4 @@
-class RandomSchedule:
+class NoSchedule:
     def __init__(self):
         self.init = False
 

@@ -1,23 +1,23 @@
 {
   "wandb": {
     "enabled": false,
-    "project": "FedAsync",
+    "project": "MStep",
     "name": "1"
   },
   "global": {
     "multi_gpu": true,
     "mode": "async",
-    "experiment": "FedAsync/1",
+    "experiment": "MStep/1",
     "stale": {
-      "step": 1,
+      "step": 2,
       "shuffle": true,
-      "list": [10, 10, 10, 5, 5, 5, 5]
+      "list": [2, 2, 2, 2, 2]
     },
     "dataset_path": "dataset.FashionMNIST.FashionMNIST",
     "iid":  {
       "beta": 0.5
     },
-    "client_num": 50
+    "client_num": 10
   },
   "server": {
     "epochs": 20,
@@ -26,9 +26,8 @@
       "params": {}
     },
     "scheduler": {
-      "scheduler_path": "schedule.RandomSchedule.RandomSchedule",
+      "scheduler_path": "schedule.NoSchedule.NoSchedule",
       "params": {
-        "c_ratio": 0.1,
         "schedule_interval": 1
       },
       "receiver": {
@@ -48,7 +47,7 @@
     }
   },
   "client_manager": {
-    "client_path": "client.NormalClient.NormalClient",
+    "client_path": "client.ActiveClient.ActiveClient",
     "checker": {
       "checker_path": "fedasync.checker.AllChecker.AllChecker",
       "params": {
@@ -62,11 +61,12 @@
       "path": "model.CNN.CNN",
       "params": {}
     },
+    "acquire_model_delay": 1,
     "loss": "cross_entropy",
     "mu": 0.01,
     "optimizer": {
-      "path": "torch.optim.Adam",
-      "weight_decay": 0.005,
+      "path": "torch.optim.SGD",
+      "weight_decay": 0,
       "lr": 0.01
     }
   }

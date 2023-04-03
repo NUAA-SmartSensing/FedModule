@@ -55,7 +55,9 @@ class NormalClient(Client.Client):
                 data_sum, weights = self.train_one_epoch()
 
                 # client传回server的信息具有延迟
+                self.print_lock.acquire()
                 print("Client", self.client_id, "trained")
+                self.print_lock.release()
                 time.sleep(self.delay)
 
                 # 返回其ID、模型参数和时间戳

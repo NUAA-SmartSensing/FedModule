@@ -3,7 +3,6 @@ import time
 import torch
 
 from client import TestClient
-from utils.ModelTraining import train_one_epoch
 
 
 class DLClient(TestClient.TestClient):

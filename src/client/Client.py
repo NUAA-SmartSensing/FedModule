@@ -24,6 +24,7 @@ class Client(threading.Thread):
         self.params = {}
         self.event_is_set = False
         self.global_var = global_var
+        self.schedule_t = None
 
     @abstractmethod
     def run(self):
@@ -79,3 +80,6 @@ class Client(threading.Thread):
 
     def getDataset(self):
         return self.train_ds
+
+    def set_schedule_time_stamp(self, schedule_t):
+        self.schedule_t = schedule_t
