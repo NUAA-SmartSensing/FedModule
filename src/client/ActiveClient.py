@@ -33,9 +33,7 @@ class ActiveClient(NormalClient.NormalClient):
                 self.print_lock.release()
 
                 # 返回其ID、模型参数和时间戳
-                update_dict = {"client_id": self.client_id, "weights": weights, "data_sum": data_sum,
-                               "time_stamp": self.time_stamp}
-                self.queue_manager.put(update_dict)
+                self.upload(data_sum, weights)
 
                 # 获取服务器最新模型
                 time.sleep(self.acquire_model_delay)

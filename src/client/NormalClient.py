@@ -61,9 +61,7 @@ class NormalClient(Client.Client):
                 time.sleep(self.delay)
 
                 # 返回其ID、模型参数和时间戳
-                update_dict = {"client_id": self.client_id, "weights": weights, "data_sum": data_sum,
-                               "time_stamp": self.time_stamp}
-                self.queue_manager.put(update_dict)
+                self.upload(data_sum, weights)
                 self.event.clear()
                 self.client_thread_lock.release()
             # 该client等待被选中
@@ -72,3 +70,8 @@ class NormalClient(Client.Client):
 
     def train_one_epoch(self):
         return train_one_epoch(self.epoch, self.dev, self.train_dl, self.model, self.loss_func, self.opti, self.mu)
+
+    def upload(self, data_sum, weights):
+        update_dict = {"client_id": self.client_id, "weights": weights, "data_sum": data_sum,
+                       "time_stamp": self.time_stamp}
+        self.queue_manager.put(update_dict)

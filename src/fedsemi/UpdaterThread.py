@@ -36,7 +36,7 @@ class UpdaterThread(threading.Thread):
         update_class = ModuleFindTool.find_class_by_path(updater_config["updater_path"])
         self.update = update_class(self.config["params"], self)
         group_update_class = ModuleFindTool.find_class_by_path(updater_config["group"]["updater_path"])
-        self.group_update = group_update_class(self.config["group"]["params"])
+        self.group_update = group_update_class(self.config["group"]["params"], self)
 
         # loss函数
         if isinstance(updater_config["loss"], str):
@@ -82,7 +82,7 @@ class UpdaterThread(threading.Thread):
         self.server_network.load_state_dict(updated_parameters)
 
     def update_group_weights(self, epoch, update_list):
-        updated_parameters = self.group_update.update_server_weights(self, epoch, update_list)
+        updated_parameters = self.group_update.update_server_weights(epoch, update_list)
         for key, var in updated_parameters.items():
             if torch.cuda.is_available():
                 updated_parameters[key] = updated_parameters[key].cuda()

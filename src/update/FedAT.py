@@ -1,4 +1,3 @@
-from fedsemi import UpdaterThread
 
 
 class FedAT:

@@ -71,7 +71,6 @@ class SchedulerThread(threading.Thread):
                             s_client_thread.set_event()
                         print(
                             "\n-----------------------------------------------------------------Schedule complete")
-                    del server_weights
                 else:
                     print(f"begin select group {group_num}")
                     last_s_time = current_time
