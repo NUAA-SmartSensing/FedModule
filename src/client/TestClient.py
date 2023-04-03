@@ -1,10 +1,12 @@
 import time
 
 import torch
+import wandb
 from sklearn.model_selection import train_test_split
 from torch.utils.data import DataLoader
 
 from client import NormalClient
+from utils.Tools import saveAns
 
 
 class TestClient(NormalClient.NormalClient):
@@ -13,6 +15,11 @@ class TestClient(NormalClient.NormalClient):
                                            print_lock, global_var)
         self.train_dataset, self.test_dataset = train_test_split(train_ds, test_size=client_config['test_size'])
         self.train_dl = DataLoader(self.train_dataset, batch_size=self.batch_size, shuffle=True)
+        # 提供给wandb使用
+        self.step = 1
+        # 本地数据存储
+        self.accuracy_list = []
+        self.loss_list = []
 
     def run(self):
         while not self.stop_event.is_set():
@@ -43,6 +50,8 @@ class TestClient(NormalClient.NormalClient):
             # 该client等待被选中
             else:
                 self.event.wait()
+        saveAns(f'../results/{self.global_var["server"].global_config["experiment"]}/{self.client_id}_accuracy.txt', list(self.accuracy_list))
+        saveAns(f'../results/{self.global_var["server"].global_config["experiment"]}/{self.client_id}_loss.txt', list(self.loss_list))
 
     def run_test(self):
         dl = DataLoader(self.test_dataset, batch_size=self.config['test_batch_size'], shuffle=True)
@@ -60,3 +69,8 @@ class TestClient(NormalClient.NormalClient):
         self.print_lock.acquire()
         print("Client", self.client_id, "trained, accuracy:", accuracy, 'loss', loss)
         self.print_lock.release()
+        if self.global_var['updater'].config['enabled']:
+            wandb.log({f'{self.client_id}_accuracy': accuracy, f'{self.client_id}_loss': loss, f'time_stamp': self.time_stamp, f'local_epoch': self.step})
+            self.step += 1
+        self.loss_list.append(loss)
+        self.accuracy_list.append(accuracy)
