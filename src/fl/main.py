@@ -82,6 +82,9 @@ if __name__ == '__main__':
             pass
     start_time = datetime.datetime.now()
 
+    # 改用文件系统存储内存
+    if global_config['use_file_system']:
+        torch.multiprocessing.set_sharing_strategy('file_system')
     accuracy_lists = []
     loss_lists = []
     # wandb启动配置植入update_config中

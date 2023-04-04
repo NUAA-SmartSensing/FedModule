@@ -5,6 +5,7 @@
     "name": "3.1"
   },
   "global": {
+    "use_file_system": false,
     "multi_gpu": true,
     "mode": "semi-async",
     "experiment": "FedAT/1",

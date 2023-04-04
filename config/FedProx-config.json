@@ -14,6 +14,7 @@
     "client_num": 50
   },
   "server": {
+    "use_file_system": false,
     "epochs": 2,
     "model": {
       "path": "model.CNN.CNN",
