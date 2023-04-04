@@ -1,4 +1,7 @@
+import copy
+
 import numpy as np
+import torch
 from torch.utils.data import TensorDataset
 
 import utils
@@ -63,5 +66,5 @@ def dirichlet_distribution(iid_config, dataset, clients, left, right, target_dat
     for i in range(len(client_idx)):
         y = dataset.train_labels[client_idx[i]]
         x = dataset.train_data[client_idx[i]]
-        client_datasets.append(target_dataset(x.clone().detach(), y.clone().detach(), **params))
+        client_datasets.append(target_dataset(copy.deepcopy(x), copy.deepcopy(y), **params))
     dataset.datasets = client_datasets

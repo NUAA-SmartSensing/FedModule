@@ -1,3 +1,4 @@
+import copy
 import random
 
 import numpy as np
@@ -44,7 +45,7 @@ def generate_non_iid_data(x, y, label_lists, data_lists, target_dataset, params)
         index_list = np.hstack(index_list)
         client_x = x[index_list]
         client_y = y[index_list]
-        client_datasets.append(target_dataset(client_x.clone().detach(), client_y.clone().detach(), **params))
+        client_datasets.append(target_dataset(copy.deepcopy(client_x), copy.deepcopy(client_y), **params))
     return client_datasets
 
 
