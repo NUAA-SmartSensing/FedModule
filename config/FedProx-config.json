@@ -58,8 +58,10 @@
     "mu": 0.01,
     "optimizer": {
       "path": "torch.optim.Adam",
-      "weight_decay": 0,
-      "lr": 0.01
+      "params": {
+        "lr": 0.01,
+        "weight_decay": 0
+      }
     },
     "params": {
       "straggler": true,

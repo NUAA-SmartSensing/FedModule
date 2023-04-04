@@ -67,8 +67,10 @@
     "mu": 0.01,
     "optimizer": {
       "path": "torch.optim.Adam",
-      "weight_decay": 0.005,
-      "lr": 0.01
+      "params": {
+        "weight_decay": 0.005,
+        "lr": 0.01
+      }
     }
   }
 }

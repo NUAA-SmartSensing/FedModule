@@ -82,8 +82,10 @@
     "mu": 0,
     "optimizer": {
       "path": "torch.optim.SGD",
-      "weight_decay": 0,
-      "lr": 0.01
+      "params": {
+        "lr": 0.01,
+        "weight_decay": 0
+      }
     }
   }
 }
