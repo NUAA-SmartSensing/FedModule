@@ -34,6 +34,7 @@ class ActiveClient(NormalClient.NormalClient):
 
                 # 返回其ID、模型参数和时间戳
                 self.upload(data_sum, weights)
+                time.sleep(self.delay)
 
                 # 获取服务器最新模型
                 time.sleep(self.acquire_model_delay)
@@ -41,7 +42,6 @@ class ActiveClient(NormalClient.NormalClient):
                 self.model.load_state_dict(self.global_var['scheduler'].server_weights)
                 self.time_stamp = self.global_var['scheduler'].current_t.get_time()
                 self.global_var['scheduler'].server_thread_lock.release()
-                time.sleep(self.acquire_model_delay)
                 self.client_thread_lock.release()
             # 该client等待被选中
             else:
