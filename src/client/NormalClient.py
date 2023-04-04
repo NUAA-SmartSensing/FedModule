@@ -24,8 +24,7 @@ class NormalClient(Client.Client):
 
         # 优化器
         opti_class = ModuleFindTool.find_class_by_path(self.optimizer_config["path"])
-        self.opti = opti_class(self.model.parameters(), lr=self.optimizer_config["lr"],
-                               weight_decay=self.optimizer_config["weight_decay"])
+        self.opti = opti_class(self.model.parameters(), **self.optimizer_config["params"])
 
         # loss函数
         if isinstance(client_config["loss"], str):
