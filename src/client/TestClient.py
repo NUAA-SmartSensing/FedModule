@@ -14,7 +14,7 @@ class TestClient(NormalClient.NormalClient):
         NormalClient.NormalClient.__init__(self, c_id, queue_manager, stop_event, delay, train_ds, client_config, dev,
                                            print_lock, global_var)
         self.train_dataset, self.test_dataset = train_test_split(train_ds, test_size=client_config['test_size'])
-        self.train_dl = DataLoader(self.train_dataset, batch_size=self.batch_size, shuffle=True)
+        self.train_dl = DataLoader(self.train_dataset, batch_size=self.batch_size, shuffle=True, drop_last=True)
         # 提供给wandb使用
         self.step = 1
         # 本地数据存储
@@ -54,7 +54,7 @@ class TestClient(NormalClient.NormalClient):
         saveAns(f'../results/{self.global_var["server"].global_config["experiment"]}/{self.client_id}_loss.txt', list(self.loss_list))
 
     def run_test(self):
-        dl = DataLoader(self.test_dataset, batch_size=self.config['test_batch_size'], shuffle=True)
+        dl = DataLoader(self.test_dataset, batch_size=self.config['test_batch_size'], shuffle=True, drop_last=True)
         test_correct = 0
         test_loss = 0
         for data in dl:
