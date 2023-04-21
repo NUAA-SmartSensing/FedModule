@@ -31,6 +31,7 @@
   - [异步配置文件](#异步配置文件)
   - [同步配置文件](#同步配置文件)
   - [半异步配置文件](#半异步配置文件)
+  - [参数解释](#参数解释)
 - [添加新的算法](#添加新的算法)
   - [loss函数添加](#loss函数添加)
 - [staleness设置](#staleness设置)
@@ -119,7 +120,6 @@ docker run -it async-fl config/FedAvg-config.json
 - [x] 自定义标签异构
 - [ ] 自定义数据异构
 - [x] 支持dirichlet distribution
-- [ ] 支持`Synthetic Non-Identical Client Data`生成;[相关论文](https://arxiv.org/pdf/1909.06335.pdf)
 - [x] wandb可视化
 - [ ] leaf相关数据集支持
 - [x] 支持多GPU
@@ -270,284 +270,907 @@ utils包下的Time文件是一个多线程时间获取类的实现；Queue文件
 
 ### 异步配置文件
 
-<details>
-  <summary><b>配置详情</b></summary>
-  <p>
-
-```text
-{
-  "wandb": {                                  wandb配置
-    "enabled": true,                          是否启用
-    "project": "non-iid test",                项目名称  
-    "name": "1"                               本次运行结果
-  },
-  "global": {
-    "multi_gpu": true,                        多gpu
-    "mode": "async"                           同步｜异步｜半异步
-    "experiment": "TMP/test/1",               实验路径/结果存放路径
-    "stale": {                                延迟设置
-      "step": 1,                              步长
-      "shuffle": true,                        是否打乱
-      "list": [10, 10, 10, 5, 5, 5, 5]        每个步长对应的客户端数
-    },
-    "dataset_path": "dataset.MNIST.MNIST",    Dataset路径
-    "iid": {                                  non-iid设置
-      "customize": true,                      启用自定义数据分布
-      "label": {
-        "step": 1,
-        "list": [10, 10, 30]
-      },
-      "data": {
-        "max": 200,
-        "min": 200
-      }
-    },
-    "client_num": 50                          客户端数量
-  },
-  "server": {
-    "epochs": 600,                            服务器全局迭代次数
-    "model": {
-      "path": "model.CNN.CNN",
-      "params": {}
-    },
-    "scheduler": {
-      "scheduler_interval": 5,                调度间隔
-      "schedule_file": "RandomSchedule",      调度算法文件
-      "schedule_name": "RandomSchedule",      调度算法类
-      "params": {                             调度算法相关参数
-        "c_ratio": 0.1,
-        "schedule_interval": 5
-      }
-    },
-    "updater": {
-      "updater_path": "update.FedAsync.FedAsync",
-      "loss": "cross_entropy",                全局损失函数
-      "params": {                             聚合算法参数
-        "a": 10,
-        "b": 4,
-        "alpha": 0.1,
-        "r" : 1,
-        "c" : 2,
-        "d" : 2
-      }
-    }
-  },
-  "client_manager": {
-    "client_path": "client.AsyncClient.AsyncClient"     
-  },
-  "client": {
-    "epochs": 2,                              客户端迭代次数
-    "batch_size": 50,
-    "model": {
-      "path": "model.CNN.CNN",
-      "params": {}
-    },
-    "loss": "cross_entropy",                  loss函数
-    "mu": 0.01,
-    "optimizer": {                            优化器
-      "path": "torch.optim.Adam",
-      "weight_decay": 0.005,
-      "lr": 0.01
-    }
-  }
-}
-```
-
-  </p>
-</details>
+[example](../config/FedAsync-config.json)
 
 ### 同步配置文件
 
-<details>
-  <summary><b>配置详情</b></summary>
-  <p>
-
-```text
-{
-  "wandb": {                                  wandb配置
-    "enabled": true,                          是否启用
-    "project": "non-iid test",                项目名称  
-    "name": "1"                               本次运行结果
-  },
-  "global": {
-    "multi_gpu": true,                        多gpu
-    "mode": "sync"                            同步｜异步｜半异步
-    "experiment": "TMP/test/1",               实验路径/结果存放路径
-    "stale": {                                延迟设置
-      "step": 1,                              步长
-      "shuffle": true,                        是否打乱
-      "list": [10, 10, 10, 5, 5, 5, 5]        每个步长对应的客户端数
-    },
-    "dataset_path": "dataset.MNIST.MNIST",    Dataset路径
-    "iid": {                                  non-iid设置
-      "customize": true,                      启用自定义数据分布
-      "label": {
-        "step": 1,
-        "list": [10, 10, 30]
-      },
-      "data": {
-        "max": 200,
-        "min": 200
-      }
-    },
-    "client_num": 50                          客户端数量
-  },
-  "server": {
-    "epochs": 600,                            服务器全局迭代次数
-    "model": {
-      "path": "model.CNN.CNN",
-      "params": {}
-    },
-    "scheduler": {
-      "scheduler_interval": 5,                调度间隔
-      "scheduler_path": "schedule.RandomSchedule.RandomSchedule",
-      "params": {                             调度算法相关参数
-        "c_ratio": 0.1,
-        "schedule_interval": 5
-      },
-      "receiver": {
-        "receiver_path": "fedsync.receiver.AvgReceiver.AvgReceiver", 
-        "params": {
-        }
-      }
-    },
-    "updater": {
-      "updater_path": "update.FedAvg.FedAvg",  
-      "loss": "cross_entropy",                全局损失函数
-      "params": {                             聚合算法参数
-      }
-    }
-  },
-  "client_manager": {
-    "checker": {
-      "checker_path": "fedsync.checker.AvgChecker.AvgChecker",        
-      "params": {
-      }
-    },
-    "client_path": "client.SyncClient.SyncClient"
-  },
-  "client": {
-    "epochs": 2,                              客户端迭代次数
-    "batch_size": 50,
-    "model": {
-      "path": "model.CNN.CNN",
-      "params": {}
-    },
-    "loss": "cross_entropy",                  loss函数
-    "mu": 0.01,
-    "optimizer": {                            优化器
-      "path": "torch.optim.Adam",
-      "weight_decay": 0,
-      "lr": 0.01
-    }
-  }
-}
-```
-
-  </p>
-</details>
+[example](../config/FedAvg-config.json)
 
 ### 半异步配置文件
 
-<details>
-  <summary><b>配置详情</b></summary>
-  <p>
+[example](../config/FedAT-config.json)
 
-```text
-{
-  "wandb": {                                  wandb配置
-    "enabled": false,                         是否启用
-    "project": "FedAT",                       项目名称  
-    "name": "1"                               本次运行结果
-  },
-  "global": {
-    "multi_gpu": true,                        多gpu
-    "mode": "semi-async"                      同步｜异步｜半异步
-    "experiment": "FedAT/1",                  实验路径/结果存放路径
-    "stale": {                                延迟设置
-      "step": 5,                              步长
-      "shuffle": true,                        是否打乱
-      "list": [10, 10, 10, 5, 5, 5, 5]        每个步长对应的客户端数
-    },
-    "dataset_path": "dataset.MNIST.MNIST",    Dataset路径
-    "iid": {                                  non-iid设置
-      "customize": true,                      启用自定义数据分布
-      "label": {
-        "step": 2,
-        "list": [10, 10, 30]
-      },
-      "data": {
-        "max": 200,
-        "min": 200
-      }
-    },
-    "client_num": 50                          客户端数量
-  },
-  "server": {
-    "epochs": 600,                            服务器全局迭代次数
-    "model": {
-      "path": "model.CNN.CNN",
-      "params": {}
-    },
-    "scheduler": {
-      "scheduler_interval": 5,                调度间隔
-      "scheduler_path": "schedule.RandomSchedule.RandomSchedule", 
-      "params": {                             调度算法相关参数
-        "c_ratio": 0.3,
-        "schedule_interval": 0
-      },
-      "receiver": {
-        "receiver_path": "fedsemi.receiver.SemiAvgReceiver.SemiAvgReceiver",
-        "params": {
-        }
-      }
-    },
-    "updater": {
-      "updater_path": "update.FedAT.FedAT",     
-      "loss": "cross_entropy",                全局损失函数
-      "params": {                             聚合算法参数
-      },
-      "group": {                              组内使用的聚合函数
-        "updater_path": "update.FedAvg.FedAvg",
-        "params": {
-        }
-      }
-    },
-    "grouping": {
-      "grouping_path": "fedsemi.grouping.NormalGrouping.NormalGrouping",  
-      "params": {                             分组管理参数
-        "step": 5
-      }
-    }
-  },
-  "client_manager": {
-    "checker": {
-      "checker_path": "fedsemi.checker.SemiAvgChecker.SemiAvgChecker", 
-      "params": {
-      }
-    },
-    "client_path": "client.SemiClient.SemiClient"
-  },
-  "client": {
-    "epochs": 2,                              客户端迭代次数
-    "batch_size": 50,
-    "model": {
-      "path": "model.CNN.CNN",
-      "params": {}
-    }, 
-    "loss": "cross_entropy",                  loss函数
-    "mu": 0.01,
-    "optimizer": {                            优化器
-      "path": "torch.optim.SGD",
-      "weight_decay": 0,
-      "lr": 0.01
-    }
-  }
-}
-```
+### 参数解释
 
-  </p>
-</details>
+<table class=MsoTableGrid border=1 cellspacing=0 cellpadding=0
+ style='border-collapse:collapse;border:none;mso-border-alt:solid windowtext .5pt;
+ mso-yfti-tbllook:1184;mso-padding-alt:0cm 5.4pt 0cm 5.4pt'>
+ <tr style='mso-yfti-irow:0;mso-yfti-firstrow:yes'>
+  <td width=330 colspan=9 style='width:247.65pt;border:solid windowtext 1.0pt;
+  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt'>
+  <p class=MsoNormal align=center style='text-align:center'>参数</p>
+  </td>
+  <td width=103 style='width:76.95pt;border:solid windowtext 1.0pt;border-left:
+  none;mso-border-left-alt:solid windowtext .5pt;mso-border-alt:solid windowtext .5pt;
+  padding:0cm 5.4pt 0cm 5.4pt'>
+  <p class=MsoNormal align=center style='text-align:center'>类型</p>
+  </td>
+  <td width=120 style='width:90.2pt;border:solid windowtext 1.0pt;border-left:
+  none;mso-border-left-alt:solid windowtext .5pt;mso-border-alt:solid windowtext .5pt;
+  padding:0cm 5.4pt 0cm 5.4pt'>
+  <p class=MsoNormal align=center style='text-align:center'>说明</p>
+  </td>
+ </tr>
+ <tr style='mso-yfti-irow:1;height:2.75pt'>
+  <td width=106 colspan=2 rowspan=3 style='width:79.25pt;border:solid windowtext 1.0pt;
+  border-top:none;mso-border-top-alt:solid windowtext .5pt;mso-border-alt:solid windowtext .5pt;
+  padding:0cm 5.4pt 0cm 5.4pt;height:2.75pt'>
+  <p class=MsoNormal align=center style='text-align:center'><span class=SpellE><span
+  lang=EN-US>wandb</span></span></p>
+  </td>
+  <td width=225 colspan=7 style='width:168.4pt;border-top:none;border-left:
+  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:2.75pt'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US>enabled</span></p>
+  </td>
+  <td width=103 style='width:76.95pt;border-top:none;border-left:none;
+  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:2.75pt'>
+  <p class=MsoNormal align=center style='text-align:center'><span
+  lang=EN-US>bool</span></p>
+  </td>
+  <td width=120 style='width:90.2pt;border-top:none;border-left:none;
+  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:2.75pt'>
+  <p class=MsoNormal align=center style='text-align:center'>是否启用<span
+  class=SpellE><span lang=EN-US>wandb</span></span></p>
+  </td>
+ </tr>
+ <tr style='mso-yfti-irow:2;height:2.65pt'>
+  <td width=225 colspan=7 style='width:168.4pt;border-top:none;border-left:
+  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:2.65pt'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US>project</span></p>
+  </td>
+  <td width=103 style='width:76.95pt;border-top:none;border-left:none;
+  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:2.65pt'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US>string</span></p>
+  </td>
+  <td width=120 style='width:90.2pt;border-top:none;border-left:none;
+  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:2.65pt'>
+  <p class=MsoNormal align=center style='text-align:center'>项目名称</p>
+  </td>
+ </tr>
+ <tr style='mso-yfti-irow:3;height:2.65pt'>
+  <td width=225 colspan=7 style='width:168.4pt;border-top:none;border-left:
+  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:2.65pt'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US>name</span></p>
+  </td>
+  <td width=103 style='width:76.95pt;border-top:none;border-left:none;
+  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:2.65pt'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US>string</span></p>
+  </td>
+  <td width=120 style='width:90.2pt;border-top:none;border-left:none;
+  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:2.65pt'>
+  <p class=MsoNormal align=center style='text-align:center'>本次运行的名称</p>
+  </td>
+ </tr>
+ <tr style='mso-yfti-irow:4;height:1.05pt'>
+  <td width=106 colspan=2 rowspan=8 style='width:79.25pt;border:solid windowtext 1.0pt;
+  border-top:none;mso-border-top-alt:solid windowtext .5pt;mso-border-alt:solid windowtext .5pt;
+  padding:0cm 5.4pt 0cm 5.4pt;height:1.05pt'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US>global</span></p>
+  </td>
+  <td width=225 colspan=7 style='width:168.4pt;border-top:none;border-left:
+  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:1.05pt'>
+  <p class=MsoNormal align=center style='text-align:center'><span class=SpellE><span
+  lang=EN-US>use_file_system</span></span></p>
+  </td>
+  <td width=103 style='width:76.95pt;border-top:none;border-left:none;
+  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:1.05pt'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US>bool</span></p>
+  </td>
+  <td width=120 style='width:90.2pt;border-top:none;border-left:none;
+  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:1.05pt'>
+  <p class=MsoNormal align=center style='text-align:center'>是否启用文件系统作为<span
+  lang=EN-US>torch</span>多线程共享策略</p>
+  </td>
+ </tr>
+ <tr style='mso-yfti-irow:5;height:1.0pt'>
+  <td width=225 colspan=7 style='width:168.4pt;border-top:none;border-left:
+  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:1.0pt'>
+  <p class=MsoNormal align=center style='text-align:center'><span class=SpellE><span
+  lang=EN-US>multi_gpu</span></span></p>
+  </td>
+  <td width=103 style='width:76.95pt;border-top:none;border-left:none;
+  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:1.0pt'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US>bool</span></p>
+  </td>
+  <td width=120 style='width:90.2pt;border-top:none;border-left:none;
+  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:1.0pt'>
+  <p class=MsoNormal align=center style='text-align:center'>是否启用多<span
+  lang=EN-US>GPU</span>，<a href="#multi-gpu">详细解释</a></p>
+  </td>
+ </tr>
+ <tr style='mso-yfti-irow:6;height:1.0pt'>
+  <td width=225 colspan=7 style='width:168.4pt;border-top:none;border-left:
+  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:1.0pt'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US>mode</span></p>
+  </td>
+  <td width=103 style='width:76.95pt;border-top:none;border-left:none;
+  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:1.0pt'>
+  <p class=MsoNormal align=center style='text-align:center'><span
+  lang=EN-US>string</span></p>
+  </td>
+  <td width=120 style='width:90.2pt;border-top:none;border-left:none;
+  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:1.0pt'>
+  <p class=MsoNormal align=center style='text-align:center'><span class=SpellE><span
+  class=GramE><span lang=EN-US>async,sync</span></span></span><span lang=EN-US>,
+  semi-async</span></p>
+  <p class=MsoNormal align=center style='text-align:center'>框架的运行模式三选一</p>
+  </td>
+ </tr>
+ <tr style='mso-yfti-irow:7;height:1.0pt'>
+  <td width=225 colspan=7 style='width:168.4pt;border-top:none;border-left:
+  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:1.0pt'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US>experiment</span></p>
+  </td>
+  <td width=103 style='width:76.95pt;border-top:none;border-left:none;
+  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:1.0pt'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US>string</span></p>
+  </td>
+  <td width=120 style='width:90.2pt;border-top:none;border-left:none;
+  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:1.0pt'>
+  <p class=MsoNormal align=center style='text-align:center'>本次运行的名称</p>
+  </td>
+ </tr>
+ <tr style='mso-yfti-irow:8;height:1.0pt'>
+  <td width=225 colspan=7 style='width:168.4pt;border-top:none;border-left:
+  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:1.0pt'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US>stale</span></p>
+  </td>
+  <td width=223 colspan=2 style='width:167.15pt;border-top:none;border-left:
+  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:1.0pt'>
+  <p class=MsoNormal align=center style='text-align:center'><a href="#staleness-settings">解释</a></p>
+  </td>
+ </tr>
+ <tr style='mso-yfti-irow:9;height:1.0pt'>
+  <td width=225 colspan=7 style='width:168.4pt;border-top:none;border-left:
+  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:1.0pt'>
+  <p class=MsoNormal align=center style='text-align:center'><span class=SpellE><span
+  lang=EN-US>dataset_path</span></span></p>
+  </td>
+  <td width=103 style='width:76.95pt;border-top:none;border-left:none;
+  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:1.0pt'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US>string</span></p>
+  </td>
+  <td width=120 style='width:90.2pt;border-top:none;border-left:none;
+  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:1.0pt'>
+  <p class=MsoNormal align=center style='text-align:center'>数据集所在路径</p>
+  </td>
+ </tr>
+ <tr style='mso-yfti-irow:10;height:1.0pt'>
+  <td width=225 colspan=7 style='width:168.4pt;border-top:none;border-left:
+  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:1.0pt'>
+  <p class=MsoNormal align=center style='text-align:center'><span class=SpellE><span
+  lang=EN-US>iid</span></span></p>
+  </td>
+  <td width=223 colspan=2 style='width:167.15pt;border-top:none;border-left:
+  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:1.0pt'>
+  <p class=MsoNormal align=center style='text-align:center'><a href="#iid">解释</a></p>
+  </td>
+ </tr>
+ <tr style='mso-yfti-irow:11;height:1.0pt'>
+  <td width=225 colspan=7 style='width:168.4pt;border-top:none;border-left:
+  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:1.0pt'>
+  <p class=MsoNormal align=center style='text-align:center'><span class=SpellE><span
+  lang=EN-US>client_num</span></span></p>
+  </td>
+  <td width=103 style='width:76.95pt;border-top:none;border-left:none;
+  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:1.0pt'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US>int</span></p>
+  </td>
+  <td width=120 style='width:90.2pt;border-top:none;border-left:none;
+  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:1.0pt'>
+  <p class=MsoNormal align=center style='text-align:center'>客户端数量</p>
+  </td>
+ </tr>
+ <tr style='mso-yfti-irow:12;height:2.05pt'>
+  <td width=106 colspan=2 rowspan=12 style='width:79.25pt;border:solid windowtext 1.0pt;
+  border-top:none;mso-border-top-alt:solid windowtext .5pt;mso-border-alt:solid windowtext .5pt;
+  padding:0cm 5.4pt 0cm 5.4pt;height:2.05pt'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US>server</span></p>
+  </td>
+  <td width=225 colspan=7 style='width:168.4pt;border-top:none;border-left:
+  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:2.05pt'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US>epochs</span></p>
+  </td>
+  <td width=103 style='width:76.95pt;border-top:none;border-left:none;
+  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:2.05pt'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US>int</span></p>
+  </td>
+  <td width=120 style='width:90.2pt;border-top:none;border-left:none;
+  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:2.05pt'>
+  <p class=MsoNormal align=center style='text-align:center'>全局运行轮次</p>
+  </td>
+ </tr>
+ <tr style='mso-yfti-irow:13;height:3.55pt'>
+  <td width=99 colspan=4 rowspan=2 style='width:74.5pt;border-top:none;
+  border-left:none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:3.55pt'>
+  <p class=MsoNormal align=center style='text-align:center'><span
+  style='mso-bookmark:_Hlk132987755'><span lang=EN-US>model</span></span></p>
+  </td>
+  <span style='mso-bookmark:_Hlk132987755'></span>
+  <td width=125 colspan=3 style='width:93.9pt;border-top:none;border-left:none;
+  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:3.55pt'>
+  <p class=MsoNormal align=center style='text-align:center'><span
+  style='mso-bookmark:_Hlk132987755'><span lang=EN-US>path</span></span></p>
+  </td>
+  <span style='mso-bookmark:_Hlk132987755'></span>
+  <td width=103 style='width:76.95pt;border-top:none;border-left:none;
+  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:3.55pt'>
+  <p class=MsoNormal align=center style='text-align:center'><span
+  style='mso-bookmark:_Hlk132987755'><span lang=EN-US>string</span></span></p>
+  </td>
+  <span style='mso-bookmark:_Hlk132987755'></span>
+  <td width=120 style='width:90.2pt;border-top:none;border-left:none;
+  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:3.55pt'>
+  <p class=MsoNormal align=center style='text-align:center'><span
+  style='mso-bookmark:_Hlk132987755'>模型所在路径</span></p>
+  </td>
+  <span style='mso-bookmark:_Hlk132987755'></span>
+ </tr>
+ <tr style='mso-yfti-irow:14;height:3.5pt'>
+  <td width=125 colspan=3 style='width:93.9pt;border-top:none;border-left:none;
+  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:3.5pt'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US>params</span></p>
+  </td>
+  <td width=103 style='width:76.95pt;border-top:none;border-left:none;
+  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:3.5pt'>
+  <p class=MsoNormal align=center style='text-align:center'><span
+  class=SpellE><span style='mso-bookmark:OLE_LINK8'><span lang=EN-US>dict</span></span></span></p>
+  </td>
+  <td width=120 style='width:90.2pt;border-top:none;border-left:none;
+  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:3.5pt'>
+  <p class=MsoNormal align=center style='text-align:center'>所需变量</p>
+  </td>
+ </tr>
+ <tr style='mso-yfti-irow:15;height:2.35pt'>
+  <td width=72 colspan=2 rowspan=4 style='width:54.15pt;border-top:none;
+  border-left:none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:2.35pt'>
+  <p class=MsoNormal align=center style='text-align:center'><span
+  style='mso-bookmark:_Hlk132987069'><span lang=EN-US>scheduler</span></span></p>
+  </td>
+  <span style='mso-bookmark:_Hlk132987069'></span>
+  <td width=152 colspan=5 style='width:114.25pt;border-top:none;border-left:
+  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:2.35pt'>
+  <p class=MsoNormal align=center style='text-align:center'><span
+  style='mso-bookmark:_Hlk132987069'><span class=SpellE><span lang=EN-US>scheduler_path</span></span></span></p>
+  </td>
+  <span style='mso-bookmark:_Hlk132987069'></span>
+  <td width=103 style='width:76.95pt;border-top:none;border-left:none;
+  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:2.35pt'>
+  <p class=MsoNormal align=center style='text-align:center'><span
+  style='mso-bookmark:_Hlk132987069'><span lang=EN-US>string</span></span></p>
+  </td>
+  <span style='mso-bookmark:_Hlk132987069'></span>
+  <td width=120 style='width:90.2pt;border-top:none;border-left:none;
+  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:2.35pt'>
+  <p class=MsoNormal align=center style='text-align:center'><span
+  style='mso-bookmark:_Hlk132987069'><span lang=EN-US>Scheduler</span>所在路径</span></p>
+  </td>
+  <span style='mso-bookmark:_Hlk132987069'></span>
+ </tr>
+ <tr style='mso-yfti-irow:16;height:2.35pt'>
+  <span style='mso-bookmark:_Hlk132987069'></span>
+  <td width=152 colspan=5 style='width:114.25pt;border-top:none;border-left:
+  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:2.35pt'>
+  <p class=MsoNormal align=center style='text-align:center'><span
+  style='mso-bookmark:_Hlk132987069'><span lang=EN-US>params</span></span></p>
+  </td>
+  <span style='mso-bookmark:_Hlk132987069'></span>
+  <td width=103 style='width:76.95pt;border-top:none;border-left:none;
+  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:2.35pt'>
+  <p class=MsoNormal align=center style='text-align:center'><span
+  style='mso-bookmark:_Hlk132987069'><span lang=EN-US>string</span></span></p>
+  </td>
+  <span style='mso-bookmark:_Hlk132987069'></span>
+  <td width=120 style='width:90.2pt;border-top:none;border-left:none;
+  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:2.35pt'>
+  <p class=MsoNormal align=center style='text-align:center'><span
+  style='mso-bookmark:_Hlk132987069'>所需变量</span></p>
+  </td>
+  <span style='mso-bookmark:_Hlk132987069'></span>
+ </tr>
+ <tr style='mso-yfti-irow:17;height:3.55pt'>
+  <span style='mso-bookmark:_Hlk132987069'></span>
+  <td width=65 colspan=4 rowspan=2 style='width:48.55pt;border-top:none;
+  border-left:none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:3.55pt'>
+  <p class=MsoNormal align=center style='text-align:center'><span
+  style='mso-bookmark:_Hlk132987069'><span lang=EN-US>receiver</span></span></p>
+  </td>
+  <span style='mso-bookmark:_Hlk132987069'></span>
+  <td width=88 style='width:65.7pt;border-top:none;border-left:none;border-bottom:
+  solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;mso-border-top-alt:
+  solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;mso-border-alt:
+  solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:3.55pt'>
+  <p class=MsoNormal align=center style='text-align:center'><span
+  style='mso-bookmark:_Hlk132987069'><span lang=EN-US>path</span></span></p>
+  </td>
+  <span style='mso-bookmark:_Hlk132987069'></span>
+  <td width=103 style='width:76.95pt;border-top:none;border-left:none;
+  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:3.55pt'>
+  <p class=MsoNormal align=center style='text-align:center'><span
+  style='mso-bookmark:_Hlk132987069'><span lang=EN-US>string</span></span></p>
+  </td>
+  <span style='mso-bookmark:_Hlk132987069'></span>
+  <td width=120 style='width:90.2pt;border-top:none;border-left:none;
+  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:3.55pt'>
+  <p class=MsoNormal align=center style='text-align:center'><span
+  style='mso-bookmark:_Hlk132987069'><span lang=EN-US>receiver</span>所在路径</span></p>
+  </td>
+  <span style='mso-bookmark:_Hlk132987069'></span>
+ </tr>
+ <tr style='mso-yfti-irow:18;height:3.5pt'>
+  <span style='mso-bookmark:_Hlk132987069'></span>
+  <td width=88 style='width:65.7pt;border-top:none;border-left:none;border-bottom:
+  solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;mso-border-top-alt:
+  solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;mso-border-alt:
+  solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:3.5pt'>
+  <p class=MsoNormal align=center style='text-align:center'><span
+  style='mso-bookmark:_Hlk132987069'><span lang=EN-US>params</span></span></p>
+  </td>
+  <span style='mso-bookmark:_Hlk132987069'></span>
+  <td width=103 style='width:76.95pt;border-top:none;border-left:none;
+  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:3.5pt'>
+  <p class=MsoNormal align=center style='text-align:center'><span
+  style='mso-bookmark:_Hlk132987069'><span class=SpellE><span lang=EN-US>dict</span></span></span></p>
+  </td>
+  <span style='mso-bookmark:_Hlk132987069'></span>
+  <td width=120 style='width:90.2pt;border-top:none;border-left:none;
+  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:3.5pt'>
+  <p class=MsoNormal align=center style='text-align:center'><span
+  style='mso-bookmark:_Hlk132987069'>所需变量</span></p>
+  </td>
+  <span style='mso-bookmark:_Hlk132987069'></span>
+ </tr>
+ <tr style='mso-yfti-irow:19;height:1.8pt'>
+  <span style='mso-bookmark:_Hlk132987069'></span>
+  <td width=62 rowspan=5 style='width:46.55pt;border-top:none;border-left:none;
+  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:1.8pt'>
+  <p class=MsoNormal align=center style='text-align:center'><span
+  style='mso-bookmark:_Hlk132987069'><span lang=EN-US>updater</span></span></p>
+  </td>
+  <span style='mso-bookmark:_Hlk132987069'></span>
+  <td width=162 colspan=6 style='width:121.85pt;border-top:none;border-left:
+  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:1.8pt'>
+  <p class=MsoNormal align=center style='text-align:center'><span
+  style='mso-bookmark:_Hlk132987069'><span class=SpellE><span lang=EN-US>updater_path</span></span></span></p>
+  </td>
+  <span style='mso-bookmark:_Hlk132987069'></span>
+  <td width=103 style='width:76.95pt;border-top:none;border-left:none;
+  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:1.8pt'>
+  <p class=MsoNormal align=center style='text-align:center'><span
+  style='mso-bookmark:_Hlk132987069'><span lang=EN-US>string</span></span></p>
+  </td>
+  <span style='mso-bookmark:_Hlk132987069'></span>
+  <td width=120 style='width:90.2pt;border-top:none;border-left:none;
+  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:1.8pt'>
+  <p class=MsoNormal align=center style='text-align:center'><span
+  style='mso-bookmark:_Hlk132987069'><span lang=EN-US>updater</span>所在路径</span></p>
+  </td>
+  <span style='mso-bookmark:_Hlk132987069'></span>
+ </tr>
+ <tr style='mso-yfti-irow:20;height:1.75pt'>
+  <span style='mso-bookmark:_Hlk132987069'></span>
+  <td width=162 colspan=6 style='width:121.85pt;border-top:none;border-left:
+  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:1.75pt'>
+  <p class=MsoNormal align=center style='text-align:center'><span
+  style='mso-bookmark:_Hlk132987069'><span style='mso-bookmark:_Hlk132988020'><span
+  lang=EN-US>loss</span></span></span></p>
+  </td>
+  <span style='mso-bookmark:_Hlk132987069'><span style='mso-bookmark:_Hlk132988020'></span></span>
+  <td width=103 style='width:76.95pt;border-top:none;border-left:none;
+  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:1.75pt'>
+  <p class=MsoNormal align=center style='text-align:center'><span
+  style='mso-bookmark:_Hlk132987069'><span style='mso-bookmark:_Hlk132988020'><span
+  class=SpellE><span lang=EN-US>dict</span></span><span lang=EN-US> | string</span></span></span></p>
+  </td>
+  <span style='mso-bookmark:_Hlk132987069'><span style='mso-bookmark:_Hlk132988020'></span></span>
+  <td width=120 style='width:90.2pt;border-top:none;border-left:none;
+  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:1.75pt'>
+  <p class=MsoNormal align=center style='text-align:center'><span
+  style='mso-bookmark:_Hlk132987069'><span style='mso-bookmark:_Hlk132988020'>自定义<span
+  lang=EN-US>loss</span>所需变量信息<span lang=EN-US> | loss</span>所在路径</span></span></p>
+  </td>
+  <span style='mso-bookmark:_Hlk132987069'><span style='mso-bookmark:_Hlk132988020'></span></span>
+ </tr>
+ <tr style='mso-yfti-irow:21;height:1.75pt'>
+  <span style='mso-bookmark:_Hlk132987069'></span>
+  <td width=162 colspan=6 style='width:121.85pt;border-top:none;border-left:
+  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:1.75pt'>
+  <p class=MsoNormal align=center style='text-align:center'><span
+  style='mso-bookmark:_Hlk132987069'><span lang=EN-US>params</span></span></p>
+  </td>
+  <span style='mso-bookmark:_Hlk132987069'></span>
+  <td width=103 style='width:76.95pt;border-top:none;border-left:none;
+  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:1.75pt'>
+  <p class=MsoNormal align=center style='text-align:center'><span
+  style='mso-bookmark:_Hlk132987069'><span class=SpellE><span lang=EN-US>dict</span></span></span></p>
+  </td>
+  <span style='mso-bookmark:_Hlk132987069'></span>
+  <td width=120 style='width:90.2pt;border-top:none;border-left:none;
+  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:1.75pt'>
+  <p class=MsoNormal align=center style='text-align:center'><span
+  style='mso-bookmark:_Hlk132987069'>所需变量</span></p>
+  </td>
+  <span style='mso-bookmark:_Hlk132987069'></span>
+ </tr>
+ <tr style='mso-yfti-irow:22;height:3.55pt'>
+  <span style='mso-bookmark:_Hlk132987069'></span>
+  <td width=68 colspan=4 rowspan=2 style='width:50.9pt;border-top:none;
+  border-left:none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:3.55pt'>
+  <p class=MsoNormal align=center style='text-align:center'><span
+  style='mso-bookmark:_Hlk132987069'><span lang=EN-US>group[semi-async专属]</span></span></p>
+  </td>
+  <span style='mso-bookmark:_Hlk132987069'></span>
+  <td width=95 colspan=2 style='width:70.95pt;border-top:none;border-left:none;
+  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:3.55pt'>
+  <p class=MsoNormal align=center style='text-align:center'><span
+  style='mso-bookmark:_Hlk132987069'><span class=SpellE><span lang=EN-US>updater_path</span></span></span></p>
+  </td>
+  <span style='mso-bookmark:_Hlk132987069'></span>
+  <td width=103 style='width:76.95pt;border-top:none;border-left:none;
+  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:3.55pt'>
+  <p class=MsoNormal align=center style='text-align:center'><span
+  style='mso-bookmark:_Hlk132987069'><span lang=EN-US>string</span></span></p>
+  </td>
+  <span style='mso-bookmark:_Hlk132987069'></span>
+  <td width=120 style='width:90.2pt;border-top:none;border-left:none;
+  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:3.55pt'><span
+  style='mso-bookmark:_Hlk132987069'></span>
+  <p class=MsoNormal align=center style='text-align:center'><span
+  style='mso-bookmark:_Hlk132987069'><span lang=EN-US>updater所在路径</span></span></p>
+  </td>
+  <span style='mso-bookmark:_Hlk132987069'></span>
+ </tr>
+ <tr style='mso-yfti-irow:23;height:3.5pt'>
+  <span style='mso-bookmark:_Hlk132987069'></span>
+  <td width=95 colspan=2 style='width:70.95pt;border-top:none;border-left:none;
+  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:3.5pt'>
+  <p class=MsoNormal align=center style='text-align:center'><span
+  style='mso-bookmark:_Hlk132987069'><span lang=EN-US>params</span></span></p>
+  </td>
+  <span style='mso-bookmark:_Hlk132987069'></span>
+  <td width=103 style='width:76.95pt;border-top:none;border-left:none;
+  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:3.5pt'>
+  <p class=MsoNormal align=center style='text-align:center'><span
+  style='mso-bookmark:_Hlk132987069'><span class=SpellE><span lang=EN-US>dict</span></span></span></p>
+  </td>
+  <span style='mso-bookmark:_Hlk132987069'></span>
+  <td width=120 style='width:90.2pt;border-top:none;border-left:none;
+  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:3.5pt'>
+  <p class=MsoNormal align=center style='text-align:center'><span
+  style='mso-bookmark:_Hlk132987069'>所需变量</span></p>
+  </td>
+  <span style='mso-bookmark:_Hlk132987069'></span>
+ </tr>
+ <tr style='mso-yfti-irow:24;height:4.05pt'>
+  <td width=106 colspan=2 rowspan=3 style='width:79.25pt;border:solid windowtext 1.0pt;
+  border-top:none;mso-border-top-alt:solid windowtext .5pt;mso-border-alt:solid windowtext .5pt;
+  padding:0cm 5.4pt 0cm 5.4pt;height:4.05pt'>
+  <p class=MsoNormal align=center style='text-align:center'><span class=SpellE><span
+  lang=EN-US>client_manager</span></span></p>
+  </td>
+  <td width=225 colspan=7 style='width:168.4pt;border-top:none;border-left:
+  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:4.05pt'>
+  <p class=MsoNormal align=center style='text-align:center'><span class=SpellE><span
+  lang=EN-US>client_path</span></span></p>
+  </td>
+  <td width=103 style='width:76.95pt;border-top:none;border-left:none;
+  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:4.05pt'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US>string</span></p>
+  </td>
+  <td width=120 style='width:90.2pt;border-top:none;border-left:none;
+  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:4.05pt'>
+  <p class=MsoNormal align=center style='text-align:center'><span
+  lang=EN-US>client</span>所在路径</p>
+  </td>
+ </tr>
+ <tr style='mso-yfti-irow:25;height:3.55pt'>
+  <td width=99 colspan=4 rowspan=2 style='width:74.5pt;border-top:none;
+  border-left:none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:3.55pt'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US>checker</span></p>
+  </td>
+  <td width=125 colspan=3 style='width:93.9pt;border-top:none;border-left:none;
+  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:3.55pt'>
+  <p class=MsoNormal align=center style='text-align:center'><span class=SpellE><span
+  lang=EN-US>checker_path</span></span></p>
+  </td>
+  <td width=103 style='width:76.95pt;border-top:none;border-left:none;
+  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:3.55pt'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US>string</span></p>
+  </td>
+  <td width=120 style='width:90.2pt;border-top:none;border-left:none;
+  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:3.55pt'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US>checker</span>所在路径</p>
+  </td>
+ </tr>
+ <tr style='mso-yfti-irow:26;height:3.5pt'>
+  <td width=125 colspan=3 style='width:93.9pt;border-top:none;border-left:none;
+  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:3.5pt'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US>params</span></p>
+  </td>
+  <td width=103 style='width:76.95pt;border-top:none;border-left:none;
+  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:3.5pt'>
+  <p class=MsoNormal align=center style='text-align:center'><span class=SpellE><span
+  lang=EN-US>dict</span></span></p>
+  </td>
+  <td width=120 style='width:90.2pt;border-top:none;border-left:none;
+  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:3.5pt'>
+  <p class=MsoNormal align=center style='text-align:center'>所需变量</p>
+  </td>
+ </tr>
+ <tr style='mso-yfti-irow:27;height:1.55pt'>
+  <td width=104 rowspan=9 style='width:77.75pt;border:solid windowtext 1.0pt;
+  border-top:none;mso-border-top-alt:solid windowtext .5pt;mso-border-alt:solid windowtext .5pt;
+  padding:0cm 5.4pt 0cm 5.4pt;height:1.55pt'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US>client</span></p>
+  </td>
+  <td width=227 colspan=8 style='width:169.9pt;border-top:none;border-left:
+  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:1.55pt'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US>epochs</span></p>
+  </td>
+  <td width=103 style='width:76.95pt;border-top:none;border-left:none;
+  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:1.55pt'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US>int</span></p>
+  </td>
+  <td width=120 style='width:90.2pt;border-top:none;border-left:none;
+  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:1.55pt'>
+  <p class=MsoNormal align=center style='text-align:center'>本地运行次数</p>
+  </td>
+ </tr>
+ <tr style='mso-yfti-irow:28;height:1.3pt'>
+  <td width=227 colspan=8 style='width:169.9pt;border-top:none;border-left:
+  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:1.3pt'>
+  <p class=MsoNormal align=center style='text-align:center'><span class=SpellE><span
+  lang=EN-US>batch_size</span></span></p>
+  </td>
+  <td width=103 style='width:76.95pt;border-top:none;border-left:none;
+  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:1.3pt'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US>int</span></p>
+  </td>
+  <td width=120 style='width:90.2pt;border-top:none;border-left:none;
+  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:1.3pt'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US>batch</span></p>
+  </td>
+ </tr>
+ <tr style='mso-yfti-irow:29;height:3.55pt'>
+  <td width=100 colspan=4 rowspan=2 style='width:75.25pt;border-top:none;
+  border-left:none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:3.55pt'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US>model</span></p>
+  </td>
+  <td width=126 colspan=4 style='width:94.65pt;border-top:none;border-left:
+  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:3.55pt'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US>path</span></p>
+  </td>
+  <td width=103 style='width:76.95pt;border-top:none;border-left:none;
+  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:3.55pt'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US>string</span></p>
+  </td>
+  <td width=120 style='width:90.2pt;border-top:none;border-left:none;
+  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:3.55pt'>
+  <p class=MsoNormal align=center style='text-align:center'>模型所在路径</p>
+  </td>
+ </tr>
+ <tr style='mso-yfti-irow:30;height:3.5pt'>
+  <td width=126 colspan=4 style='width:94.65pt;border-top:none;border-left:
+  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:3.5pt'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US>params</span></p>
+  </td>
+  <td width=103 style='width:76.95pt;border-top:none;border-left:none;
+  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:3.5pt'>
+  <p class=MsoNormal align=center style='text-align:center'><span class=SpellE><span
+  lang=EN-US>dict</span></span></p>
+  </td>
+  <td width=120 style='width:90.2pt;border-top:none;border-left:none;
+  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:3.5pt'>
+  <p class=MsoNormal align=center style='text-align:center'>所需变量</p>
+  </td>
+ </tr>
+ <tr style='mso-yfti-irow:31;height:1.3pt'>
+  <td width=227 colspan=8 style='width:169.9pt;border-top:none;border-left:
+  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:1.3pt'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US>loss</span></p>
+  </td>
+  <td width=103 style='width:76.95pt;border-top:none;border-left:none;
+  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:1.3pt'>
+  <p class=MsoNormal align=center style='text-align:center'><span class=SpellE><span
+  lang=EN-US>dict</span></span><span lang=EN-US> | string</span></p>
+  </td>
+  <td width=120 style='width:90.2pt;border-top:none;border-left:none;
+  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:1.3pt'>
+  <p class=MsoNormal align=center style='text-align:center'>自定义<span
+  lang=EN-US>loss</span>所需变量信息<span lang=EN-US> | loss</span>所在路径</p>
+  </td>
+ </tr>
+ <tr style='mso-yfti-irow:32;height:1.3pt'>
+  <td width=227 colspan=8 style='width:169.9pt;border-top:none;border-left:
+  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:1.3pt'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US>mu</span></p>
+  </td>
+  <td width=103 style='width:76.95pt;border-top:none;border-left:none;
+  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:1.3pt'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US>float</span></p>
+  </td>
+  <td width=120 style='width:90.2pt;border-top:none;border-left:none;
+  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:1.3pt'>
+  <p class=MsoNormal align=center style='text-align:center'>近端项系数</p>
+  </td>
+ </tr>
+ <tr style='mso-yfti-irow:33;height:3.55pt'>
+  <td width=100 colspan=4 rowspan=2 style='width:75.25pt;border-top:none;
+  border-left:none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:3.55pt'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US>optimizer</span></p>
+  </td>
+  <td width=126 colspan=4 style='width:94.65pt;border-top:none;border-left:
+  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:3.55pt'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US>path</span></p>
+  </td>
+  <td width=103 style='width:76.95pt;border-top:none;border-left:none;
+  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:3.55pt'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US>string</span></p>
+  </td>
+  <td width=120 style='width:90.2pt;border-top:none;border-left:none;
+  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:3.55pt'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US>optimizer</span>所在路径</p>
+  </td>
+ </tr>
+ <tr style='mso-yfti-irow:34;height:3.5pt'>
+  <td width=126 colspan=4 style='width:94.65pt;border-top:none;border-left:
+  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:3.5pt'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US>params</span></p>
+  </td>
+  <td width=103 style='width:76.95pt;border-top:none;border-left:none;
+  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:3.5pt'>
+  <p class=MsoNormal align=center style='text-align:center'><span class=SpellE><span
+  lang=EN-US>dict</span></span></p>
+  </td>
+  <td width=120 style='width:90.2pt;border-top:none;border-left:none;
+  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:3.5pt'>
+  <p class=MsoNormal align=center style='text-align:center'>所需变量</p>
+  </td>
+ </tr>
+ <tr style='mso-yfti-irow:35;mso-yfti-lastrow:yes;height:3.5pt'>
+  <td width=227 colspan=8 style='width:169.9pt;border-top:none;border-left:
+  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:3.5pt'>
+  <p class=MsoNormal align=center style='text-align:center'><span class=SpellE><span
+  lang=EN-US>other_params</span></span></p>
+  </td>
+  <td width=103 style='width:76.95pt;border-top:none;border-left:none;
+  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:3.5pt'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US>*</span></p>
+  </td>
+  <td width=120 style='width:90.2pt;border-top:none;border-left:none;
+  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:3.5pt'>
+  <p class=MsoNormal align=center style='text-align:center'>其他变量</p>
+  </td>
+ </tr>
+</table>
 
 ## 添加新的算法
 
