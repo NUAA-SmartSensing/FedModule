@@ -7,7 +7,7 @@ from utils import ModuleFindTool
 
 
 class SyncClientManager:
-    def __init__(self, init_weights, clients_num, multi_gpu, datasets, q, current_time, stop_event, client_config,
+    def __init__(self, init_weights, clients_num, multi_gpu, datasets, q, current_time, schedule_t, stop_event, client_config,
                  manager_config, global_var):
         self.init_weights = init_weights
         self.queue = q
@@ -15,6 +15,7 @@ class SyncClientManager:
         self.clients_num = clients_num
         self.batch_size = client_config["batch_size"]
         self.current_time = current_time
+        self.schedule_t = schedule_t
         self.stop_event = stop_event
         self.client_staleness_list = client_config["stale_list"]
         self.thread_lock = threading.Lock()

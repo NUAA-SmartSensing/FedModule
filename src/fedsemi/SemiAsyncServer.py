@@ -28,6 +28,7 @@ class SemiAsyncServer:
 
         # 运行时变量
         self.current_t = Time.Time(1)
+        self.schedule_t = Time.Time(1)
         self.accuracy_list = []
         self.loss_list = []
         self.stop_event = threading.Event()
@@ -47,7 +48,7 @@ class SemiAsyncServer:
                                                                                  global_config["client_num"],
                                                                                  global_config["multi_gpu"],
                                                                                  datasets, self.group_manager,
-                                                                                 self.current_t,
+                                                                                 self.current_t, self.schedule_t,
                                                                                  self.stop_event, client_config,
                                                                                  manager_config, self.global_var)
         self.global_var['client_manager'] = self.semi_client_manager
@@ -55,7 +56,8 @@ class SemiAsyncServer:
         self.semi_client_manager.set_queue_list(self.queue_list)
         self.epoch_list = [0] * self.group_manager.group_num
         self.updater_thread = UpdaterThread.UpdaterThread(self.queue_list, self.server_thread_lock,
-                                                          self.T, self.current_t, self.server_network,
+                                                          self.T, self.current_t, self.schedule_t,
+                                                          self.server_network,
                                                           self.network_list, self.epoch_list,
                                                           self.group_manager, self.stop_event,
                                                           self.test_data, server_config["updater"],
@@ -63,7 +65,7 @@ class SemiAsyncServer:
                                                           self.global_var)
         self.global_var['updater'] = self.updater_thread
         self.scheduler_thread = SchedulerThread.SchedulerThread(self.server_thread_lock, self.semi_client_manager,
-                                                                self.queue_list, self.current_t,
+                                                                self.queue_list, self.current_t, self.schedule_t,
                                                                 server_config["scheduler"], self.epoch_list,
                                                                 self.server_network, self.network_list, self.T,
                                                                 self.group_manager, self.updater_thread,

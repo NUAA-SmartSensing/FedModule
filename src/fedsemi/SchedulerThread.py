@@ -7,7 +7,7 @@ from utils import ModuleFindTool
 
 class SchedulerThread(threading.Thread):
     def __init__(self, server_thread_lock, sync_client_manager,
-                 queue_list, current_t, scheduler_config, epoch_list,
+                 queue_list, current_t, schedule_t, scheduler_config, epoch_list,
                  server_network, network_list, t, group_manager, updater_thread, mutex_sem, empty_sem, full_sem,
                  global_var):
         threading.Thread.__init__(self)
@@ -21,6 +21,7 @@ class SchedulerThread(threading.Thread):
         self.group_manager = group_manager
         # 全局迭代次数
         self.current_t = current_t
+        self.schedule_t = schedule_t
         # 各组迭代次数
         self.epoch_list = epoch_list
         self.server_network = server_network
@@ -44,6 +45,7 @@ class SchedulerThread(threading.Thread):
             self.empty_sem.acquire()
             self.mutex_sem.acquire()
             current_time = self.current_t.get_time()
+            schedule_time = self.schedule_t.get_time()
             if last_s_time != current_time:
                 if current_time > self.T:
                     break
@@ -67,6 +69,7 @@ class SchedulerThread(threading.Thread):
                             # 将server的模型参数和时间戳发给client
                             s_client_thread.set_client_weight(self.server_weights)
                             s_client_thread.set_time_stamp(current_time)
+                            s_client_thread.set_schedule_time_stamp(schedule_time)
                             # 启动一次client线程
                             s_client_thread.set_event()
                         print(

@@ -9,7 +9,7 @@ from utils import ModuleFindTool
 
 
 class UpdaterThread(threading.Thread):
-    def __init__(self, queue_list, server_thread_lock, t, current_t, server_network, network_list, epoch_list,
+    def __init__(self, queue_list, server_thread_lock, t, current_t, schedule_t, server_network, network_list, epoch_list,
                  group_manager, stop_event, test_data, updater_config, mutex_sem, empty_sem,
                  full_sem, global_var):
         threading.Thread.__init__(self)
@@ -20,6 +20,7 @@ class UpdaterThread(threading.Thread):
         self.server_thread_lock = server_thread_lock
         self.T = t
         self.current_time = current_t
+        self.schedule_t = schedule_t
         self.server_network = server_network
         self.network_list = network_list
         self.global_var = global_var
