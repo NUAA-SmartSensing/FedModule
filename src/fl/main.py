@@ -9,6 +9,7 @@ import wandb
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from utils.Tools import *
+from utils import ModuleFindTool
 from utils.ConfigManager import *
 from exception import ClientSumError
 from fedasync import AsyncServer
@@ -89,16 +90,9 @@ if __name__ == '__main__':
     loss_lists = []
     # wandb启动配置植入update_config中
     server_config['updater']['enabled'] = wandb_config['enabled']
-    if global_config['mode'] == 'async':
-        server = AsyncServer.AsyncServer(config, global_config, server_config, client_config, manager_config)
-    elif global_config['mode'] == 'sync':
-        server = SyncServer.SyncServer(config, global_config, server_config, client_config, manager_config)
-    elif global_config['mode'] == 'semi-async':
-        server = SemiAsyncServer.SemiAsyncServer(config, global_config, server_config, client_config, manager_config)
-    else:
-        server = AsyncServer.AsyncServer(config, global_config, server_config, client_config, manager_config)
+    server_class = ModuleFindTool.find_class_by_path(server_config["path"])
+    server = server_class(config, global_config, server_config, client_config, manager_config)
     server.run()
-    print("")
 
     accuracy_list, loss_list = server.get_accuracy_and_loss_list()
     config = server.get_config()
