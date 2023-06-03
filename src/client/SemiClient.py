@@ -1,12 +1,9 @@
-import time
-
 from client import NormalClient
-from utils.ModelTraining import train_one_epoch
 
 
 class SemiClient(NormalClient.NormalClient):
-    def __init__(self, c_id, queue_manager, stop_event, delay, train_ds, client_config, dev, print_lock,  global_var):
-        super().__init__(c_id, queue_manager, stop_event, delay, train_ds, client_config, dev, print_lock,  global_var)
+    def __init__(self, c_id, stop_event, delay, train_ds, config, dev):
+        NormalClient.NormalClient.__init__(self, c_id, stop_event, delay, train_ds, config, dev)
         self.group_id = 0
 
     def set_group_id(self, group_id):

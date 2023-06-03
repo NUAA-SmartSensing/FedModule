@@ -1,20 +1,22 @@
-from fedasync import UpdaterThread
 import copy
 import torch
 
+from update.AbstractUpdate import AbstractUpdate
+from utils.GlobalVarGetter import GlobalVarGetter
 
-class StepAsyncAvg:
-    def __init__(self, config, updater_thread):
+
+class StepAsyncAvg(AbstractUpdate):
+    def __init__(self, config):
         self.config = config
         self.num_cnt = {}
         self.sum_cnt = 0
-        self.updater_thread = updater_thread
+        self.global_var = GlobalVarGetter().get()
 
     def update_server_weights(self, epoch, update_list):
         rho = self.config["rho"]
         self.sum_cnt += len(update_list)
         alpha = self.config["alpha"]
-        server_weights = copy.deepcopy(self.updater_thread.server_network.state_dict())
+        server_weights = copy.deepcopy(self.global_var['updater'].server_network.state_dict())
 
         for i in range(len(update_list)):
             for key, var in update_list[i]["weights"].items():
@@ -63,5 +65,5 @@ class StepAsyncAvg:
             updated_parameters[key] = (alpha * updated_parameters[key] + (1 - alpha) * server_weights[key])
 
         # 下发给客户端的权重
-        self.updater_thread.global_var['scheduler'].server_weights = updated_parameters
+        self.global_var['scheduler'].server_weights = copy.deepcopy(updated_parameters)
         return updated_parameters

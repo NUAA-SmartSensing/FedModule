@@ -1,4 +1,3 @@
-import copy
 import datetime
 import os
 import shutil
@@ -12,9 +11,6 @@ from utils.Tools import *
 from utils import ModuleFindTool
 from utils.ConfigManager import *
 from exception import ClientSumError
-from fedasync import AsyncServer
-from fedsync import SyncServer
-from fedsemi import SemiAsyncServer
 
 if __name__ == '__main__':
     # 创建结果文件夹
@@ -28,11 +24,11 @@ if __name__ == '__main__':
         config_file = sys.argv[1]
 
     config = getConfig(config_file)
-    global_config = copy.deepcopy(config['global'])
-    server_config = copy.deepcopy(config['server'])
-    client_config = copy.deepcopy(config['client'])
-    manager_config = copy.deepcopy(config['client_manager'])
-    wandb_config = copy.deepcopy(config['wandb'])
+    global_config = config['global']
+    server_config = config['server']
+    client_config = config['client']
+    manager_config = config['client_manager']
+    wandb_config = config['wandb']
 
     # 实验路径相关
     if not global_config["experiment"].endswith("/"):
@@ -91,7 +87,7 @@ if __name__ == '__main__':
     # wandb启动配置植入update_config中
     server_config['updater']['enabled'] = wandb_config['enabled']
     server_class = ModuleFindTool.find_class_by_path(server_config["path"])
-    server = server_class(config, global_config, server_config, client_config, manager_config)
+    server = server_class(config)
     server.run()
 
     accuracy_list, loss_list = server.get_accuracy_and_loss_list()

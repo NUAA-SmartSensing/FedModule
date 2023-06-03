@@ -1,12 +1,15 @@
-class RoundRobin:
-    def __init__(self):
-        self.pos = 0
+from schedule.AbstractSchedule import AbstractSchedule
 
-    def schedule(self, client_list, params):
+
+class RoundRobin(AbstractSchedule):
+    def __init__(self, config):
+        self.config = config
+        self.pos = 0
+        self.c_ratio = config["c_ratio"]
+
+    def schedule(self, client_list):
         total = len(client_list)
-        select_num = int(params["c_ratio"] * len(client_list))
-        if select_num < params["schedule_interval"] + 1:
-            select_num = params["schedule_interval"] + 1
+        select_num = int(self.c_ratio * len(client_list))
 
         print("Current clients:", total, ", select:", select_num)
         if self.pos + select_num <= total:

@@ -1,8 +1,12 @@
-class NoSchedule:
-    def __init__(self):
+from schedule.AbstractSchedule import AbstractSchedule
+
+
+class NoSchedule(AbstractSchedule):
+    def __init__(self, config):
+        self.config = config
         self.init = False
 
-    def schedule(self, client_list, params):
+    def schedule(self, client_list):
         if self.init:
             return []
         else:

@@ -1,7 +1,13 @@
-class FedAvg:
-    def __init__(self, config, updater_thread):
+import copy
+
+from update.AbstractUpdate import AbstractUpdate
+from utils.GlobalVarGetter import GlobalVarGetter
+
+
+class FedAvg(AbstractUpdate):
+    def __init__(self, config):
         self.config = config
-        self.updater_thread = updater_thread
+        self.global_var = GlobalVarGetter().get()
 
     def update_server_weights(self, epoch, update_list):
         total_nums = 0
@@ -16,5 +22,5 @@ class FedAvg:
             for key, var in client_weights.items():
                 updated_parameters[key] += client_weights[key] * update_dict["data_sum"] / total_nums
         # 下发给客户端的权重
-        self.updater_thread.global_var['scheduler'].server_weights = updated_parameters
+        self.global_var['scheduler'].server_weights = copy.deepcopy(updated_parameters)
         return updated_parameters

@@ -3,10 +3,13 @@ import copy
 import threading
 from abc import abstractmethod
 
+from utils.GlobalVarGetter import GlobalVarGetter
+
 
 class Client(threading.Thread):
-    def __init__(self, c_id, stop_event, delay, train_ds, dev, print_lock, global_var):
+    def __init__(self, c_id, stop_event, delay, train_ds, dev):
         threading.Thread.__init__(self)
+        self.model = None
         self.client_id = c_id
         self.event = threading.Event()
         self.event.clear()
@@ -14,8 +17,10 @@ class Client(threading.Thread):
         self.delay = delay
         self.train_ds = train_ds
         self.client_thread_lock = threading.Lock()
-        self.print_lock = print_lock
         self.dev = dev
+        self.global_var = GlobalVarGetter().get()
+        self.print_lock = self.global_var['print_lock']
+
         self.weights_buffer = collections.OrderedDict()
         self.time_stamp = 0
         self.time_stamp_buffer = 0
@@ -23,7 +28,6 @@ class Client(threading.Thread):
         self.received_time_stamp = False
         self.params = {}
         self.event_is_set = False
-        self.global_var = global_var
         self.schedule_t = None
 
     @abstractmethod

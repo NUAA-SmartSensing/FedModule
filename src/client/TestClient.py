@@ -10,10 +10,9 @@ from utils.Tools import saveAns
 
 
 class TestClient(NormalClient.NormalClient):
-    def __init__(self, c_id, queue_manager, stop_event, delay, train_ds, client_config, dev, print_lock, global_var):
-        NormalClient.NormalClient.__init__(self, c_id, queue_manager, stop_event, delay, train_ds, client_config, dev,
-                                           print_lock, global_var)
-        self.train_dataset, self.test_dataset = train_test_split(train_ds, test_size=client_config['test_size'])
+    def __init__(self, c_id, stop_event, delay, train_ds, config, dev):
+        NormalClient.NormalClient.__init__(self, c_id, stop_event, delay, train_ds, config, dev)
+        self.train_dataset, self.test_dataset = train_test_split(train_ds, test_size=config['test_size'])
         self.train_dl = DataLoader(self.train_dataset, batch_size=self.batch_size, shuffle=True, drop_last=True)
         # 提供给wandb使用
         self.step = 1

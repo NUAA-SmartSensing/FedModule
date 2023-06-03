@@ -4,10 +4,9 @@ from client import NormalClient
 
 
 class ActiveClient(NormalClient.NormalClient):
-    def __init__(self, c_id, queue_manager, stop_event, delay, train_ds, client_config, dev, print_lock, global_var):
-        NormalClient.NormalClient.__init__(self, c_id, queue_manager, stop_event, delay, train_ds, client_config, dev,
-                                           print_lock, global_var)
-        self.acquire_model_delay = client_config['acquire_model_delay']
+    def __init__(self, c_id, stop_event, delay, train_ds, config, dev):
+        NormalClient.NormalClient.__init__(self, c_id, stop_event, delay, train_ds, config, dev)
+        self.acquire_model_delay = config['acquire_model_delay']
 
     def run(self):
         while not self.stop_event.is_set():
