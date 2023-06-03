@@ -11,6 +11,8 @@
 
 > keywords: `federated-learning`, `asynchronous`, `synchronous`, `semi-asynchronous`, `personalized`
 
+> ⚠️ the readme is for version 2.1, the readme of `new version 3.0` is being written.
+
 <details>
   <summary><b>Table of Contents</b></summary>
   <p>
