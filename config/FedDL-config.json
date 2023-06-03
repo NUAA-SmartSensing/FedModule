@@ -19,40 +19,50 @@
     "client_num": 30
   },
   "server": {
+    "path": "server.SyncServer.SyncServer",
     "epochs": 50,
     "model": {
       "path": "model.CNN.CNN",
       "params": {}
     },
     "scheduler": {
-      "scheduler_path": "schedule.RandomSchedule.RandomSchedule",
-      "params": {
-        "c_ratio": 0.2,
-        "schedule_interval": 5
-      },
-      "receiver": {
-        "receiver_path": "fedsync.receiver.AvgReceiver.AvgReceiver",
+      "path": "scheduler.SyncScheduler.SyncScheduler",
+      "schedule": {
+        "path": "schedule.RandomSchedule.RandomSchedule",
         "params": {
+          "c_ratio": 0.3
         }
       }
     },
     "updater": {
-      "updater_path": "update.FedDL.FedDL",
-      "loss": "cross_entropy",
+      "path": "updater.SyncUpdater.SyncUpdater",
+      "loss": "torch.nn.functional.cross_entropy",
+      "update": {
+        "path": "update.FedDL.FedDL",
+        "params": {
+          "n_clusters": 2
+        }
+      }
+    }
+  },
+  "queue_manager": {
+    "path": "queuemanager.SingleQueueManager.SingleQueueManager",
+    "receiver": {
+      "path": "receiver.NormalReceiver.NormalReceiver",
       "params": {
-        "n_clusters": 2
+      }
+    },
+    "checker": {
+      "path": "checker.SyncChecker.SyncChecker",
+      "params": {
       }
     }
   },
   "client_manager": {
-    "checker": {
-      "checker_path": "fedsync.checker.AvgChecker.AvgChecker",
-      "params": {
-      }
-    },
-    "client_path": "client.DLClient.DLClient"
+    "path": "clientmanager.NormalClientManager.NormalClientManager"
   },
   "client": {
+    "path": "client.DLClient.DLClient",
     "epochs": 1,
     "batch_size": 24,
     "alpha": 0.3,
@@ -62,7 +72,7 @@
       "path": "model.CNN.CNN",
       "params": {}
     },
-    "loss": "cross_entropy",
+    "loss": "torch.nn.functional.cross_entropy",
     "mu": 0,
     "optimizer": {
       "path": "torch.optim.SGD",

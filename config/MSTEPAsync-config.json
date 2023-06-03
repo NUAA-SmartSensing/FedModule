@@ -7,7 +7,6 @@
   "global": {
     "use_file_system": false,
     "multi_gpu": true,
-    "mode": "async",
     "experiment": "MStep/1",
     "stale": {
       "step": 2,
@@ -21,41 +20,53 @@
     "client_num": 10
   },
   "server": {
+    "path": "server.AsyncServer.AsyncServer",
     "epochs": 20,
     "model": {
       "path": "model.CNN.CNN",
       "params": {}
     },
     "scheduler": {
-      "scheduler_path": "schedule.NoSchedule.NoSchedule",
-      "params": {
-        "schedule_interval": 1
-      },
-      "receiver": {
-        "receiver_path": "fedasync.receiver.AvgReceiver.AvgReceiver",
+      "path": "scheduler.AsyncScheduler.AsyncScheduler",
+      "schedule_interval": 10,
+      "schedule_delay": 20,
+      "schedule": {
+        "path": "schedule.NoSchedule.NoSchedule",
         "params": {
         }
       }
     },
     "updater": {
-      "updater_path": "update.StepAsyncAvg.StepAsyncAvg",
-      "loss": "cross_entropy",
-      "nums": 3,
+      "path": "updater.AsyncUpdater.AsyncUpdater",
+      "num_generator": 3,
+      "loss": "torch.nn.functional.cross_entropy",
+      "update": {
+        "path": "update.StepAsyncAvg.StepAsyncAvg",
+        "params": {
+          "rho": 0.2,
+          "alpha": 0.5
+        }
+      }
+    }
+  },
+  "queue_manager": {
+    "path": "queuemanager.SingleQueueManager.SingleQueueManager",
+    "receiver": {
+      "path": "receiver.NormalReceiver.NormalReceiver",
       "params": {
-        "rho": 0.2,
-        "alpha": 0.5
+      }
+    },
+    "checker": {
+      "path": "checker.AllChecker.AllChecker",
+      "params": {
       }
     }
   },
   "client_manager": {
-    "client_path": "client.ActiveClient.ActiveClient",
-    "checker": {
-      "checker_path": "fedasync.checker.AllChecker.AllChecker",
-      "params": {
-      }
-    }
+    "path": "clientmanager.NormalClientManager.NormalClientManager"
   },
   "client": {
+    "path": "client.ActiveClient.ActiveClient",
     "epochs": 1,
     "batch_size": 50,
     "model": {
@@ -63,7 +74,7 @@
       "params": {}
     },
     "acquire_model_delay": 1,
-    "loss": "cross_entropy",
+    "loss": "torch.nn.functional.cross_entropy",
     "mu": 0.01,
     "optimizer": {
       "path": "torch.optim.SGD",
