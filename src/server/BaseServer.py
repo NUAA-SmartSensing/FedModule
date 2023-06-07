@@ -29,8 +29,8 @@ class BaseServer:
         self.global_var['server_network'] = self.server_network
 
         # 数据集
-        dataset_class = ModuleFindTool.find_class_by_path(self.global_config["dataset_path"])
-        self.dataset = dataset_class(self.global_config["client_num"], self.global_config["iid"])
+        dataset_class = ModuleFindTool.find_class_by_path(self.global_config["dataset"]["path"])
+        self.dataset = dataset_class(self.global_config["client_num"], self.global_config["iid"], self.global_config["dataset"]["params"])
         self.global_var['dataset'] = self.dataset
         self.config['global']['iid'] = self.dataset.get_config()
 
