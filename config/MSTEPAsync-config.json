@@ -13,7 +13,10 @@
       "shuffle": true,
       "list": [2, 2, 2, 2, 2]
     },
-    "dataset_path": "dataset.FashionMNIST.FashionMNIST",
+    "dataset": {
+      "path": "dataset.MNIST.MNIST",
+      "params": {}
+    },
     "iid":  {
       "beta": 0.5
     },

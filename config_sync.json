@@ -13,7 +13,10 @@
       "shuffle": true,
       "list": [10, 10, 10, 5, 5, 5, 5]
     },
-    "dataset_path": "dataset.FashionMNIST.FashionMNIST",
+    "dataset": {
+      "path": "dataset.FashionMNIST.FashionMNIST",
+      "params": {}
+    },
     "iid": true,
     "client_num": 50
   },

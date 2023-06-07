@@ -14,7 +14,10 @@
       "shuffle": true,
       "list": [30]
     },
-    "dataset_path": "dataset.MNIST.MNIST",
+    "dataset": {
+      "path": "dataset.MNIST.MNIST",
+      "params": {}
+    },
     "iid": true,
     "client_num": 30
   },

@@ -13,7 +13,10 @@
       "shuffle": true,
       "list": [50]
     },
-    "dataset_path": "dataset.MNIST.MNIST",
+    "dataset": {
+      "path": "dataset.MNIST.MNIST",
+      "params": {}
+    },
     "iid": {
       "customize": true,
       "label": {

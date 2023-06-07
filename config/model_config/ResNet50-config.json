@@ -14,7 +14,10 @@
       "shuffle": true,
       "list": [10, 10, 10, 5, 5, 5, 5]
     },
-    "dataset_path": "dataset.CIFAR10.CIFAR10",
+    "dataset": {
+      "path": "dataset.CIFAR10.CIFAR10",
+      "params": {}
+    },
     "iid": true,
     "client_num": 50
   },

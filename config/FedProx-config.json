@@ -9,7 +9,10 @@
     "multi_gpu": true,
     "experiment": "FedProx/1",
     "stale": false,
-    "dataset_path": "dataset.MNIST.MNIST",
+    "dataset": {
+      "path": "dataset.MNIST.MNIST",
+      "params": {}
+    },
     "iid": true,
     "client_num": 50
   },
