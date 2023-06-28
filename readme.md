@@ -11,8 +11,6 @@
 
 > keywords: `federated-learning`, `asynchronous`, `synchronous`, `semi-asynchronous`, `personalized`
 
-> ⚠️ the readme is for version 2.1, the readme of `new version 3.0` is being written.
-
 <details>
   <summary><b>Table of Contents</b></summary>
   <p>
@@ -155,18 +153,25 @@ docker run -it async-fl config/FedAvg-config.json
 ├── config_sync_test.json
 ├── config_test.json
 ├── doc
+│   ├── params.docx
 │   ├── pic
 │   │   ├── fedsemi.png
 │   │   ├── framework.png
 │   │   └── header.png
-│   └── readme-zh.md
+│   ├── readme-zh.md
+│   └── 参数.docx
 ├── docker
 │   └── Dockerfile
 ├── license
 ├── readme.md
 ├── requirements.txt
-└── src 
-    ├── client                                Client implementation
+└── src
+    ├── checker                                checker implementation
+    │   ├── AllChecker.py
+    │   ├── CheckerCaller.py
+    │   ├── SyncChecker.py
+    │   └── __init__.py
+    ├── client                                 client implementation
     │   ├── ActiveClient.py
     │   ├── Client.py
     │   ├── DLClient.py
@@ -175,81 +180,104 @@ docker run -it async-fl config/FedAvg-config.json
     │   ├── SemiClient.py
     │   ├── TestClient.py
     │   └── __init__.py
-    ├── data                                  Dataset download location
-    ├── dataset                               Dataset class
-    │   ├── CIFAR10.py
-    │   ├── MNIST.py
-    │   ├── FashionMNIST.py
+    ├── clientmanager                           client manager implementation
+    │   ├── BaseClientManager.py
+    │   ├── NormalClientManager.py
     │   └── __init__.py
-    ├── exception                             Exception class
+    ├── compressor                              compressor algorithm class
+    │   ├── QSGD.py
+    │   └── __init__.py
+    ├── data
+    ├── dataset
+    │   ├── CIFAR10.py
+    │   ├── FashionMNIST.py
+    │   ├── MNIST.py
+    │   └── __init__.py
+    ├── exception
     │   ├── ClientSumError.py
     │   └── __init__.py
-    ├── fedasync                              Asynchronous Federated Learning
-    │   ├── AsyncClientManager.py
-    │   ├── AsyncServer.py
-    │   ├── QueueManager.py
-    │   ├── SchedulerThread.py
-    │   ├── UpdaterThread.py
-    │   ├── __init__.py
-    │   ├── checker
-    │   │   └── AllChecker.py
-    │   ├── quantitydeterminer
-    │   └── receiver
-    │       └──  AvgReceiver.py
-    ├── fedsemi                               Semi-asynchronous Federated Learning
-    │   ├── QueueManager.py                   Message Queue Manager class
-    │   ├── SchedulerThread.py                Scheduling Thread
-    │   ├── SemiAsyncClientManager.py         Client Manager class
-    │   ├── SemiAsyncServer.py                Server class
-    │   ├── UpdaterThread.py                  Aggregation Thread
-    │   ├── __init__.py
-    │   ├── checker                           Semi-asynchronous checker
-    │   │   └── SemiAvgChecker.py
-    │   ├── grouping                          Partitioner
-    │   │   ├── Grouping.py
-    │   │   ├── NormalGrouping.py
-    │   │   └── SimpleGrouping.py
-    │   └── receiver                          Semi-asynchronous receiver
-    │       └── SemiAvgReceiver.py
-    ├── fedsync                               Synchronous Federated Learning
-    │   ├── QueueManager.py                   Queue Manager class
-    │   ├── SchedulerThread.py                Scheduling Thread
-    │   ├── SyncClientManager.py              Client Manager class
-    │   ├── SyncServer.py
-    │   ├── UpdaterThread.py
-    │   ├── __init__.py
-    │   ├── checker                           Synchronous Checker
-    │   │   └── AvgChecker.py
-    │   └── receiver                          Synchronous Receiver
-    │       └── AvgReceiver.py
-    ├── fl                                    fl main function
+    ├── fl                                       wandb running directory
     │   ├── __init__.py
     │   ├── main.py
-    │   └── wandb                             wandb running directory
-    ├── loss                                  Implementation of Loss Function
+    │   └── wandb
+    ├── group                                    group algorithm class
+    │   ├── AbstractGroup.py
+    │   ├── DelayGroup.py
+    │   ├── GroupCaller.py
+    │   ├── OneGroup.py
+    │   └── __init__.py
+    ├── groupmanager                             group manager implementation
+    │   ├── BaseGroupManager.py
+    │   ├── NormalGroupManager.py
+    │   └── __init__.py
+    ├── loss                                     loss algorithm class
     │   ├── FedLC.py
+    │   ├── LossFactory.py
     │   └── __init__.py
     ├── model
     │   ├── CNN.py
     │   └── __init__.py
+    ├── numgenerator                             num generator algorithm class
+    │   ├── AbstractNumGenerator.py
+    │   ├── NumGeneratorFactory.py
+    │   ├── StaticNumGenerator.py
+    │   └── __init__.py
+    ├── queuemanager                             queuemanager implementation
+    │   ├── AbstractQueueManager.py
+    │   ├── BaseQueueManger.py
+    │   ├── QueueListManager.py
+    │   ├── SingleQueueManager.py
+    │   └── __init__.py
+    ├── receiver                                 receiver implementation
+    │   ├── MultiQueueReceiver.py
+    │   ├── NoneReceiver.py
+    │   ├── NormalReceiver.py
+    │   ├── ReceiverCaller.py
+    │   └── __init__.py
     ├── results
-    ├── schedule                              Scheduling Algorithm Class
+    ├── schedule                                 scheduling algorithm class
+    │   ├── AbstractSchedule.py
     │   ├── FullSchedule.py
     │   ├── NoSchedule.py
     │   ├── RandomSchedule.py
     │   ├── RoundRobin.py
+    │   ├── ScheduleCaller.py
     │   └── __init__.py
-    ├── test                                  for test
-    ├── update                                Updating Algorithm Class
+    ├── scheduler                                scheduler implementation
+    │   ├── AsyncScheduler.py
+    │   ├── BaseScheduler.py
+    │   ├── SemiAsyncScheduler.py
+    │   ├── SyncScheduler.py
+    │   └── __init__.py
+    ├── server                                   server implementation
+    │   ├── AsyncServer.py
+    │   ├── BaseServer.py
+    │   ├── SemiAsyncServer.py
+    │   ├── SyncServer.py
+    │   └── __init__.py
+    ├── test                                     for test
+    │   ├── __init__.py
+    │   ├── test.ipynb
+    │   └── test.py
+    ├── update                                   update algorithm class
+    │   ├── AbstractUpdate.py
     │   ├── AsyncAvg.py
     │   ├── FedAT.py
     │   ├── FedAsync.py
     │   ├── FedAvg.py
     │   ├── FedDL.py
     │   ├── StepAsyncAvg.py
+    │   ├── UpdateCaller.py
+    │   └── __init__.py
+    ├── updater                                 updater implementation
+    │   ├── AsyncUpdater.py
+    │   ├── BaseUpdater.py
+    │   ├── SemiAsyncUpdater.py
+    │   ├── SyncUpdater.py
     │   └── __init__.py
     └── utils
         ├── ConfigManager.py
+        ├── GlobalVarGetter.py
         ├── IID.py
         ├── JsonTool.py
         ├── ModelTraining.py
@@ -285,900 +313,985 @@ In synchronous and semi-asynchronous federated learning, after a client complete
 
 ## Configuration
 
-### Asynchronous Configuration
+### Configuration
 
-[example](config/FedAsync-config.json)
+[async mdoe example](config/FedAsync-config.json)
 
-### Synchronous Configuration
+[sync mdoe example](config/FedAvg-config.json)
 
-[example](config/FedAvg-config.json)
-
-### Semi-aynchronous Configuration
-
-[example](config/FedAT-config.json)
+[semi-async mdoe example](config/FedAT-config.json)
 
 ### Parameter explanation
 
-<table class=MsoTableGrid border=1 cellspacing=0 cellpadding=0
- style='border-collapse:collapse;border:none;mso-border-alt:solid windowtext .5pt;
- mso-yfti-tbllook:1184;mso-padding-alt:0cm 5.4pt 0cm 5.4pt'>
- <tr style='mso-yfti-irow:0;mso-yfti-firstrow:yes'>
-  <td width=330 colspan=9 style='width:247.65pt;border:solid windowtext 1.0pt;
-  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt'>
-  <p class=MsoNormal align=center style='text-align:center'>parameters</p>
-  </td>
-  <td width=103 style='width:76.95pt;border:solid windowtext 1.0pt;border-left:
-  none;mso-border-left-alt:solid windowtext .5pt;mso-border-alt:solid windowtext .5pt;
-  padding:0cm 5.4pt 0cm 5.4pt'>
-  <p class=MsoNormal align=center style='text-align:center'>type</p>
-  </td>
-  <td width=120 style='width:90.2pt;border:solid windowtext 1.0pt;border-left:
-  none;mso-border-left-alt:solid windowtext .5pt;mso-border-alt:solid windowtext .5pt;
-  padding:0cm 5.4pt 0cm 5.4pt'>
-  <p class=MsoNormal align=center style='text-align:center'>explanations</p>
-  </td>
- </tr>
- <tr style='mso-yfti-irow:1;height:2.75pt'>
-  <td width=106 colspan=2 rowspan=3 style='width:79.25pt;border:solid windowtext 1.0pt;
-  border-top:none;mso-border-top-alt:solid windowtext .5pt;mso-border-alt:solid windowtext .5pt;
-  padding:0cm 5.4pt 0cm 5.4pt;height:2.75pt'>
-  <p class=MsoNormal align=center style='text-align:center'><span class=SpellE><span
-  lang=EN-US>wandb</span></span></p>
-  </td>
-  <td width=225 colspan=7 style='width:168.4pt;border-top:none;border-left:
-  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
-  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
-  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:2.75pt'>
-  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US>enabled</span></p>
-  </td>
-  <td width=103 style='width:76.95pt;border-top:none;border-left:none;
-  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
-  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
-  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:2.75pt'>
+<details>
+  <summary><b>Parameter explanation</b></summary>
+  <p>
+
+<table class=MsoTableGrid border=1 cellspacing=0 cellpadding=0 align=left
+ style='border-collapse:collapse;border:none;margin-left:6.75pt;margin-right:
+ 6.75pt'>
+ <tr style='height:1.0cm'>
+  <td colspan=5 style='border:solid windowtext 1.0pt;padding:0cm 5.4pt 0cm 5.4pt;
+  height:1.0cm'>
   <p class=MsoNormal align=center style='text-align:center'><span
-  lang=EN-US>bool</span></p>
+  lang=EN-US style='font-family:Kai'>parameters</span></p>
   </td>
-  <td width=120 style='width:90.2pt;border-top:none;border-left:none;
-  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
-  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
-  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:2.75pt'>
+  <td width=47 style='width:34.9pt;border:solid windowtext 1.0pt;border-left:
+  none;padding:0cm 5.4pt 0cm 5.4pt;height:1.0cm'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US
+  style='font-family:Kai'>type</span></p>
+  </td>
+  <td width=496 style='width:371.85pt;border:solid windowtext 1.0pt;border-left:
+  none;padding:0cm 5.4pt 0cm 5.4pt;height:1.0cm'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US style='font-family:Kai'>explanation</span><span
+  lang=EN-US style='font-family:Kai'>s</span></p>
+  </td>
+ </tr>
+ <tr style='height:1.0cm'>
+  <td rowspan=3 style='border:solid windowtext 1.0pt;border-top:none;
+  padding:0cm 5.4pt 0cm 5.4pt;height:1.0cm'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US
+  style='font-family:Kai'>wandb</span></p>
+  </td>
+  <td colspan=4 style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0cm 5.4pt 0cm 5.4pt;height:1.0cm'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US
+  style='font-family:Kai'>enabled</span></p>
+  </td>
+  <td width=47 style='width:34.9pt;border-top:none;border-left:none;border-bottom:
+  solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;padding:0cm 5.4pt 0cm 5.4pt;
+  height:1.0cm'>
   <p class=MsoNormal align=center style='text-align:center'><span
-  class=SpellE><span lang=EN-US>whether to enable wandb</span></span></p>
+  lang=EN-US style='font-family:Kai'>bool</span></p>
   </td>
- </tr>
- <tr style='mso-yfti-irow:2;height:2.65pt'>
-  <td width=225 colspan=7 style='width:168.4pt;border-top:none;border-left:
-  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
-  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
-  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:2.65pt'>
-  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US>project</span></p>
-  </td>
-  <td width=103 style='width:76.95pt;border-top:none;border-left:none;
+  <td width=496 style='width:371.85pt;border-top:none;border-left:none;
   border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
-  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
-  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:2.65pt'>
-  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US>string</span></p>
-  </td>
-  <td width=120 style='width:90.2pt;border-top:none;border-left:none;
-  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
-  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
-  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:2.65pt'>
-  <p class=MsoNormal align=center style='text-align:center'>project name</p>
-  </td>
- </tr>
- <tr style='mso-yfti-irow:3;height:2.65pt'>
-  <td width=225 colspan=7 style='width:168.4pt;border-top:none;border-left:
-  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
-  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
-  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:2.65pt'>
-  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US>name</span></p>
-  </td>
-  <td width=103 style='width:76.95pt;border-top:none;border-left:none;
-  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
-  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
-  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:2.65pt'>
-  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US>string</span></p>
-  </td>
-  <td width=120 style='width:90.2pt;border-top:none;border-left:none;
-  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
-  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
-  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:2.65pt'>
-  <p class=MsoNormal align=center style='text-align:center'>the name of this run</p>
-  </td>
- </tr>
- <tr style='mso-yfti-irow:4;height:1.05pt'>
-  <td width=106 colspan=2 rowspan=8 style='width:79.25pt;border:solid windowtext 1.0pt;
-  border-top:none;mso-border-top-alt:solid windowtext .5pt;mso-border-alt:solid windowtext .5pt;
-  padding:0cm 5.4pt 0cm 5.4pt;height:1.05pt'>
-  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US>global</span></p>
-  </td>
-  <td width=225 colspan=7 style='width:168.4pt;border-top:none;border-left:
-  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
-  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
-  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:1.05pt'>
-  <p class=MsoNormal align=center style='text-align:center'><span class=SpellE><span
-  lang=EN-US>use_file_system</span></span></p>
-  </td>
-  <td width=103 style='width:76.95pt;border-top:none;border-left:none;
-  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
-  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
-  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:1.05pt'>
-  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US>bool</span></p>
-  </td>
-  <td width=120 style='width:90.2pt;border-top:none;border-left:none;
-  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
-  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
-  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:1.05pt'>
-  <p class=MsoNormal align=center style='text-align:center'>whether to enable the file system as the torch multi-thread sharing strategy></p>
-  </td>
- </tr>
- <tr style='mso-yfti-irow:5;height:1.0pt'>
-  <td width=225 colspan=7 style='width:168.4pt;border-top:none;border-left:
-  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
-  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
-  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:1.0pt'>
-  <p class=MsoNormal align=center style='text-align:center'><span class=SpellE><span
-  lang=EN-US>multi_gpu</span></span></p>
-  </td>
-  <td width=103 style='width:76.95pt;border-top:none;border-left:none;
-  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
-  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
-  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:1.0pt'>
-  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US>bool</span></p>
-  </td>
-  <td width=120 style='width:90.2pt;border-top:none;border-left:none;
-  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
-  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
-  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:1.0pt'>
+  padding:0cm 5.4pt 0cm 5.4pt;height:1.0cm'>
   <p class=MsoNormal align=center style='text-align:center'><span
-  lang=EN-US>whether to enable multi-GPU, </span><a href="#multi-gpu">detailed explanation</a></p>
+  lang=EN-US style='font-family:Kai'>whether to enable wandb</span></p>
   </td>
  </tr>
- <tr style='mso-yfti-irow:6;height:1.0pt'>
-  <td width=225 colspan=7 style='width:168.4pt;border-top:none;border-left:
-  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
-  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
-  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:1.0pt'>
-  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US>mode</span></p>
+ <tr style='height:1.0cm'>
+  <td colspan=4 style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0cm 5.4pt 0cm 5.4pt;height:1.0cm'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US
+  style='font-family:Kai'>project</span></p>
   </td>
-  <td width=103 style='width:76.95pt;border-top:none;border-left:none;
+  <td width=47 style='width:34.9pt;border-top:none;border-left:none;border-bottom:
+  solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;padding:0cm 5.4pt 0cm 5.4pt;
+  height:1.0cm'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US
+  style='font-family:Kai'>string</span></p>
+  </td>
+  <td width=496 style='width:371.85pt;border-top:none;border-left:none;
   border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
-  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
-  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:1.0pt'>
+  padding:0cm 5.4pt 0cm 5.4pt;height:1.0cm'>
   <p class=MsoNormal align=center style='text-align:center'><span
-  lang=EN-US>string</span></p>
-  </td>
-  <td width=120 style='width:90.2pt;border-top:none;border-left:none;
-  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
-  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
-  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:1.0pt'>
-  <p class=MsoNormal align=center style='text-align:center'><span class=SpellE><span
-  class=GramE><span lang=EN-US>async,sync</span></span></span><span lang=EN-US>,
-  semi-async</span></p>
-  <p class=MsoNormal align=center style='text-align:center'>choose one of the three operating modes of the framework</p>
+  lang=EN-US style='font-family:Kai'>project name</span></p>
   </td>
  </tr>
- <tr style='mso-yfti-irow:7;height:1.0pt'>
-  <td width=225 colspan=7 style='width:168.4pt;border-top:none;border-left:
-  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
-  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
-  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:1.0pt'>
-  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US>experiment</span></p>
+ <tr style='height:1.0cm'>
+  <td colspan=4 style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0cm 5.4pt 0cm 5.4pt;height:1.0cm'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US
+  style='font-family:Kai'>name</span></p>
   </td>
-  <td width=103 style='width:76.95pt;border-top:none;border-left:none;
-  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
-  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
-  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:1.0pt'>
-  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US>string</span></p>
+  <td width=47 style='width:34.9pt;border-top:none;border-left:none;border-bottom:
+  solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;padding:0cm 5.4pt 0cm 5.4pt;
+  height:1.0cm'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US
+  style='font-family:Kai'>string</span></p>
   </td>
-  <td width=120 style='width:90.2pt;border-top:none;border-left:none;
+  <td width=496 style='width:371.85pt;border-top:none;border-left:none;
   border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
-  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
-  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:1.0pt'>
-  <p class=MsoNormal align=center style='text-align:center'>the name of this run</p>
+  padding:0cm 5.4pt 0cm 5.4pt;height:1.0cm'>
+  <p class=MsoNormal align=center style='text-align:center'><span
+  lang=EN-US style='font-family:Kai'>the name of this run</span></p>
   </td>
  </tr>
- <tr style='mso-yfti-irow:8;height:1.0pt'>
-  <td width=225 colspan=7 style='width:168.4pt;border-top:none;border-left:
-  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
-  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
-  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:1.0pt'>
-  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US>stale</span></p>
+ <tr style='height:1.0cm'>
+  <td rowspan=8 style='border:solid windowtext 1.0pt;border-top:none;
+  padding:0cm 5.4pt 0cm 5.4pt;height:1.0cm'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US
+  style='font-family:Kai'>global</span></p>
   </td>
-  <td width=223 colspan=2 style='width:167.15pt;border-top:none;border-left:
-  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
-  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
-  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:1.0pt'>
-  <p class=MsoNormal align=center style='text-align:center'><a href="#staleness-settings">explaination</a></p>
+  <td colspan=4 style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0cm 5.4pt 0cm 5.4pt;height:1.0cm'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US
+  style='font-family:Kai'>use_file_system</span></p>
+  </td>
+  <td width=47 style='width:34.9pt;border-top:none;border-left:none;border-bottom:
+  solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;padding:0cm 5.4pt 0cm 5.4pt;
+  height:1.0cm'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US
+  style='font-family:Kai'>bool</span></p>
+  </td>
+  <td width=496 style='width:371.85pt;border-top:none;border-left:none;
+  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0cm 5.4pt 0cm 5.4pt;height:1.0cm'>
+  <p class=MsoNormal align=center style='text-align:center'><span
+  lang=EN-US style='font-family:Kai'>whether to enable the file system as the
+  torch multi-thread sharing strategy</span></p>
   </td>
  </tr>
- <tr style='mso-yfti-irow:9;height:1.0pt'>
-  <td width=225 colspan=7 style='width:168.4pt;border-top:none;border-left:
-  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
-  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
-  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:1.0pt'>
-  <p class=MsoNormal align=center style='text-align:center'><span class=SpellE><span
-  lang=EN-US>dataset_path</span></span></p>
+ <tr style='height:1.0cm'>
+  <td colspan=4 style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0cm 5.4pt 0cm 5.4pt;height:1.0cm'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US
+  style='font-family:Kai'>multi_gpu</span></p>
   </td>
-  <td width=103 style='width:76.95pt;border-top:none;border-left:none;
-  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
-  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
-  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:1.0pt'>
-  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US>string</span></p>
+  <td width=47 style='width:34.9pt;border-top:none;border-left:none;border-bottom:
+  solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;padding:0cm 5.4pt 0cm 5.4pt;
+  height:1.0cm'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US
+  style='font-family:Kai'>bool</span></p>
   </td>
-  <td width=120 style='width:90.2pt;border-top:none;border-left:none;
+  <td width=496 style='width:371.85pt;border-top:none;border-left:none;
   border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
-  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
-  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:1.0pt'>
-  <p class=MsoNormal align=center style='text-align:center'>the path of the dataset</p>
+  padding:0cm 5.4pt 0cm 5.4pt;height:1.0cm'>
+  <p class=MsoNormal align=center style='text-align:center'><span
+  lang=EN-US style='font-family:Kai'>whether to enable multi-GPU, detailed </span><a
+  href="#multi-gpu"><span lang=EN-US style='font-family:Kai'>explanation</span></a></p>
   </td>
  </tr>
- <tr style='mso-yfti-irow:10;height:1.0pt'>
-  <td width=225 colspan=7 style='width:168.4pt;border-top:none;border-left:
-  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
-  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
-  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:1.0pt'>
-  <p class=MsoNormal align=center style='text-align:center'><span class=SpellE><span
-  lang=EN-US>iid</span></span></p>
+ <tr style='height:1.0cm'>
+  <td colspan=4 style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0cm 5.4pt 0cm 5.4pt;height:1.0cm'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US
+  style='font-family:Kai'>experiment</span></p>
   </td>
-  <td width=223 colspan=2 style='width:167.15pt;border-top:none;border-left:
-  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
-  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
-  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:1.0pt'>
-  <p class=MsoNormal align=center style='text-align:center'><a href="#iid">explaination</a></p>
+  <td width=47 style='width:34.9pt;border-top:none;border-left:none;border-bottom:
+  solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;padding:0cm 5.4pt 0cm 5.4pt;
+  height:1.0cm'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US
+  style='font-family:Kai'>string</span></p>
+  </td>
+  <td width=496 style='width:371.85pt;border-top:none;border-left:none;
+  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0cm 5.4pt 0cm 5.4pt;height:1.0cm'>
+  <p class=MsoNormal align=center style='text-align:center'><span
+  lang=EN-US style='font-family:Kai'>the name of this run</span></p>
   </td>
  </tr>
- <tr style='mso-yfti-irow:11;height:1.0pt'>
-  <td width=225 colspan=7 style='width:168.4pt;border-top:none;border-left:
-  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
-  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
-  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:1.0pt'>
-  <p class=MsoNormal align=center style='text-align:center'><span class=SpellE><span
-  lang=EN-US>client_num</span></span></p>
+ <tr style='height:1.0cm'>
+  <td colspan=4 style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0cm 5.4pt 0cm 5.4pt;height:1.0cm'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US
+  style='font-family:Kai'>stale</span></p>
   </td>
-  <td width=103 style='width:76.95pt;border-top:none;border-left:none;
-  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
-  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
-  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:1.0pt'>
-  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US>int</span></p>
-  </td>
-  <td width=120 style='width:90.2pt;border-top:none;border-left:none;
-  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
-  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
-  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:1.0pt'>
-  <p class=MsoNormal align=center style='text-align:center'>client num</p>
+  <td colspan=2 style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0cm 5.4pt 0cm 5.4pt;height:1.0cm'>
+  <p class=MsoNormal align=center style='text-align:center'><a href="#staleness_settings"><span lang=EN-US
+  style='font-family:Kai'>explanation</span></a></p>
   </td>
  </tr>
- <tr style='mso-yfti-irow:12;height:2.05pt'>
-  <td width=106 colspan=2 rowspan=12 style='width:79.25pt;border:solid windowtext 1.0pt;
-  border-top:none;mso-border-top-alt:solid windowtext .5pt;mso-border-alt:solid windowtext .5pt;
-  padding:0cm 5.4pt 0cm 5.4pt;height:2.05pt'>
-  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US>server</span></p>
+ <tr style='height:1.0cm'>
+  
+  <td rowspan=2 style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0cm 5.4pt 0cm 5.4pt;height:1.0cm'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US
+  style='font-family:Kai'>dataset</span></p>
   </td>
-  <td width=225 colspan=7 style='width:168.4pt;border-top:none;border-left:
-  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
-  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
-  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:2.05pt'>
-  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US>epochs</span></p>
+  <td colspan=3 style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0cm 5.4pt 0cm 5.4pt;height:1.0cm'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US
+  style='font-family:Kai'>path</span></p>
   </td>
-  <td width=103 style='width:76.95pt;border-top:none;border-left:none;
+  <td width=47 style='width:34.9pt;border-top:none;border-left:none;border-bottom:
+  solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;padding:0cm 5.4pt 0cm 5.4pt;
+  height:1.0cm'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US
+  style='font-family:Kai'>string</span></p>
+  </td>
+  <td width=496 style='width:371.85pt;border-top:none;border-left:none;
   border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
-  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
-  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:2.05pt'>
-  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US>int</span></p>
-  </td>
-  <td width=120 style='width:90.2pt;border-top:none;border-left:none;
-  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
-  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
-  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:2.05pt'>
-  <p class=MsoNormal align=center style='text-align:center'>global epoch</p>
+  padding:0cm 5.4pt 0cm 5.4pt;height:1.0cm'>
+  <p class=MsoNormal align=center style='text-align:center'><span
+  lang=EN-US style='font-family:Kai'>the path of the dataset</span></p>
   </td>
  </tr>
- <tr style='mso-yfti-irow:13;height:3.55pt'>
-  <td width=99 colspan=4 rowspan=2 style='width:74.5pt;border-top:none;
+ <tr style='height:1.0cm'>
+  <td colspan=3 style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0cm 5.4pt 0cm 5.4pt;height:1.0cm'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US
+  style='font-family:Kai'>params</span></p>
+  </td>
+  <td width=47 style='width:34.9pt;border-top:none;border-left:none;border-bottom:
+  solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;padding:0cm 5.4pt 0cm 5.4pt;
+  height:1.0cm'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US
+  style='font-family:Kai'>dict</span></p>
+  </td>
+  <td width=496 style='width:371.85pt;border-top:none;border-left:none;
+  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0cm 5.4pt 0cm 5.4pt;height:1.0cm'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US
+  style='font-family:Kai'>required parameters</span></p>
+  </td>
+ </tr>
+ <tr style='height:1.0cm'>
+  <td colspan=4 style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0cm 5.4pt 0cm 5.4pt;height:1.0cm'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US
+  style='font-family:Kai'>iid</span></p>
+  </td>
+  <td colspan=2 style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0cm 5.4pt 0cm 5.4pt;height:1.0cm'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US
+  style='font-family:Kai'><a href="#data-distribution-settings">explanation</a></span></p>
+  </td>
+ </tr>
+ <tr style='height:1.0cm'>
+  <td colspan=4 style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0cm 5.4pt 0cm 5.4pt;height:1.0cm'>
+  <p class=MsoNormal align=center style='text-align:center'><span
+  lang=EN-US style='font-family:Kai'>client_num</span></p>
+  </td>
+  <td width=47 style='width:34.9pt;border-top:none;border-left:none;border-bottom:
+  solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;padding:0cm 5.4pt 0cm 5.4pt;
+  height:1.0cm'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US
+  style='font-family:Kai'>int</span></p>
+  </td>
+  <td width=496 style='width:371.85pt;border-top:none;border-left:none;
+  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0cm 5.4pt 0cm 5.4pt;height:1.0cm'>
+  <p class=MsoNormal align=center style='text-align:center'><span
+  lang=EN-US style='font-family:Kai'>client num</span></p>
+  </td>
+ </tr>
+ <tr style='height:1.0cm'>
+  <td rowspan=15 style='border:solid windowtext 1.0pt;border-top:none;
+  padding:0cm 5.4pt 0cm 5.4pt;height:1.0cm'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US style='font-family:Kai'>server</span></p>
+  </td>
+  <td colspan=4 style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0cm 5.4pt 0cm 5.4pt;height:1.0cm'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US
+  style='font-family:Kai'>path</span></p>
+  </td>
+  <td width=47 style='width:34.9pt;border-top:none;border-left:none;border-bottom:
+  solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;padding:0cm 5.4pt 0cm 5.4pt;
+  height:1.0cm'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US
+  style='font-family:Kai'>string </span></p>
+  </td>
+  <td width=496 style='width:371.85pt;border-top:none;border-left:none;
+  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0cm 5.4pt 0cm 5.4pt;height:1.0cm'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US
+  style='font-family:Kai'>the path of server</span></p>
+  </td>
+ </tr>
+ <tr style='height:1.0cm'>
+  <td colspan=4 style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0cm 5.4pt 0cm 5.4pt;height:1.0cm'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US
+  style='font-family:Kai'>epochs</span></p>
+  </td>
+  <td width=47 style='width:34.9pt;border-top:none;border-left:none;border-bottom:
+  solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;padding:0cm 5.4pt 0cm 5.4pt;
+  height:1.0cm'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US
+  style='font-family:Kai'>int</span></p>
+  </td>
+  <td width=496 style='width:371.85pt;border-top:none;border-left:none;
+  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0cm 5.4pt 0cm 5.4pt;height:1.0cm'>
+  <p class=MsoNormal align=center style='text-align:center'><span
+  lang=EN-US style='font-family:Kai'>global epoch</span></p>
+  </td>
+ </tr>
+ <tr style='height:1.0cm'>
+  
+  <td rowspan=2 style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0cm 5.4pt 0cm 5.4pt;height:1.0cm'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US
+  style='font-family:Kai'>model</span></p>
+  </td>
+  <td colspan=3 style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0cm 5.4pt 0cm 5.4pt;height:1.0cm'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US
+  style='font-family:Kai'>path</span></p>
+  </td>
+  <td width=47 style='width:34.9pt;border-top:none;border-left:none;border-bottom:
+  solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;padding:0cm 5.4pt 0cm 5.4pt;
+  height:1.0cm'>
+  <p class=MsoNormal align=center style='text-align:center'><span
+  lang=EN-US style='font-family:Kai'>string</span></p>
+  </td>
+  <td width=496 style='width:371.85pt;border-top:none;border-left:none;
+  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0cm 5.4pt 0cm 5.4pt;height:1.0cm'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US style='font-family:Kai'>the path of the model</span></p>
+  </td>
+ </tr>
+ <tr style='height:1.0cm'>
+  
+  <td colspan=3 style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0cm 5.4pt 0cm 5.4pt;height:1.0cm'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US
+  style='font-family:Kai'>params</span></p>
+  </td>
+  <td width=47 style='width:34.9pt;border-top:none;border-left:none;border-bottom:
+  solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;padding:0cm 5.4pt 0cm 5.4pt;
+  height:1.0cm'>
+  <p class=MsoNormal align=center style='text-align:center'><span
+  lang=EN-US style='font-family:Kai'>dict</span></p>
+  </td>
+  <td width=496 style='width:371.85pt;border-top:none;border-left:none;
+  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0cm 5.4pt 0cm 5.4pt;height:1.0cm'>
+  <p class=MsoNormal align=center style='text-align:center'><span
+  lang=EN-US style='font-family:Kai'>required parameters</span></p>
+  </td>
+ </tr>
+ <tr style='height:1.0cm'>
+  
+  <td rowspan=4 style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0cm 5.4pt 0cm 5.4pt;height:1.0cm'>
+  <p class=MsoNormal align=center style='text-align:center'><span
+  lang=EN-US style='font-family:Kai'>scheduler</span></p>
+  </td>
+  <td colspan=3 style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0cm 5.4pt 0cm 5.4pt;height:1.0cm'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US
+  style='font-family:Kai'>path</span></p>
+  </td>
+  <td width=47 style='width:34.9pt;border-top:none;border-left:none;border-bottom:
+  solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;padding:0cm 5.4pt 0cm 5.4pt;
+  height:1.0cm'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US
+  style='font-family:Kai'>string</span></p>
+  </td>
+  <td width=496 style='width:371.85pt;border-top:none;border-left:none;
+  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0cm 5.4pt 0cm 5.4pt;height:1.0cm'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US style='font-family:Kai'>the path of the</span><span
+  lang=EN-US style='font-family:Kai'> scheduler</span></p>
+  </td>
+ </tr>
+ <tr style='height:1.0cm'>
+  
+  <td colspan=2 rowspan=2 style='border-top:none;border-left:none;border-bottom:
+  solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;padding:0cm 5.4pt 0cm 5.4pt;
+  height:1.0cm'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US style='font-family:
+  Kai'>schedule</span></p>
+  </td>
+  <td style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0cm 5.4pt 0cm 5.4pt;height:1.0cm'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US
+  style='font-family:Kai'>path</span></p>
+  </td>
+  <td width=47 style='width:34.9pt;border-top:none;border-left:none;border-bottom:
+  solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;padding:0cm 5.4pt 0cm 5.4pt;
+  height:1.0cm'>
+  <p class=MsoNormal align=center style='text-align:center'><span
+  lang=EN-US style='font-family:Kai'>string</span></p>
+  </td>
+  <td width=496 style='width:371.85pt;border-top:none;border-left:none;
+  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0cm 5.4pt 0cm 5.4pt;height:1.0cm'>
+  <p class=MsoNormal align=center style='text-align:center'><span
+  lang=EN-US style='font-family:Kai'>the path of the schedule</span></p>
+  </td>
+ </tr>
+ <tr style='height:1.0cm'>
+  <td style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0cm 5.4pt 0cm 5.4pt;height:1.0cm'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US
+  style='font-family:Kai'>params</span></p>
+  </td>
+  <td width=47 style='width:34.9pt;border-top:none;border-left:none;border-bottom:
+  solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;padding:0cm 5.4pt 0cm 5.4pt;
+  height:1.0cm'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US
+  style='font-family:Kai'>dict</span></p>
+  </td>
+  <td width=496 style='width:371.85pt;border-top:none;border-left:none;
+  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0cm 5.4pt 0cm 5.4pt;height:1.0cm'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US
+  style='font-family:Kai'>required parameters</span></p>
+  </td>
+ </tr>
+ <tr style='height:1.0cm'>
+  
+  <td colspan=3 style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0cm 5.4pt 0cm 5.4pt;height:1.0cm'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US
+  style='font-family:Kai'>other_params</span></p>
+  </td>
+  <td width=47 style='width:34.9pt;border-top:none;border-left:none;border-bottom:
+  solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;padding:0cm 5.4pt 0cm 5.4pt;
+  height:1.0cm'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US
+  style='font-family:Kai'>*</span></p>
+  </td>
+  <td width=496 style='width:371.85pt;border-top:none;border-left:none;
+  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0cm 5.4pt 0cm 5.4pt;height:1.0cm'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US
+  style='font-family:Kai'>other parameters</span></p>
+  </td>
+ </tr>
+ <tr style='height:1.0cm'>
+  
+  <td rowspan=7 style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0cm 5.4pt 0cm 5.4pt;height:1.0cm'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US
+  style='font-family:Kai'>updater</span></p>
+  </td>
+  <td colspan=3 style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0cm 5.4pt 0cm 5.4pt;height:1.0cm'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US
+  style='font-family:Kai'>path</span></p>
+  </td>
+  <td width=47 style='width:34.9pt;border-top:none;border-left:none;border-bottom:
+  solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;padding:0cm 5.4pt 0cm 5.4pt;
+  height:1.0cm'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US
+  style='font-family:Kai'>string</span></p>
+  </td>
+  <td width=496 style='width:371.85pt;border-top:none;border-left:none;
+  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0cm 5.4pt 0cm 5.4pt;height:1.0cm'>
+  <p class=MsoNormal align=center style='text-align:center'><span
+  lang=EN-US style='font-family:Kai'>the path of the updater</span></p>
+  </td>
+ </tr>
+ <tr style='height:1.0cm'>
+  
+  <td colspan=2 rowspan=2 style='border-top:none;border-left:none;border-bottom:
+  solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;padding:0cm 5.4pt 0cm 5.4pt;
+  height:1.0cm'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US style='font-family:Kai'>update</span></p>
+  </td>
+  <td style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0cm 5.4pt 0cm 5.4pt;height:1.0cm'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US
+  style='font-family:Kai'>path</span></p>
+  </td>
+  <td width=47 style='width:34.9pt;border-top:none;border-left:none;border-bottom:
+  solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;padding:0cm 5.4pt 0cm 5.4pt;
+  height:1.0cm'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US
+  style='font-family:Kai'>string</span></p>
+  </td>
+  <td width=496 style='width:371.85pt;border-top:none;border-left:none;
+  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0cm 5.4pt 0cm 5.4pt;height:1.0cm'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US
+  style='font-family:Kai'>the path of the update</span></p>
+  </td>
+ </tr>
+ <tr style='height:1.0cm'>
+  <td style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0cm 5.4pt 0cm 5.4pt;height:1.0cm'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US
+  style='font-family:Kai'>params</span></p>
+  </td>
+  <td width=47 style='width:34.9pt;border-top:none;border-left:none;border-bottom:
+  solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;padding:0cm 5.4pt 0cm 5.4pt;
+  height:1.0cm'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US
+  style='font-family:Kai'>dict</span></p>
+  </td>
+  <td width=496 style='width:371.85pt;border-top:none;border-left:none;
+  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0cm 5.4pt 0cm 5.4pt;height:1.0cm'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US
+  style='font-family:Kai'>required parameters</span></p>
+  </td>
+ </tr>
+ <tr style='height:1.0cm'>
+  
+  <td colspan=3 style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0cm 5.4pt 0cm 5.4pt;height:1.0cm'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US
+  style='font-family:Kai'>loss</span></p>
+  </td>
+  <td colspan=2 style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0cm 5.4pt 0cm 5.4pt;height:1.0cm'>
+  <p class=MsoNormal align=center style='text-align:center'><a
+  href="#adding-loss-function"><span lang=EN-US style='font-family:Kai'>explanation</span></a></p>
+  </td>
+ </tr>
+ <tr style='height:1.0cm'>
+  <td colspan=3 style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0cm 5.4pt 0cm 5.4pt;height:1.0cm'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US style='font-family:Kai'>num_generator</span></p>
+  </td>
+  <td width=542 colspan=2 style='width:406.75pt;border-top:none;border-left:
+  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0cm 5.4pt 0cm 5.4pt;height:1.0cm'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US
+  style='font-family:Kai'><a href="#num_generator">explanation</a></span></p>
+  </td>
+ </tr>
+ <tr style='height:1.0cm'>
+  <td colspan=2 rowspan=2 style='border-top:none;border-left:none;border-bottom:
+  solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;padding:0cm 5.4pt 0cm 5.4pt;
+  height:1.0cm'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US
+  style='font-family:Kai'>group</span></p>
+  </td>
+  <td style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0cm 5.4pt 0cm 5.4pt;height:1.0cm'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US
+  style='font-family:Kai'>path</span></p>
+  </td>
+  <td width=47 style='width:34.9pt;border-top:none;border-left:none;border-bottom:
+  solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;padding:0cm 5.4pt 0cm 5.4pt;
+  height:1.0cm'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US
+  style='font-family:Kai'>string</span></p>
+  </td>
+  <td width=496 style='width:371.85pt;border-top:none;border-left:none;
+  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0cm 5.4pt 0cm 5.4pt;height:1.0cm'>
+  <p class=MsoNormal align=center style='text-align:center'><span
+  lang=EN-US style='font-family:Kai'>the path of the updater</span></p>
+  </td>
+ </tr>
+ <tr style='height:1.0cm'>
+  <td style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0cm 5.4pt 0cm 5.4pt;height:1.0cm'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US
+  style='font-family:Kai'>params</span></p>
+  </td>
+  <td width=47 style='width:34.9pt;border-top:none;border-left:none;border-bottom:
+  solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;padding:0cm 5.4pt 0cm 5.4pt;
+  height:1.0cm'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US
+  style='font-family:Kai'>dict</span></p>
+  </td>
+  <td width=496 style='width:371.85pt;border-top:none;border-left:none;
+  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0cm 5.4pt 0cm 5.4pt;height:1.0cm'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US
+  style='font-family:Kai'>required parameters</span></p>
+  </td>
+ </tr>
+ <tr style='height:1.0cm'>
+  <td style='border:solid windowtext 1.0pt;border-top:none;padding:0cm 5.4pt 0cm 5.4pt;
+  height:1.0cm'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US
+  style='font-family:Kai'>client_manager</span></p>
+  </td>
+  <td colspan=4 style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0cm 5.4pt 0cm 5.4pt;height:1.0cm'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US
+  style='font-family:Kai'>path</span></p>
+  </td>
+  <td width=47 style='width:34.9pt;border-top:none;border-left:none;border-bottom:
+  solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;padding:0cm 5.4pt 0cm 5.4pt;
+  height:1.0cm'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US
+  style='font-family:Kai'>string</span></p>
+  </td>
+  <td width=496 style='width:371.85pt;border-top:none;border-left:none;
+  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0cm 5.4pt 0cm 5.4pt;height:1.0cm'>
+  <p class=MsoNormal align=center style='text-align:center'><span
+  lang=EN-US style='font-family:Kai'>the path of the client</span><span
+  lang=EN-US style='font-family:Kai'> manager</span></p>
+  </td>
+ </tr>
+ <tr style='height:1.0cm'>
+  <td width=107 rowspan=3 style='width:80.2pt;border:solid windowtext 1.0pt;
+  border-top:none;padding:0cm 5.4pt 0cm 5.4pt;height:1.0cm'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US
+  style='font-family:Kai'>group_manager</span></p>
+  </td>
+  <td width=246 colspan=4 style='width:184.55pt;border-top:none;border-left:
+  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0cm 5.4pt 0cm 5.4pt;height:1.0cm'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US
+  style='font-family:Kai'>path</span></p>
+  </td>
+  <td width=47 style='width:34.9pt;border-top:none;border-left:none;border-bottom:
+  solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;padding:0cm 5.4pt 0cm 5.4pt;
+  height:1.0cm'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US
+  style='font-family:Kai'>string</span></p>
+  </td>
+  <td width=496 style='width:371.85pt;border-top:none;border-left:none;
+  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0cm 5.4pt 0cm 5.4pt;height:1.0cm'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US
+  style='font-family:Kai'>the path of the group manager</span></p>
+  </td>
+ </tr>
+ <tr style='height:1.0cm'>
+  
+  <td width=132 colspan=2 rowspan=2 style='width:98.75pt;border-top:none;
   border-left:none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
-  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
-  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:3.55pt'>
-  <p class=MsoNormal align=center style='text-align:center'><span
-  style='mso-bookmark:_Hlk132987755'><span lang=EN-US>model</span></span></p>
+  padding:0cm 5.4pt 0cm 5.4pt;height:1.0cm'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US
+  style='font-family:Kai'>group_method</span></p>
   </td>
-  <span style='mso-bookmark:_Hlk132987755'></span>
-  <td width=125 colspan=3 style='width:93.9pt;border-top:none;border-left:none;
+  <td width=114 colspan=2 style='width:85.8pt;border-top:none;border-left:none;
   border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
-  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
-  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:3.55pt'>
-  <p class=MsoNormal align=center style='text-align:center'><span
-  style='mso-bookmark:_Hlk132987755'><span lang=EN-US>path</span></span></p>
+  padding:0cm 5.4pt 0cm 5.4pt;height:1.0cm'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US
+  style='font-family:Kai'>path</span></p>
   </td>
-  <span style='mso-bookmark:_Hlk132987755'></span>
-  <td width=103 style='width:76.95pt;border-top:none;border-left:none;
-  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
-  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
-  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:3.55pt'>
-  <p class=MsoNormal align=center style='text-align:center'><span
-  style='mso-bookmark:_Hlk132987755'><span lang=EN-US>string</span></span></p>
+  <td width=47 style='width:34.9pt;border-top:none;border-left:none;border-bottom:
+  solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;padding:0cm 5.4pt 0cm 5.4pt;
+  height:1.0cm'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US
+  style='font-family:Kai'>string</span></p>
   </td>
-  <span style='mso-bookmark:_Hlk132987755'></span>
-  <td width=120 style='width:90.2pt;border-top:none;border-left:none;
+  <td width=496 style='width:371.85pt;border-top:none;border-left:none;
   border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
-  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
-  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:3.55pt'>
-  <p class=MsoNormal align=center style='text-align:center'><span
-  style='mso-bookmark:_Hlk132987755'>the path of the model</span></p>
-  </td>
-  <span style='mso-bookmark:_Hlk132987755'></span>
- </tr>
- <tr style='mso-yfti-irow:14;height:3.5pt'>
-  <td width=125 colspan=3 style='width:93.9pt;border-top:none;border-left:none;
-  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
-  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
-  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:3.5pt'>
-  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US>params</span></p>
-  </td>
-  <td width=103 style='width:76.95pt;border-top:none;border-left:none;
-  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
-  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
-  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:3.5pt'>
-  <p class=MsoNormal align=center style='text-align:center'><span
-  class=SpellE><span style='mso-bookmark:OLE_LINK8'><span lang=EN-US>dict</span></span></span></p>
-  </td>
-  <td width=120 style='width:90.2pt;border-top:none;border-left:none;
-  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
-  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
-  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:3.5pt'>
-  <p class=MsoNormal align=center style='text-align:center'>required parameters</p>
+  padding:0cm 5.4pt 0cm 5.4pt;height:1.0cm'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US
+  style='font-family:Kai'>the path of the group method</span></p>
   </td>
  </tr>
- <tr style='mso-yfti-irow:15;height:2.35pt'>
-  <td width=72 colspan=2 rowspan=4 style='width:54.15pt;border-top:none;
-  border-left:none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
-  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
-  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:2.35pt'>
-  <p class=MsoNormal align=center style='text-align:center'><span
-  style='mso-bookmark:_Hlk132987069'><span lang=EN-US>scheduler</span></span></p>
-  </td>
-  <span style='mso-bookmark:_Hlk132987069'></span>
-  <td width=152 colspan=5 style='width:114.25pt;border-top:none;border-left:
-  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
-  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
-  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:2.35pt'>
-  <p class=MsoNormal align=center style='text-align:center'><span
-  style='mso-bookmark:_Hlk132987069'><span class=SpellE><span lang=EN-US>scheduler_path</span></span></span></p>
-  </td>
-  <span style='mso-bookmark:_Hlk132987069'></span>
-  <td width=103 style='width:76.95pt;border-top:none;border-left:none;
+ <tr style='height:1.0cm'>
+  <td width=114 colspan=2 style='width:85.8pt;border-top:none;border-left:none;
   border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
-  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
-  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:2.35pt'>
-  <p class=MsoNormal align=center style='text-align:center'><span
-  style='mso-bookmark:_Hlk132987069'><span lang=EN-US>string</span></span></p>
+  padding:0cm 5.4pt 0cm 5.4pt;height:1.0cm'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US
+  style='font-family:Kai'>params</span></p>
   </td>
-  <span style='mso-bookmark:_Hlk132987069'></span>
-  <td width=120 style='width:90.2pt;border-top:none;border-left:none;
+  <td width=47 style='width:34.9pt;border-top:none;border-left:none;border-bottom:
+  solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;padding:0cm 5.4pt 0cm 5.4pt;
+  height:1.0cm'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US
+  style='font-family:Kai'>dict</span></p>
+  </td>
+  <td width=496 style='width:371.85pt;border-top:none;border-left:none;
   border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
-  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
-  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:2.35pt'>
-  <p class=MsoNormal align=center style='text-align:center'>the path of the scheduler</p>
-  </td>
-  <span style='mso-bookmark:_Hlk132987069'></span>
- </tr>
- <tr style='mso-yfti-irow:16;height:2.35pt'>
-  <span style='mso-bookmark:_Hlk132987069'></span>
-  <td width=152 colspan=5 style='width:114.25pt;border-top:none;border-left:
-  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
-  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
-  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:2.35pt'>
-  <p class=MsoNormal align=center style='text-align:center'><span
-  style='mso-bookmark:_Hlk132987069'><span lang=EN-US>params</span></span></p>
-  </td>
-  <span style='mso-bookmark:_Hlk132987069'></span>
-  <td width=103 style='width:76.95pt;border-top:none;border-left:none;
-  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
-  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
-  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:2.35pt'>
-  <p class=MsoNormal align=center style='text-align:center'><span
-  style='mso-bookmark:_Hlk132987069'><span lang=EN-US>string</span></span></p>
-  </td>
-  <span style='mso-bookmark:_Hlk132987069'></span>
-  <td width=120 style='width:90.2pt;border-top:none;border-left:none;
-  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
-  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
-  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:2.35pt'>
-  <p class=MsoNormal align=center style='text-align:center'><span
-  style='mso-bookmark:_Hlk132987069'>required parameters</span></p>
-  </td>
-  <span style='mso-bookmark:_Hlk132987069'></span>
- </tr>
- <tr style='mso-yfti-irow:17;height:3.55pt'>
-  <span style='mso-bookmark:_Hlk132987069'></span>
-  <td width=65 colspan=4 rowspan=2 style='width:48.55pt;border-top:none;
-  border-left:none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
-  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
-  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:3.55pt'>
-  <p class=MsoNormal align=center style='text-align:center'>the path of the receiver</p>
-  </td>
-  <span style='mso-bookmark:_Hlk132987069'></span>
-  <td width=88 style='width:65.7pt;border-top:none;border-left:none;border-bottom:
-  solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;mso-border-top-alt:
-  solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;mso-border-alt:
-  solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:3.55pt'>
-  <p class=MsoNormal align=center style='text-align:center'><span
-  style='mso-bookmark:_Hlk132987069'><span lang=EN-US>path</span></span></p>
-  </td>
-  <span style='mso-bookmark:_Hlk132987069'></span>
-  <td width=103 style='width:76.95pt;border-top:none;border-left:none;
-  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
-  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
-  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:3.55pt'>
-  <p class=MsoNormal align=center style='text-align:center'><span
-  style='mso-bookmark:_Hlk132987069'><span lang=EN-US>string</span></span></p>
-  </td>
-  <span style='mso-bookmark:_Hlk132987069'></span>
-  <td width=120 style='width:90.2pt;border-top:none;border-left:none;
-  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
-  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
-  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:3.55pt'>
-  <p class=MsoNormal align=center style='text-align:center'>the path of the receiver</p>
-  </td>
-  <span style='mso-bookmark:_Hlk132987069'></span>
- </tr>
- <tr style='mso-yfti-irow:18;height:3.5pt'>
-  <span style='mso-bookmark:_Hlk132987069'></span>
-  <td width=88 style='width:65.7pt;border-top:none;border-left:none;border-bottom:
-  solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;mso-border-top-alt:
-  solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;mso-border-alt:
-  solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:3.5pt'>
-  <p class=MsoNormal align=center style='text-align:center'><span
-  style='mso-bookmark:_Hlk132987069'><span lang=EN-US>params</span></span></p>
-  </td>
-  <span style='mso-bookmark:_Hlk132987069'></span>
-  <td width=103 style='width:76.95pt;border-top:none;border-left:none;
-  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
-  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
-  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:3.5pt'>
-  <p class=MsoNormal align=center style='text-align:center'><span
-  style='mso-bookmark:_Hlk132987069'><span class=SpellE><span lang=EN-US>dict</span></span></span></p>
-  </td>
-  <span style='mso-bookmark:_Hlk132987069'></span>
-  <td width=120 style='width:90.2pt;border-top:none;border-left:none;
-  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
-  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
-  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:3.5pt'>
-  <p class=MsoNormal align=center style='text-align:center'><span
-  style='mso-bookmark:_Hlk132987069'>required parameters</span></p>
-  </td>
-  <span style='mso-bookmark:_Hlk132987069'></span>
- </tr>
- <tr style='mso-yfti-irow:19;height:1.8pt'>
-  <span style='mso-bookmark:_Hlk132987069'></span>
-  <td width=62 rowspan=5 style='width:46.55pt;border-top:none;border-left:none;
-  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
-  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
-  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:1.8pt'>
-  <p class=MsoNormal align=center style='text-align:center'><span
-  style='mso-bookmark:_Hlk132987069'><span lang=EN-US>updater</span></span></p>
-  </td>
-  <span style='mso-bookmark:_Hlk132987069'></span>
-  <td width=162 colspan=6 style='width:121.85pt;border-top:none;border-left:
-  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
-  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
-  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:1.8pt'>
-  <p class=MsoNormal align=center style='text-align:center'><span
-  style='mso-bookmark:_Hlk132987069'><span class=SpellE><span lang=EN-US>updater_path</span></span></span></p>
-  </td>
-  <span style='mso-bookmark:_Hlk132987069'></span>
-  <td width=103 style='width:76.95pt;border-top:none;border-left:none;
-  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
-  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
-  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:1.8pt'>
-  <p class=MsoNormal align=center style='text-align:center'><span
-  style='mso-bookmark:_Hlk132987069'><span lang=EN-US>string</span></span></p>
-  </td>
-  <span style='mso-bookmark:_Hlk132987069'></span>
-  <td width=120 style='width:90.2pt;border-top:none;border-left:none;
-  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
-  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
-  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:1.8pt'>
-  <p class=MsoNormal align=center style='text-align:center'>the path of the updater</p>
-  </td>
-  <span style='mso-bookmark:_Hlk132987069'></span>
- </tr>
- <tr style='mso-yfti-irow:20;height:1.75pt'>
-  <span style='mso-bookmark:_Hlk132987069'></span>
-  <td width=162 colspan=6 style='width:121.85pt;border-top:none;border-left:
-  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
-  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
-  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:1.75pt'>
-  <p class=MsoNormal align=center style='text-align:center'><span
-  style='mso-bookmark:_Hlk132987069'><span style='mso-bookmark:_Hlk132988020'><span
-  lang=EN-US>loss</span></span></span></p>
-  </td>
-  <span style='mso-bookmark:_Hlk132987069'><span style='mso-bookmark:_Hlk132988020'></span></span>
-  <td width=103 style='width:76.95pt;border-top:none;border-left:none;
-  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
-  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
-  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:1.75pt'>
-  <p class=MsoNormal align=center style='text-align:center'><span
-  style='mso-bookmark:_Hlk132987069'><span style='mso-bookmark:_Hlk132988020'><span
-  class=SpellE><span lang=EN-US>dict</span></span><span lang=EN-US> | string</span></span></span></p>
-  </td>
-  <span style='mso-bookmark:_Hlk132987069'><span style='mso-bookmark:_Hlk132988020'></span></span>
-  <td width=120 style='width:90.2pt;border-top:none;border-left:none;
-  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
-  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
-  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:1.75pt'>
-  <p class=MsoNormal align=center style='text-align:center'>the parameters required by customized loss | the path of the loss</p>
-  </td>
-  <span style='mso-bookmark:_Hlk132987069'><span style='mso-bookmark:_Hlk132988020'></span></span>
- </tr>
- <tr style='mso-yfti-irow:21;height:1.75pt'>
-  <span style='mso-bookmark:_Hlk132987069'></span>
-  <td width=162 colspan=6 style='width:121.85pt;border-top:none;border-left:
-  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
-  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
-  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:1.75pt'>
-  <p class=MsoNormal align=center style='text-align:center'><span
-  style='mso-bookmark:_Hlk132987069'><span lang=EN-US>params</span></span></p>
-  </td>
-  <span style='mso-bookmark:_Hlk132987069'></span>
-  <td width=103 style='width:76.95pt;border-top:none;border-left:none;
-  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
-  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
-  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:1.75pt'>
-  <p class=MsoNormal align=center style='text-align:center'><span
-  style='mso-bookmark:_Hlk132987069'><span class=SpellE><span lang=EN-US>dict</span></span></span></p>
-  </td>
-  <span style='mso-bookmark:_Hlk132987069'></span>
-  <td width=120 style='width:90.2pt;border-top:none;border-left:none;
-  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
-  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
-  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:1.75pt'>
-  <p class=MsoNormal align=center style='text-align:center'><span
-  style='mso-bookmark:_Hlk132987069'>required parameters</span></p>
-  </td>
-  <span style='mso-bookmark:_Hlk132987069'></span>
- </tr>
- <tr style='mso-yfti-irow:22;height:3.55pt'>
-  <span style='mso-bookmark:_Hlk132987069'></span>
-  <td width=68 colspan=4 rowspan=2 style='width:50.9pt;border-top:none;
-  border-left:none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
-  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
-  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:3.55pt'>
-  <p class=MsoNormal align=center style='text-align:center'><span
-  style='mso-bookmark:_Hlk132987069'><span lang=EN-US>group[exclusive to semi-async]</span></span></p>
-  </td>
-  <span style='mso-bookmark:_Hlk132987069'></span>
-  <td width=95 colspan=2 style='width:70.95pt;border-top:none;border-left:none;
-  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
-  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
-  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:3.55pt'>
-  <p class=MsoNormal align=center style='text-align:center'><span
-  style='mso-bookmark:_Hlk132987069'><span class=SpellE><span lang=EN-US>updater_path</span></span></span></p>
-  </td>
-  <span style='mso-bookmark:_Hlk132987069'></span>
-  <td width=103 style='width:76.95pt;border-top:none;border-left:none;
-  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
-  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
-  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:3.55pt'>
-  <p class=MsoNormal align=center style='text-align:center'><span
-  style='mso-bookmark:_Hlk132987069'><span lang=EN-US>string</span></span></p>
-  </td>
-  <span style='mso-bookmark:_Hlk132987069'></span>
-  <td width=120 style='width:90.2pt;border-top:none;border-left:none;
-  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
-  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
-  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:3.55pt'><span
-  style='mso-bookmark:_Hlk132987069'></span>
-  <p class=MsoNormal align=center style='text-align:center'><span
-  style='mso-bookmark:_Hlk132987069'><span lang=EN-US>exclusive to sam</span></span></p>
-  </td>
-  <span style='mso-bookmark:_Hlk132987069'></span>
- </tr>
- <tr style='mso-yfti-irow:23;height:3.5pt'>
-  <span style='mso-bookmark:_Hlk132987069'></span>
-  <td width=95 colspan=2 style='width:70.95pt;border-top:none;border-left:none;
-  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
-  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
-  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:3.5pt'>
-  <p class=MsoNormal align=center style='text-align:center'><span
-  style='mso-bookmark:_Hlk132987069'><span lang=EN-US>params</span></span></p>
-  </td>
-  <span style='mso-bookmark:_Hlk132987069'></span>
-  <td width=103 style='width:76.95pt;border-top:none;border-left:none;
-  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
-  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
-  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:3.5pt'>
-  <p class=MsoNormal align=center style='text-align:center'><span
-  style='mso-bookmark:_Hlk132987069'><span class=SpellE><span lang=EN-US>dict</span></span></span></p>
-  </td>
-  <span style='mso-bookmark:_Hlk132987069'></span>
-  <td width=120 style='width:90.2pt;border-top:none;border-left:none;
-  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
-  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
-  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:3.5pt'>
-  <p class=MsoNormal align=center style='text-align:center'><span
-  style='mso-bookmark:_Hlk132987069'>required parameters</span></p>
-  </td>
-  <span style='mso-bookmark:_Hlk132987069'></span>
- </tr>
- <tr style='mso-yfti-irow:24;height:4.05pt'>
-  <td width=106 colspan=2 rowspan=3 style='width:79.25pt;border:solid windowtext 1.0pt;
-  border-top:none;mso-border-top-alt:solid windowtext .5pt;mso-border-alt:solid windowtext .5pt;
-  padding:0cm 5.4pt 0cm 5.4pt;height:4.05pt'>
-  <p class=MsoNormal align=center style='text-align:center'><span class=SpellE><span
-  lang=EN-US>client_manager</span></span></p>
-  </td>
-  <td width=225 colspan=7 style='width:168.4pt;border-top:none;border-left:
-  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
-  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
-  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:4.05pt'>
-  <p class=MsoNormal align=center style='text-align:center'><span class=SpellE><span
-  lang=EN-US>client_path</span></span></p>
-  </td>
-  <td width=103 style='width:76.95pt;border-top:none;border-left:none;
-  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
-  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
-  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:4.05pt'>
-  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US>string</span></p>
-  </td>
-  <td width=120 style='width:90.2pt;border-top:none;border-left:none;
-  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
-  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
-  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:4.05pt'>
-  <p class=MsoNormal align=center style='text-align:center'>the path of the client</p>
+  padding:0cm 5.4pt 0cm 5.4pt;height:1.0cm'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US
+  style='font-family:Kai'>required parameters</span></p>
   </td>
  </tr>
- <tr style='mso-yfti-irow:25;height:3.55pt'>
-  <td width=99 colspan=4 rowspan=2 style='width:74.5pt;border-top:none;
-  border-left:none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
-  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
-  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:3.55pt'>
-  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US>checker</span></p>
+ <tr style='height:1.0cm'>
+  <td rowspan=5 style='border:solid windowtext 1.0pt;border-top:none;
+  padding:0cm 5.4pt 0cm 5.4pt;height:1.0cm'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US style='font-family:Kai'>queue_manager</span></p>
   </td>
-  <td width=125 colspan=3 style='width:93.9pt;border-top:none;border-left:none;
-  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
-  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
-  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:3.55pt'>
-  <p class=MsoNormal align=center style='text-align:center'><span class=SpellE><span
-  lang=EN-US>checker_path</span></span></p>
+  <td colspan=4 style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0cm 5.4pt 0cm 5.4pt;height:1.0cm'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US
+  style='font-family:Kai'>path</span></p>
   </td>
-  <td width=103 style='width:76.95pt;border-top:none;border-left:none;
-  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
-  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
-  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:3.55pt'>
-  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US>string</span></p>
+  <td width=47 style='width:34.9pt;border-top:none;border-left:none;border-bottom:
+  solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;padding:0cm 5.4pt 0cm 5.4pt;
+  height:1.0cm'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US
+  style='font-family:Kai'>string</span></p>
   </td>
-  <td width=120 style='width:90.2pt;border-top:none;border-left:none;
+  <td width=496 style='width:371.85pt;border-top:none;border-left:none;
   border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
-  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
-  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:3.55pt'>
-  <p class=MsoNormal align=center style='text-align:center'>the path of the checker</p>
+  padding:0cm 5.4pt 0cm 5.4pt;height:1.0cm'>
+  <p class=MsoNormal align=center style='text-align:center'><span
+  lang=EN-US style='font-family:Kai'>the path of the </span><span
+  lang=EN-US style='font-family:Kai'>queue manager</span></p>
   </td>
  </tr>
- <tr style='mso-yfti-irow:26;height:3.5pt'>
-  <td width=125 colspan=3 style='width:93.9pt;border-top:none;border-left:none;
-  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
-  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
-  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:3.5pt'>
-  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US>params</span></p>
+ <tr style='height:1.0cm'>
+  
+  <td rowspan=2 style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0cm 5.4pt 0cm 5.4pt;height:1.0cm'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US
+  style='font-family:Kai'>receiver</span></p>
   </td>
-  <td width=103 style='width:76.95pt;border-top:none;border-left:none;
-  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
-  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
-  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:3.5pt'>
-  <p class=MsoNormal align=center style='text-align:center'><span class=SpellE><span
-  lang=EN-US>dict</span></span></p>
+  <td colspan=3 style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0cm 5.4pt 0cm 5.4pt;height:1.0cm'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US
+  style='font-family:Kai'>path</span></p>
   </td>
-  <td width=120 style='width:90.2pt;border-top:none;border-left:none;
+  <td width=47 style='width:34.9pt;border-top:none;border-left:none;border-bottom:
+  solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;padding:0cm 5.4pt 0cm 5.4pt;
+  height:1.0cm'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US
+  style='font-family:Kai'>string</span></p>
+  </td>
+  <td width=496 style='width:371.85pt;border-top:none;border-left:none;
   border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
-  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
-  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:3.5pt'>
-  <p class=MsoNormal align=center style='text-align:center'>required parameters</p>
+  padding:0cm 5.4pt 0cm 5.4pt;height:1.0cm'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US
+  style='font-family:Kai'>the path of the receiver</span></p>
   </td>
  </tr>
- <tr style='mso-yfti-irow:27;height:1.55pt'>
-  <td width=104 rowspan=9 style='width:77.75pt;border:solid windowtext 1.0pt;
-  border-top:none;mso-border-top-alt:solid windowtext .5pt;mso-border-alt:solid windowtext .5pt;
-  padding:0cm 5.4pt 0cm 5.4pt;height:1.55pt'>
-  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US>client</span></p>
+ <tr style='height:1.0cm'>
+  <td colspan=3 style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0cm 5.4pt 0cm 5.4pt;height:1.0cm'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US
+  style='font-family:Kai'>params</span></p>
   </td>
-  <td width=227 colspan=8 style='width:169.9pt;border-top:none;border-left:
-  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
-  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
-  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:1.55pt'>
-  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US>epochs</span></p>
+  <td width=47 style='width:34.9pt;border-top:none;border-left:none;border-bottom:
+  solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;padding:0cm 5.4pt 0cm 5.4pt;
+  height:1.0cm'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US
+  style='font-family:Kai'>dict</span></p>
   </td>
-  <td width=103 style='width:76.95pt;border-top:none;border-left:none;
+  <td width=496 style='width:371.85pt;border-top:none;border-left:none;
   border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
-  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
-  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:1.55pt'>
-  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US>int</span></p>
-  </td>
-  <td width=120 style='width:90.2pt;border-top:none;border-left:none;
-  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
-  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
-  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:1.55pt'>
-  <p class=MsoNormal align=center style='text-align:center'>local epoch</p>
+  padding:0cm 5.4pt 0cm 5.4pt;height:1.0cm'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US
+  style='font-family:Kai'>required parameters</span></p>
   </td>
  </tr>
- <tr style='mso-yfti-irow:28;height:1.3pt'>
-  <td width=227 colspan=8 style='width:169.9pt;border-top:none;border-left:
-  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
-  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
-  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:1.3pt'>
-  <p class=MsoNormal align=center style='text-align:center'><span class=SpellE><span
-  lang=EN-US>batch_size</span></span></p>
+ <tr style='height:1.0cm'>
+  <td rowspan=2 style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0cm 5.4pt 0cm 5.4pt;height:1.0cm'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US
+  style='font-family:Kai'>checker</span></p>
   </td>
-  <td width=103 style='width:76.95pt;border-top:none;border-left:none;
-  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
-  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
-  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:1.3pt'>
-  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US>int</span></p>
+  <td colspan=3 style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0cm 5.4pt 0cm 5.4pt;height:1.0cm'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US
+  style='font-family:Kai'>path</span></p>
   </td>
-  <td width=120 style='width:90.2pt;border-top:none;border-left:none;
+  <td width=47 style='width:34.9pt;border-top:none;border-left:none;border-bottom:
+  solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;padding:0cm 5.4pt 0cm 5.4pt;
+  height:1.0cm'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US
+  style='font-family:Kai'>string</span></p>
+  </td>
+  <td width=496 style='width:371.85pt;border-top:none;border-left:none;
   border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
-  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
-  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:1.3pt'>
-  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US>batch</span></p>
+  padding:0cm 5.4pt 0cm 5.4pt;height:1.0cm'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US
+  style='font-family:Kai'>the path of the checker</span></p>
   </td>
  </tr>
- <tr style='mso-yfti-irow:29;height:3.55pt'>
-  <td width=100 colspan=4 rowspan=2 style='width:75.25pt;border-top:none;
-  border-left:none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
-  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
-  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:3.55pt'>
-  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US>model</span></p>
+ <tr style='height:1.0cm'>
+  
+  <td colspan=3 style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0cm 5.4pt 0cm 5.4pt;height:1.0cm'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US
+  style='font-family:Kai'>params</span></p>
   </td>
-  <td width=126 colspan=4 style='width:94.65pt;border-top:none;border-left:
-  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
-  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
-  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:3.55pt'>
-  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US>path</span></p>
+  <td width=47 style='width:34.9pt;border-top:none;border-left:none;border-bottom:
+  solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;padding:0cm 5.4pt 0cm 5.4pt;
+  height:1.0cm'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US
+  style='font-family:Kai'>dict</span></p>
   </td>
-  <td width=103 style='width:76.95pt;border-top:none;border-left:none;
+  <td width=496 style='width:371.85pt;border-top:none;border-left:none;
   border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
-  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
-  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:3.55pt'>
-  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US>string</span></p>
-  </td>
-  <td width=120 style='width:90.2pt;border-top:none;border-left:none;
-  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
-  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
-  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:3.55pt'>
-  <p class=MsoNormal align=center style='text-align:center'>the path of the model</p>
+  padding:0cm 5.4pt 0cm 5.4pt;height:1.0cm'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US
+  style='font-family:Kai'>required parameters</span></p>
   </td>
  </tr>
- <tr style='mso-yfti-irow:30;height:3.5pt'>
-  <td width=126 colspan=4 style='width:94.65pt;border-top:none;border-left:
-  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
-  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
-  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:3.5pt'>
-  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US>params</span></p>
+ <tr style='height:1.0cm'>
+  <td rowspan=10 style='border:solid windowtext 1.0pt;border-top:none;
+  padding:0cm 5.4pt 0cm 5.4pt;height:1.0cm'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US
+  style='font-family:Kai'>client</span></p>
   </td>
-  <td width=103 style='width:76.95pt;border-top:none;border-left:none;
-  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
-  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
-  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:3.5pt'>
-  <p class=MsoNormal align=center style='text-align:center'><span class=SpellE><span
-  lang=EN-US>dict</span></span></p>
+  <td colspan=4 style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0cm 5.4pt 0cm 5.4pt;height:1.0cm'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US
+  style='font-family:Kai'>path</span></p>
   </td>
-  <td width=120 style='width:90.2pt;border-top:none;border-left:none;
+  <td width=47 style='width:34.9pt;border-top:none;border-left:none;border-bottom:
+  solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;padding:0cm 5.4pt 0cm 5.4pt;
+  height:1.0cm'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US
+  style='font-family:Kai'>string</span></p>
+  </td>
+  <td width=496 style='width:371.85pt;border-top:none;border-left:none;
   border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
-  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
-  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:3.5pt'>
-  <p class=MsoNormal align=center style='text-align:center'>required parameters</p>
+  padding:0cm 5.4pt 0cm 5.4pt;height:1.0cm'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US
+  style='font-family:Kai'>the path of the client</span></p>
   </td>
  </tr>
- <tr style='mso-yfti-irow:31;height:1.3pt'>
-  <td width=227 colspan=8 style='width:169.9pt;border-top:none;border-left:
-  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
-  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
-  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:1.3pt'>
-  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US>loss</span></p>
+ <tr style='height:1.0cm'>
+  <td colspan=4 style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0cm 5.4pt 0cm 5.4pt;height:1.0cm'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US
+  style='font-family:Kai'>epochs</span></p>
   </td>
-  <td width=103 style='width:76.95pt;border-top:none;border-left:none;
-  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
-  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
-  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:1.3pt'>
-  <p class=MsoNormal align=center style='text-align:center'><span class=SpellE><span
-  lang=EN-US>dict</span></span><span lang=EN-US> | string</span></p>
+  <td width=47 style='width:34.9pt;border-top:none;border-left:none;border-bottom:
+  solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;padding:0cm 5.4pt 0cm 5.4pt;
+  height:1.0cm'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US
+  style='font-family:Kai'>int</span></p>
   </td>
-  <td width=120 style='width:90.2pt;border-top:none;border-left:none;
+  <td width=496 style='width:371.85pt;border-top:none;border-left:none;
   border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
-  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
-  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:1.3pt'>
-  <p class=MsoNormal align=center style='text-align:center'>the parameters required by customized loss | the path of the loss</p>
+  padding:0cm 5.4pt 0cm 5.4pt;height:1.0cm'>
+  <p class=MsoNormal align=center style='text-align:center'><span
+  lang=EN-US style='font-family:Kai'>local epoch</span></p>
   </td>
  </tr>
- <tr style='mso-yfti-irow:32;height:1.3pt'>
-  <td width=227 colspan=8 style='width:169.9pt;border-top:none;border-left:
-  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
-  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
-  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:1.3pt'>
-  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US>mu</span></p>
+ <tr style='height:1.0cm'>
+  <td colspan=4 style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0cm 5.4pt 0cm 5.4pt;height:1.0cm'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US
+  style='font-family:Kai'>batch_size</span></p>
   </td>
-  <td width=103 style='width:76.95pt;border-top:none;border-left:none;
-  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
-  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
-  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:1.3pt'>
-  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US>float</span></p>
+  <td width=47 style='width:34.9pt;border-top:none;border-left:none;border-bottom:
+  solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;padding:0cm 5.4pt 0cm 5.4pt;
+  height:1.0cm'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US
+  style='font-family:Kai'>int</span></p>
   </td>
-  <td width=120 style='width:90.2pt;border-top:none;border-left:none;
+  <td width=496 style='width:371.85pt;border-top:none;border-left:none;
   border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
-  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
-  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:1.3pt'>
-  <p class=MsoNormal align=center style='text-align:center'>proximal term’s coefficient</p>
+  padding:0cm 5.4pt 0cm 5.4pt;height:1.0cm'>
+  <p class=MsoNormal align=center style='text-align:center'><span
+  lang=EN-US style='font-family:Kai'>batch</span></p>
   </td>
  </tr>
- <tr style='mso-yfti-irow:33;height:3.55pt'>
-  <td width=100 colspan=4 rowspan=2 style='width:75.25pt;border-top:none;
-  border-left:none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
-  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
-  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:3.55pt'>
-  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US>optimizer</span></p>
+ <tr style='height:1.0cm'>
+  <td rowspan=2 style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0cm 5.4pt 0cm 5.4pt;height:1.0cm'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US
+  style='font-family:Kai'>model</span></p>
   </td>
-  <td width=126 colspan=4 style='width:94.65pt;border-top:none;border-left:
-  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
-  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
-  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:3.55pt'>
-  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US>path</span></p>
+  <td colspan=3 style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0cm 5.4pt 0cm 5.4pt;height:1.0cm'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US
+  style='font-family:Kai'>path</span></p>
   </td>
-  <td width=103 style='width:76.95pt;border-top:none;border-left:none;
+  <td width=47 style='width:34.9pt;border-top:none;border-left:none;border-bottom:
+  solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;padding:0cm 5.4pt 0cm 5.4pt;
+  height:1.0cm'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US
+  style='font-family:Kai'>string</span></p>
+  </td>
+  <td width=496 style='width:371.85pt;border-top:none;border-left:none;
   border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
-  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
-  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:3.55pt'>
-  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US>string</span></p>
-  </td>
-  <td width=120 style='width:90.2pt;border-top:none;border-left:none;
-  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
-  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
-  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:3.55pt'>
-  <p class=MsoNormal align=center style='text-align:center'>the path of the optimizer</p>
+  padding:0cm 5.4pt 0cm 5.4pt;height:1.0cm'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US style='font-family:Kai'>the path of the model</span></p>
   </td>
  </tr>
- <tr style='mso-yfti-irow:34;height:3.5pt'>
-  <td width=126 colspan=4 style='width:94.65pt;border-top:none;border-left:
-  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
-  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
-  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:3.5pt'>
-  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US>params</span></p>
+ <tr style='height:1.0cm'>
+  <td colspan=3 style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0cm 5.4pt 0cm 5.4pt;height:1.0cm'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US
+  style='font-family:Kai'>params</span></p>
   </td>
-  <td width=103 style='width:76.95pt;border-top:none;border-left:none;
-  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
-  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
-  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:3.5pt'>
-  <p class=MsoNormal align=center style='text-align:center'><span class=SpellE><span
-  lang=EN-US>dict</span></span></p>
+  <td width=47 style='width:34.9pt;border-top:none;border-left:none;border-bottom:
+  solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;padding:0cm 5.4pt 0cm 5.4pt;
+  height:1.0cm'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US
+  style='font-family:Kai'>dict</span></p>
   </td>
-  <td width=120 style='width:90.2pt;border-top:none;border-left:none;
+  <td width=496 style='width:371.85pt;border-top:none;border-left:none;
   border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
-  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
-  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:3.5pt'>
-  <p class=MsoNormal align=center style='text-align:center'>required parameters</p>
+  padding:0cm 5.4pt 0cm 5.4pt;height:1.0cm'>
+  <p class=MsoNormal align=center style='text-align:center'><span
+  lang=EN-US style='font-family:Kai'>required parameters</span></p>
   </td>
  </tr>
- <tr style='mso-yfti-irow:35;mso-yfti-lastrow:yes;height:3.5pt'>
-  <td width=227 colspan=8 style='width:169.9pt;border-top:none;border-left:
-  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
-  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
-  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:3.5pt'>
-  <p class=MsoNormal align=center style='text-align:center'><span class=SpellE><span
-  lang=EN-US>other_params</span></span></p>
+ <tr style='height:1.0cm'>
+  <td colspan=4 style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0cm 5.4pt 0cm 5.4pt;height:1.0cm'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US
+  style='font-family:Kai'>loss</span></p>
   </td>
-  <td width=103 style='width:76.95pt;border-top:none;border-left:none;
+  <td colspan=2 style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0cm 5.4pt 0cm 5.4pt;height:1.0cm'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US
+  style='font-family:Kai'><a href="#adding-loss-function">explanation</a></span></p>
+  </td>
+ </tr>
+ <tr style='height:1.0cm'>
+  <td colspan=4 style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0cm 5.4pt 0cm 5.4pt;height:1.0cm'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US
+  style='font-family:Kai'>mu</span></p>
+  </td>
+  <td width=47 style='width:34.9pt;border-top:none;border-left:none;border-bottom:
+  solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;padding:0cm 5.4pt 0cm 5.4pt;
+  height:1.0cm'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US
+  style='font-family:Kai'>float</span></p>
+  </td>
+  <td width=496 style='width:371.85pt;border-top:none;border-left:none;
   border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
-  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
-  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:3.5pt'>
-  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US>*</span></p>
+  padding:0cm 5.4pt 0cm 5.4pt;height:1.0cm'>
+  <p class=MsoNormal align=center style='text-align:center'><span
+  lang=EN-US style='font-family:Kai'>proximal term’s coefficient</span></p>
   </td>
-  <td width=120 style='width:90.2pt;border-top:none;border-left:none;
+ </tr>
+ <tr style='height:1.0cm'>
+  <td rowspan=2 style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0cm 5.4pt 0cm 5.4pt;height:1.0cm'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US
+  style='font-family:Kai'>optimizer</span></p>
+  </td>
+  <td colspan=3 style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0cm 5.4pt 0cm 5.4pt;height:1.0cm'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US
+  style='font-family:Kai'>path</span></p>
+  </td>
+  <td width=47 style='width:34.9pt;border-top:none;border-left:none;border-bottom:
+  solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;padding:0cm 5.4pt 0cm 5.4pt;
+  height:1.0cm'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US
+  style='font-family:Kai'>string</span></p>
+  </td>
+  <td width=496 style='width:371.85pt;border-top:none;border-left:none;
   border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
-  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
-  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:3.5pt'>
-  <p class=MsoNormal align=center style='text-align:center'>other parameters</p>
+  padding:0cm 5.4pt 0cm 5.4pt;height:1.0cm'>
+  <p class=MsoNormal align=center style='text-align:center'><span
+  lang=EN-US style='font-family:Kai'>the path of the optimizer</span></p>
   </td>
+ </tr>
+ <tr style='height:1.0cm'>
+  <td colspan=3 style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0cm 5.4pt 0cm 5.4pt;height:1.0cm'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US
+  style='font-family:Kai'>params</span></p>
+  </td>
+  <td width=47 style='width:34.9pt;border-top:none;border-left:none;border-bottom:
+  solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;padding:0cm 5.4pt 0cm 5.4pt;
+  height:1.0cm'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US
+  style='font-family:Kai'>dict</span></p>
+  </td>
+  <td width=496 style='width:371.85pt;border-top:none;border-left:none;
+  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0cm 5.4pt 0cm 5.4pt;height:1.0cm'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US
+  style='font-family:Kai'>required parameters</span></p>
+  </td>
+ </tr>
+ <tr style='height:1.0cm'>
+  
+  <td colspan=4 style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0cm 5.4pt 0cm 5.4pt;height:1.0cm'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US
+  style='font-family:Kai'>other_params</span></p>
+  </td>
+  <td width=47 style='width:34.9pt;border-top:none;border-left:none;border-bottom:
+  solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;padding:0cm 5.4pt 0cm 5.4pt;
+  height:1.0cm'>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US
+  style='font-family:Kai'>*</span></p>
+  </td>
+  <td width=496 style='width:371.85pt;border-top:none;border-left:none;
+  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0cm 5.4pt 0cm 5.4pt;height:1.0cm'>
+  <p class=MsoNormal align=center style='text-align:center'><span
+  lang=EN-US style='font-family:Kai'>other parameters</span></p>
+  </td>
+ </tr>
+ <tr height=0>
+  <td width=107 style='border:none'></td>
+  <td width=90 style='border:none'></td>
+  <td width=42 style='border:none'></td>
+  <td width=42 style='border:none'></td>
+  <td width=72 style='border:none'></td>
+  <td width=47 style='border:none'></td>
+  <td width=496 style='border:none'></td>
  </tr>
 </table>
+</details>
 
 ## Adding New Algorithm
 
@@ -1187,6 +1300,8 @@ To allow clients/servers to call your own algorithms or implementation classes (
 * Add your own implementation to the corresponding location (dataset, model, schedule, update, client, loss)
 * Import the class in the `__init__.py` file of the corresponding package, for example `from model import CNN`
 * Declare in the configuration file, `model_path` corresponds to the path where the new algorithm is located.
+* `checker`, `group`, `receiver`, `schedule`, and `update` modules need to be supplemented with invocation methods in the `Caller` class.
+* `loss` and `numgenerator` modules need to be supplemented with invocation methods in the `factory` class.
 
 In addition, parameters that the algorithm needs to use can be declared in the `params` configuration item.
 
@@ -1204,16 +1319,39 @@ Now the `model`, `optim`, and `loss` modules support the introduction of built-i
 
 ### Adding Loss Function
 
-The loss function can use the built-in algorithms in PyTorch, or it can be implemented separately. The steps for separate implementation are mostly the same as above. The following modifications need to be made in the configuration item:
+The loss function is now generated and created by the `LossFactory` class. You can choose to use built-in algorithms from `Torch` or implement your own.
+
+The loss configuration supports three settings. The first option is using a string format commonly used in the configuration file:
 
 ```json
-"client": {
-    "loss": {
-        "loss_file": "my_loss",
-        "loss_name": "my_loss"
-  }
+"loss": "torch.nn.functional.cross_entropy"
+```
+
+In this case, the program will directly generate a loss function using the `functional` approach.
+
+The second option is to generate an `object-based` loss:
+
+```json
+"loss": {
+    "path": "loss.myloss.MyLoss",
+    "params": {}
 }
 ```
+
+Here, you specify the path to your custom loss class and provide any necessary parameters in the params field.
+
+The third option is to generate a loss based on the type:
+
+```json
+"loss": {
+        "type": "func",
+        "path": "loss.myloss.MyLoss",
+        "params": {}
+    }
+```
+
+With this option, you also provide the type field as "func", and the rest of the process is similar to the object-based approach.
+
 
 ## Staleness Settings
 
@@ -1406,3 +1544,5 @@ QQ: 527707607
 email: desperado@qq.com
 
 Welcome to provide suggestions for the project~
+
+if you'd like contribute to this project, please contact us.
