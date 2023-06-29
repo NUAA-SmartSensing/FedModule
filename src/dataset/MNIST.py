@@ -6,7 +6,7 @@ from utils.Tools import *
 
 
 class MNIST:
-    def __init__(self, clients, iid_config):
+    def __init__(self, clients, iid_config, params):
         # 获取数据集
         train_datasets = datasets.MNIST(root='../data/', train=True,
                                         transform=transforms.ToTensor(), download=True)
