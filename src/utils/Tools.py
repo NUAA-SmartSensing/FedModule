@@ -144,11 +144,10 @@ def saveAns(filename, result):
 
 def result_to_markdown(filename, config):
     md = open(filename, "w")
-    md.write("实验架构：" + config["global"]["mode"] + "\n")
-    md.write("实验数据集: " + config["global"]["dataset_path"] + "\n")
+    md.write("实验数据集: " + config["global"]["dataset"]["path"] + "\n")
     md.write("实验服务器模型: " + config["server"]["model"]["path"] + "\n")
-    md.write("聚合算法: " + config["server"]["updater"]["updater_path"] + "\n")
-    md.write("调度算法: " + config["server"]["scheduler"]["scheduler_path"] + "\n")
+    md.write("聚合算法: " + config["server"]["updater"]["path"] + "\n")
+    md.write("调度算法: " + config["server"]["scheduler"]["path"] + "\n")
     md.write("实验客户端模型: " + config["client"]["model"]["path"] + "\n")
     md.write("客户端数量: " + str(config["global"]["client_num"]) + "\n")
     md.write("全局迭代次数: " + str(config["server"]["epochs"]) + "\n")
