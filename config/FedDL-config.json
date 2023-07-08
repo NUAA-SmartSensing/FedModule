@@ -7,7 +7,6 @@
   "global": {
     "use_file_system": false,
     "multi_gpu": true,
-    "mode": "sync",
     "experiment": "FedDL/1",
     "stale": {
       "step": 1,
