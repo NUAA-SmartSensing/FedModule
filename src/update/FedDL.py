@@ -71,11 +71,11 @@ class FedDL(AbstractUpdate):
                 for i in range(class_num[cls]):
                     for j in range(class_num[cls]):
                         if i < j:
-                            kld[i][j] = F.kl_div(update_list[id_update_idx_map[idx_id_map[i]]]["weights"][key], update_list[id_update_idx_map[idx_id_map[j]]]["weights"][key],
+                            kld[i][j] = F.kl_div(update_list[id_update_idx_map[idx_id_map[i]]]["weights"][key].softmax(dim=-1).log(), update_list[id_update_idx_map[idx_id_map[j]]]["weights"][key].softmax(dim=-1),
                                                  reduction='batchmean')
                             kld[j][i] = kld[i][j]
                         else:
-                            kld[i][i] = F.kl_div(update_list[id_update_idx_map[idx_id_map[i]]]["weights"][key], update_list[id_update_idx_map[idx_id_map[i]]]["weights"][key],
+                            kld[i][i] = F.kl_div(update_list[id_update_idx_map[idx_id_map[i]]]["weights"][key].softmax(dim=-1).log(), update_list[id_update_idx_map[idx_id_map[i]]]["weights"][key].softmax(dim=-1),
                                                  reduction='batchmean')
                 # 聚类
                 new_clusters = self.clusterer.fit_predict(kld)
