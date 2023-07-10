@@ -3,8 +3,6 @@ import random
 import numpy as np
 import torch
 
-from utils import Random
-
 
 def generate_stale_list(step, shuffle, n):
     stale_list = []
@@ -31,94 +29,6 @@ def get_stale_list(filename):
         for line in f:
             stale_list.append(int(line))
     return stale_list
-
-
-def generate_non_iid_data(x, y, label_lists, data_lists, target_dataset, params):
-    client_datasets = []
-    for i in range(len(label_lists)):
-        index_list = []
-        for j in range(len(label_lists[i])):
-            ids = np.flatnonzero(y == label_lists[i][j])
-            ids = np.random.choice(ids, data_lists[i][j], replace=False)
-            index_list.append(ids)
-        index_list = np.hstack(index_list)
-        client_x = x[index_list]
-        client_y = y[index_list]
-        if isinstance(x, torch.Tensor):
-            client_datasets.append(target_dataset(client_x.clone().detach(), client_y.clone().detach(), **params))
-        else:
-            client_datasets.append(target_dataset(torch.tensor(client_x), torch.tensor(client_y), **params))
-    return client_datasets
-
-
-def generate_data_lists(max_size, min_size, num, label_lists):
-    data_lists = []
-    data_list = generate_data_list(max_size, min_size, num)
-    for i in range(len(label_lists)):
-        tmp_list = []
-        for j in range(len(label_lists[i]) - 1):
-            tmp_list.append(data_list[i] // len(label_lists[i]))
-        tmp_list.append(data_list[i] - data_list[i] // len(label_lists[i]) * (len(label_lists[i]) - 1))
-        data_lists.append(tmp_list)
-    return data_lists
-
-
-def generate_data_list(max_size, min_size, num):
-    ans = []
-    for _ in range(num):
-        ans.append(random.randint(min_size, max_size))
-    return ans
-
-
-def generate_label_lists(label_num_list, left, right, shuffle=False):
-    label_lists = []
-    if shuffle:
-        label_total = 0
-        for label_num in label_num_list:
-            label_total = label_total + label_num
-        epoch = int(label_total // (right - left)) + 1
-        label_all_list = []
-        for i in range(epoch):
-            label_all_list = label_all_list + Random.shuffle_random(left, right)
-        pos = 0
-        for label_num in label_num_list:
-            label_lists.append(label_all_list[pos: pos + label_num])
-            pos += label_num
-    else:
-        labels = range(left, right)
-        for label_num in label_num_list:
-            label_list = np.random.choice(labels, label_num, replace=False)
-            label_lists.append(label_list)
-    return label_lists
-
-
-def generate_label_lists_by_step(step, num_list, left, right, shuffle=False):
-    label_lists = []
-    bound = 1
-    if shuffle:
-        label_total = 0
-        label_all_lists = []
-        for i in num_list:
-            label_total += bound * i
-            bound += step
-        bound = 1
-        epoch = int(label_total // (right - left)) + 1
-        for i in range(epoch):
-            label_all_lists += Random.shuffle_random(left, right)
-        pos = 0
-        for i in range(len(num_list)):
-            for j in range(num_list[i]):
-                label_lists.append(label_all_lists[pos: pos + bound])
-                pos = pos + bound
-            bound += step
-    else:
-        labels = range(left, right)
-        for i in range(len(num_list)):
-            for j in range(num_list[i]):
-                s = np.random.choice(labels, bound, replace=False)
-                label_lists.append(s.tolist())
-            bound += step
-    return label_lists
 
 
 def get_order_as_tuple(filename):
@@ -154,6 +64,3 @@ def result_to_markdown(filename, config):
     md.write("数据集分布: " + "iid" if isinstance(config["global"]["iid"], bool) else "non-iid" + "\n")
     md.close()
 
-
-if __name__ == '__main__':
-    print(generate_label_lists_by_step(1, [5, 2, 4, 3, 3, 4], 0, 10, True))
