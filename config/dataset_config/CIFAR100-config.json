@@ -14,7 +14,7 @@
       "list": [10, 10, 10, 5, 5, 5, 5]
     },
     "dataset": {
-      "path": "dataset.CIFAR10.CIFAR10",
+      "path": "dataset.CIFAR100.CIFAR100",
       "params": {}
     },
     "iid": true,
@@ -24,10 +24,10 @@
     "path": "server.SyncServer.SyncServer",
     "epochs": 20,
     "model": {
-      "path": "torchvision.models.resnet.resnet50",
+      "path": "torchvision.models.resnet.resnet18",
       "params": {
         "pretrained": false,
-        "num_classes": 10
+        "num_classes": 100
       }
     },
     "scheduler": {
@@ -70,10 +70,10 @@
     "epochs": 2,
     "batch_size": 50,
     "model": {
-      "path": "torchvision.models.resnet.resnet50",
+      "path": "torchvision.models.resnet.resnet18",
       "params": {
         "pretrained": false,
-        "num_classes": 10
+        "num_classes": 100
       }
     },
     "loss": "torch.nn.functional.cross_entropy",
