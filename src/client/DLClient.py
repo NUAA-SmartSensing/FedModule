@@ -37,7 +37,7 @@ class DLClient(TestClient.TestClient):
             if self.event.is_set():
                 self.client_thread_lock.acquire()
                 # 该client进行训练
-                data_sum, weights = self.train_one_epoch()
+                data_sum, weights = self.train()
                 # client传回server的信息具有延迟
                 # 本地测试
                 self.run_test()

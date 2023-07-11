@@ -24,7 +24,7 @@ class ActiveClient(NormalClient.NormalClient):
             if self.event.is_set():
                 self.client_thread_lock.acquire()
                 # 该client进行训练
-                data_sum, weights = self.train_one_epoch()
+                data_sum, weights = self.train()
                 # client传回server的信息具有延迟
                 time.sleep(self.delay)
                 self.print_lock.acquire()

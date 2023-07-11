@@ -5,7 +5,6 @@ from torch.utils.data import DataLoader
 from client import Client
 from loss.LossFactory import LossFactory
 from utils import ModuleFindTool
-from utils.ModelTraining import train_one_epoch
 
 
 class NormalClient(Client.Client):
@@ -48,7 +47,7 @@ class NormalClient(Client.Client):
             if self.event.is_set():
                 self.client_thread_lock.acquire()
                 # 该client进行训练
-                data_sum, weights = self.train_one_epoch()
+                data_sum, weights = self.train()
 
                 # client传回server的信息具有延迟
                 self.print_lock.acquire()
@@ -64,8 +63,8 @@ class NormalClient(Client.Client):
             else:
                 self.event.wait()
 
-    def train_one_epoch(self):
-        return train_one_epoch(self.epoch, self.dev, self.train_dl, self.model, self.loss_func, self.opti, self.mu)
+    def train(self):
+        return self.train_one_epoch(self.epoch, self.dev, self.train_dl, self.model, self.loss_func, self.opti, self.mu)
 
     def upload(self, data_sum, weights):
         update_dict = {"client_id": self.client_id, "weights": weights, "data_sum": data_sum,
