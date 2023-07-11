@@ -21,17 +21,9 @@ class DatasetSplit(Dataset):
 
 
 def generate_iid_data(dataset, clients, datasets):
-    order = np.arange(dataset.train_data_size)
-    np.random.shuffle(order)
-    dataset.train_data = dataset.train_data[order]
-    dataset.train_labels = dataset.train_labels[order]
-    shard_size = dataset.train_data_size // clients // 2
     for i in range(clients):
-        client_idx = [j for j in range(shard_size * i, shard_size * (i + 1))]
-        for j in range(shard_size * clients + shard_size * i,
-                       shard_size * clients + shard_size * (i + 1)):
-            client_idx.append(j)
-        dataset.datasets.append(DatasetSplit(datasets, client_idx))
+        idx = np.arange(i, dataset.train_data_size, clients)
+        dataset.datasets.append(DatasetSplit(datasets, idx))
 
 
 def generate_non_iid_data(iid_config, dataset, clients, left, right, datasets):
