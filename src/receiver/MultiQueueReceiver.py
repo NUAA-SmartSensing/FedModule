@@ -1,3 +1,6 @@
+import time
+
+
 class MultiQueueReceiver:
     def __init__(self, config):
         self.config = config
@@ -8,3 +11,4 @@ class MultiQueueReceiver:
             for i in range(len(nums)):
                 if queue[i].qsize() == nums[i]:
                     return i
+            time.sleep(0.1)
