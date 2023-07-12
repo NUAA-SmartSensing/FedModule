@@ -1,3 +1,4 @@
+import copy
 import time
 
 from torch.utils.data import DataLoader
@@ -64,9 +65,40 @@ class NormalClient(Client.Client):
                 self.event.wait()
 
     def train(self):
-        return self.train_one_epoch(self.epoch, self.dev, self.train_dl, self.model, self.loss_func, self.opti, self.mu)
+        return self.train_one_epoch()
 
     def upload(self, data_sum, weights):
         update_dict = {"client_id": self.client_id, "weights": weights, "data_sum": data_sum,
                        "time_stamp": self.time_stamp}
         self.queue_manager.put(update_dict)
+
+    def train_one_epoch(self):
+        if self.mu != 0:
+            global_model = copy.deepcopy(self.model)
+        # 设置迭代次数
+        data_sum = 0
+        for epoch in range(self.epoch):
+            for data, label in self.train_dl:
+                data, label = data.to(self.dev), label.to(self.dev)
+                # 模型上传入数据
+                preds = self.model(data)
+                # 计算损失函数
+                loss = self.loss_func(preds, label)
+                data_sum += label.size(0)
+                # 正则项
+                if self.mu != 0:
+                    proximal_term = 0.0
+                    for w, w_t in zip(self.model.parameters(), global_model.parameters()):
+                        proximal_term += (w - w_t).norm(2)
+                    loss = loss + (self.mu / 2) * proximal_term
+                # 反向传播
+                loss.backward()
+                # 计算梯度，并更新梯度
+                self.opti.step()
+                # 将梯度归零，初始化梯度
+                self.opti.zero_grad()
+        # 返回当前Client基于自己的数据训练得到的新的模型参数
+        weights = copy.deepcopy(self.model.state_dict())
+        for k, v in weights.items():
+            weights[k] = weights[k].cpu().detach()
+        return data_sum, weights
