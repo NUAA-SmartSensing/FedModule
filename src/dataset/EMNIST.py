@@ -14,8 +14,8 @@ class EMNIST(BaseDataset):
         ])
         self.params = params
         # 获取数据集
-        train_datasets = datasets.EMNIST(root='../data/', train=True,
-                                         transform=transformer, download=True, split=self.params["split"])
-        test_datasets = datasets.EMNIST(root='../data/', train=False,
-                                        transform=transformer, download=True, split=self.params["split"])
-        self.init(clients, train_datasets, test_datasets)
+        self.train_dataset = datasets.EMNIST(root='../data/', train=True,
+                                             transform=transformer, download=True, split=self.params["split"])
+        self.test_dataset = datasets.EMNIST(root='../data/', train=False,
+                                            transform=transformer, download=True, split=self.params["split"])
+        self.init(clients, self.train_dataset, self.test_dataset)

@@ -22,7 +22,8 @@ class BaseClientManager:
         self.client_config = self.global_var["client_config"]
         self.current_time = self.global_var["current_t"]
         self.schedule_t = self.global_var["schedule_t"]
-        self.datasets = self.global_var["dataset"].get_train_dataset()
+        self.dataset = self.global_var["dataset"].get_train_dataset()
+        self.index_list = self.global_var["dataset"].get_index_list()
         self.queue_manager = self.global_var["queue_manager"]
         self.print_lock = self.global_var["print_lock"]
         self.init_weights = copy.deepcopy(self.global_var["server_network"].state_dict())
@@ -57,8 +58,7 @@ class BaseClientManager:
             else:
                 dev = 'cpu'
             client_delay = self.client_staleness_list[i]
-            dataset = self.datasets[i]
-            self.client_thread_list.append(self.client_class(i, self.stop_event, client_delay, dataset, self.client_config, dev))
+            self.client_thread_list.append(self.client_class(i, self.stop_event, client_delay, self.dataset, self.index_list[i], self.client_config, dev))
 
     def set_client_thread_list(self, new_client_thread_list):
         self.thread_lock.acquire()

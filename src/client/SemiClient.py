@@ -2,8 +2,8 @@ from client import NormalClient
 
 
 class SemiClient(NormalClient.NormalClient):
-    def __init__(self, c_id, stop_event, delay, train_ds, config, dev):
-        NormalClient.NormalClient.__init__(self, c_id, stop_event, delay, train_ds, config, dev)
+    def __init__(self, c_id, stop_event, delay, train_ds, index_list, config, dev):
+        NormalClient.NormalClient.__init__(self, c_id, stop_event, delay, train_ds, index_list, config, dev)
         self.group_id = 0
 
     def set_group_id(self, group_id):

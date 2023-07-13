@@ -20,24 +20,27 @@ class DatasetSplit(Dataset):
         return image, label
 
 
-def generate_iid_data(dataset, clients, datasets):
+def generate_iid_data(dataset, clients):
+    index_list = []
     for i in range(clients):
         idx = np.arange(i, dataset.train_data_size, clients)
-        dataset.datasets.append(DatasetSplit(datasets, idx))
+        index_list.append(idx)
+    return index_list
 
 
 def generate_non_iid_data(iid_config, dataset, clients, left, right, datasets):
     if "customize" in iid_config.keys() and iid_config["customize"]:
         label_config = iid_config['label']
         data_config = iid_config['data']
-        customize_distribution(label_config, data_config, dataset, clients, left, right, datasets)
+        return customize_distribution(label_config, data_config, dataset, clients, left, right, datasets)
     else:
-        dirichlet_distribution(iid_config, dataset, clients, left, right, datasets)
+        return dirichlet_distribution(iid_config, dataset, clients, left, right)
 
 
 def customize_distribution(label_config, data_config, dataset, clients, left, right, datasets):
     # 生成label lists
     # 洗牌算法
+    label_lists = []
     shuffle = False
     if "shuffle" in label_config.keys() and label_config["shuffle"]:
         shuffle = True
@@ -59,14 +62,14 @@ def customize_distribution(label_config, data_config, dataset, clients, left, ri
     # max,min
     else:
         data_lists = generate_data_lists(data_config["max"], data_config["min"], clients, label_lists)
-    # 生成datasets
-    dataset.datasets = generate_non_iid_dataset(dataset.train_data, dataset.train_labels, label_lists,
-                                             data_lists, datasets)
     # 保存label至配置文件
     dataset.iid_config['label'] = list_to_dict(label_lists)
+    # 生成序列
+    return generate_non_iid_dataset(dataset.train_data, dataset.train_labels, label_lists,
+                                    data_lists)
 
 
-def dirichlet_distribution(iid_config, dataset, clients, left, right, datasets):
+def dirichlet_distribution(iid_config, dataset, clients, left, right):
     beta = iid_config["beta"]
     label_distribution = np.random.dirichlet([beta] * clients, right - left)
     class_idx = [np.argwhere(dataset.train_labels == y).flatten() for y in range(right - left)]
@@ -77,14 +80,11 @@ def dirichlet_distribution(iid_config, dataset, clients, left, right, datasets):
         for i, idcs in enumerate(np.split(c, (np.cumsum(fracs)[:-1] * len(c)).astype(int))):
             client_idx[i] += [idcs]
     client_idx = [np.concatenate(idcs) for idcs in client_idx]
-    client_datasets = []
-    for i in range(len(client_idx)):
-        client_datasets.append(DatasetSplit(datasets, client_idx[i]))
-    dataset.datasets = client_datasets
+    return client_idx
 
 
-def generate_non_iid_dataset(x, y, label_lists, data_lists, target_dataset):
-    client_datasets = []
+def generate_non_iid_dataset(x, y, label_lists, data_lists):
+    client_idx_list = []
     for i in range(len(label_lists)):
         index_list = []
         for j in range(len(label_lists[i])):
@@ -92,8 +92,8 @@ def generate_non_iid_dataset(x, y, label_lists, data_lists, target_dataset):
             ids = np.random.choice(ids, data_lists[i][j], replace=False)
             index_list.append(ids)
         index_list = np.hstack(index_list)
-        client_datasets.append(DatasetSplit(target_dataset, index_list))
-    return client_datasets
+        client_idx_list.append(index_list)
+    return client_idx_list
 
 
 def generate_data_lists(max_size, min_size, num, label_lists):

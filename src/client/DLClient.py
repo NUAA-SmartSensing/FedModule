@@ -6,8 +6,8 @@ from client import TestClient
 
 
 class DLClient(TestClient.TestClient):
-    def __init__(self, c_id, stop_event, delay, train_ds, config, dev):
-        TestClient.TestClient.__init__(self, c_id, stop_event, delay, train_ds, config, dev)
+    def __init__(self, c_id, stop_event, delay, train_ds, index_list, config, dev):
+        TestClient.TestClient.__init__(self, c_id, stop_event, delay, train_ds, index_list, config, dev)
         self.init = False
 
     def run(self):

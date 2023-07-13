@@ -7,7 +7,7 @@ from utils.GlobalVarGetter import GlobalVarGetter
 
 
 class Client(threading.Thread):
-    def __init__(self, c_id, stop_event, delay, train_ds, dev):
+    def __init__(self, c_id, stop_event, delay, train_ds, index_list, dev):
         threading.Thread.__init__(self)
         self.model = None
         self.client_id = c_id
@@ -29,6 +29,7 @@ class Client(threading.Thread):
         self.params = {}
         self.event_is_set = False
         self.schedule_t = None
+        self.index_list = index_list
 
     @abstractmethod
     def run(self):
@@ -84,6 +85,9 @@ class Client(threading.Thread):
 
     def getDataset(self):
         return self.train_ds
+
+    def getIndexList(self):
+        return self.index_list
 
     def set_schedule_time_stamp(self, schedule_t):
         self.schedule_t = schedule_t

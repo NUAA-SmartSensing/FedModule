@@ -6,11 +6,12 @@ from torch.utils.data import DataLoader
 from client import Client
 from loss.LossFactory import LossFactory
 from utils import ModuleFindTool
+from utils.Sampler import DistributedSampler
 
 
 class NormalClient(Client.Client):
-    def __init__(self, c_id, stop_event, delay, train_ds, config, dev):
-        Client.Client.__init__(self, c_id, stop_event, delay, train_ds, dev)
+    def __init__(self, c_id, stop_event, delay, train_ds, index_list, config, dev):
+        Client.Client.__init__(self, c_id, stop_event, delay, train_ds, index_list, dev)
         self.queue_manager = self.global_var["queue_manager"]
         self.batch_size = config["batch_size"]
         self.epoch = config["epochs"]
@@ -30,7 +31,8 @@ class NormalClient(Client.Client):
         # loss函数
         self.loss_func = LossFactory(config["loss"], self).create_loss()
 
-        self.train_dl = DataLoader(self.train_ds, batch_size=self.batch_size, shuffle=True, drop_last=True)
+        sampler = DistributedSampler(train_ds, index_list)
+        self.train_dl = DataLoader(self.train_ds, sampler=sampler, batch_size=self.batch_size, drop_last=True)
 
     def run(self):
         while not self.stop_event.is_set():

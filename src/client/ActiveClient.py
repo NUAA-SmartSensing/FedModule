@@ -4,8 +4,8 @@ from client import NormalClient
 
 
 class ActiveClient(NormalClient.NormalClient):
-    def __init__(self, c_id, stop_event, delay, train_ds, config, dev):
-        NormalClient.NormalClient.__init__(self, c_id, stop_event, delay, train_ds, config, dev)
+    def __init__(self, c_id, stop_event, delay, train_ds, index_list, config, dev):
+        NormalClient.NormalClient.__init__(self, c_id, stop_event, delay, train_ds, index_list, config, dev)
         self.acquire_model_delay = config['acquire_model_delay']
 
     def run(self):
