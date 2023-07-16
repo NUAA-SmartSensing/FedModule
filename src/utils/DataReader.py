@@ -22,7 +22,6 @@ class DataReader:
         self.dataset = dataset
         self.total_data = [[], []]
         self.global_var = GlobalVarGetter().get()
-        self.global_var["data_queue"] = self.data_queue
         dl = DataLoader(self.dataset, batch_size=1, shuffle=False)
         for batch in dl:
             self.total_data[0].append(batch[0][0])
