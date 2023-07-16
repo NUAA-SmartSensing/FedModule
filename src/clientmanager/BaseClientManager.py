@@ -4,6 +4,7 @@ import threading
 import torch.cuda
 
 from utils import ModuleFindTool
+from utils.DataReader import DataReader
 from utils.GlobalVarGetter import GlobalVarGetter
 
 
@@ -46,6 +47,7 @@ class BaseClientManager:
             client_threads.set_event()
 
     def init_clients(self):
+        data_reader = DataReader(self.dataset)
         mode, dev_num, dev_total = self.get_running_mode()
         # 初始化clients
         self.client_thread_list = []
@@ -58,7 +60,7 @@ class BaseClientManager:
             else:
                 dev = 'cpu'
             client_delay = self.client_staleness_list[i]
-            self.client_thread_list.append(self.client_class(i, self.stop_event, client_delay, self.dataset, self.index_list[i], self.client_config, dev))
+            self.client_thread_list.append(self.client_class(i, self.stop_event, client_delay, data_reader.total_data, self.index_list[i], self.client_config, dev))
 
     def set_client_thread_list(self, new_client_thread_list):
         self.thread_lock.acquire()

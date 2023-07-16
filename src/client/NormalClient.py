@@ -6,7 +6,7 @@ from torch.utils.data import DataLoader
 from client import Client
 from loss.LossFactory import LossFactory
 from utils import ModuleFindTool
-from utils.Sampler import DistributedSampler
+from utils.DataReader import FLDataset
 
 
 class NormalClient(Client.Client):
@@ -31,8 +31,7 @@ class NormalClient(Client.Client):
         # loss函数
         self.loss_func = LossFactory(config["loss"], self).create_loss()
 
-        sampler = DistributedSampler(train_ds, index_list)
-        self.train_dl = DataLoader(self.train_ds, sampler=sampler, batch_size=self.batch_size, drop_last=True)
+        self.train_dl = DataLoader(FLDataset(self.train_ds, index_list), batch_size=self.batch_size, drop_last=True)
 
     def run(self):
         while not self.stop_event.is_set():
