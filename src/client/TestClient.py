@@ -6,14 +6,15 @@ from sklearn.model_selection import train_test_split
 from torch.utils.data import DataLoader
 
 from client import NormalClient
+from utils.DataReader import FLDataset
 from utils.Tools import saveAns
 
 
 class TestClient(NormalClient.NormalClient):
     def __init__(self, c_id, stop_event, delay, train_ds, index_list, config, dev):
         NormalClient.NormalClient.__init__(self, c_id, stop_event, delay, train_ds, index_list, config, dev)
-        self.train_dataset, self.test_dataset = train_test_split(train_ds, test_size=config['test_size'])
-        self.train_dl = DataLoader(self.train_dataset, batch_size=self.batch_size, shuffle=True, drop_last=True)
+        self.train_ds, self.test_dataset = train_test_split(FLDataset(train_ds, index_list), test_size=config['test_size'])
+        self.train_dl = DataLoader(self.train_ds, batch_size=self.batch_size, shuffle=True, drop_last=True)
         # 提供给wandb使用
         self.step = 1
         # 本地数据存储

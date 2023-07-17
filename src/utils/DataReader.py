@@ -6,6 +6,8 @@ from utils.GlobalVarGetter import GlobalVarGetter
 class FLDataset(Dataset):
     def __init__(self, dataset, idxs):
         self.dataset = dataset
+        self.data = dataset[0]
+        self.target = dataset[1]
         self.idxs = idxs
 
     def __len__(self):

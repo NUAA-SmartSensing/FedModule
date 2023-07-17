@@ -3,12 +3,18 @@ import torch
 from torch import nn
 
 from client import Client
+from utils.DataReader import FLDataset
 
 
 class FedLC(nn.Module):
     def __init__(self, config, client: Client):
         super().__init__()
-        self.z = torch.from_numpy(np.bincount(client.getDataset().tensors[1]))
+        self.device = 'cuda:0' if torch.cuda.is_available() else 'cpu'
+        dataset = client.getDataset()
+        if isinstance(dataset, list):
+            self.z = torch.from_numpy(np.bincount(dataset[1]))
+        else:
+            self.z = torch.from_numpy(np.bincount(dataset.tensors[1]))
         self.tau = config['tau']
 
     def forward(self, x, y, reduction="mean"):
@@ -21,6 +27,8 @@ class FedLC(nn.Module):
 
         # 这里对input所有元素求exp
         z = torch.cat((self.z, torch.zeros(x.shape[1] - self.z.shape[0], dtype=torch.int64)), 0)
+        z = z.to(self.device)
+        x = x.to(self.device)
         x = x - self.tau * z ** -0.25
         exp = torch.exp(x)
         # 根据target的索引，在exp第一维取出元素值，这是softmax的分子
