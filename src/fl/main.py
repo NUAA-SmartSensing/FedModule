@@ -19,7 +19,7 @@ if __name__ == '__main__':
 
     # 配置文件读取
     if len(sys.argv) < 2:
-        config_file = "config.json"
+        config_file = "../../config.json"
     else:
         config_file = sys.argv[1]
 
