@@ -75,7 +75,7 @@ It supports single GPU and Multi-GPU.
 ### Experiments
 You can run `python main.py` (the main file in the fl directory) directly. The program will automatically read the `config.json` file in the root directory and store the results in the specified path under `results`, along with the configuration file.
 
-You can also specify the configuration file by `python main.py config.json`. Please note that the path of `config.json` is relative to the root directory, not `main.py`.
+You can also specify the configuration file by `python main.py ../../config.json`. Please note that the path of `config.json` is relative to the `main.py`.
 
 The `config` folder in the root directory provides some algorithm configuration files proposed in papers. The following algorithm implementations are currently available:
 

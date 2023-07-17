@@ -74,7 +74,7 @@ python3.8 + pytorch + macos
 ### 实验
 直接运行`python main.py`(fl下的main文件)即可，程序会自动读取根目录下的config.json文件，执行完后将结果储存到results下的指定路径下，并将配置文件一并存储。
 
-也可以自行指定配置文件`python main.py config.json`，需要注意的是config.json的路径是基于根目录的，而非main.py。
+也可以自行指定配置文件`python main.py ../../config.json`，需要注意的是config.json的路径是基于`main.py`的。
 
 根目录下的`config`文件夹提供了部分论文提出的算法文件配置，现提供如下算法实现：
 
