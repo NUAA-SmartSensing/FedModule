@@ -1,6 +1,7 @@
 import threading
 from abc import abstractmethod
 
+import numpy as np
 import torch.utils.data
 import wandb
 from torch.utils.data import DataLoader
@@ -8,6 +9,7 @@ from torch.utils.data import DataLoader
 from loss.LossFactory import LossFactory
 from update.UpdateCaller import UpdateCaller
 from utils import ModuleFindTool
+from utils.DataReader import DataReader, FLDataset
 from utils.GlobalVarGetter import GlobalVarGetter
 
 
@@ -24,7 +26,11 @@ class BaseUpdater(threading.Thread):
         self.schedule_t = self.global_var['schedule_t']
         self.server_network = self.global_var['server_network']
         self.client_manager = self.global_var['client_manager']
-        self.test_data = self.global_var['dataset'].get_test_dataset()
+
+        test_data = self.global_var['dataset'].get_test_dataset()
+        data_reader = DataReader(test_data)
+        self.test_data = FLDataset(data_reader.total_data, np.arange(len(data_reader.total_data[0])))
+
         self.queue_manager = self.global_var['queue_manager']
         self.print_lock = self.global_var['print_lock']
 
@@ -56,7 +62,7 @@ class BaseUpdater(threading.Thread):
         self.server_network.load_state_dict(updated_parameters)
 
     def run_server_test(self, epoch):
-        dl = DataLoader(self.test_data, batch_size=100, shuffle=True, drop_last=True)
+        dl = DataLoader(self.test_data, batch_size=64, shuffle=True, drop_last=True)
         test_correct = 0
         test_loss = 0
         dev = 'cuda' if torch.cuda.is_available() else 'cpu'
