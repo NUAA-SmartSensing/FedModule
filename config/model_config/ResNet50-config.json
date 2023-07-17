@@ -26,7 +26,6 @@
     "model": {
       "path": "torchvision.models.resnet.resnet50",
       "params": {
-        "pretrained": false,
         "num_classes": 10
       }
     },
@@ -72,7 +71,6 @@
     "model": {
       "path": "torchvision.models.resnet.resnet50",
       "params": {
-        "pretrained": false,
         "num_classes": 10
       }
     },
