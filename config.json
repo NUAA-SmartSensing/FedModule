@@ -8,11 +8,7 @@
     "use_file_system": false,
     "multi_gpu": true,
     "experiment": "FedAsync/1",
-    "stale": {
-      "step": 1,
-      "shuffle": true,
-      "list": [10, 10, 10, 5, 5, 5, 5]
-    },
+    "stale": false,
     "dataset": {
       "path": "dataset.FashionMNIST.FashionMNIST",
       "params": {}
@@ -22,7 +18,7 @@
   },
   "server": {
     "path": "server.AsyncServer.AsyncServer",
-    "epochs": 20,
+    "epochs": 300,
     "model": {
       "path": "model.CNN.CNN",
       "params": {}
@@ -47,7 +43,7 @@
         "params": {
           "a": 10,
           "b": 4,
-          "alpha": 0.1,
+          "alpha": 0.9,
           "r" : 1
         }
       }
@@ -72,17 +68,17 @@
   "client": {
     "path": "client.NormalClient.NormalClient",
     "epochs": 2,
-    "batch_size": 50,
+    "batch_size": 32,
     "model": {
       "path": "model.CNN.CNN",
       "params": {}
     },
     "loss": "torch.nn.functional.cross_entropy",
-    "mu": 0.01,
+    "mu": 0.1,
     "optimizer": {
       "path": "torch.optim.Adam",
       "params": {
-        "lr": 0.01,
+        "lr": 0.005,
         "weight_decay": 0
       }
     }

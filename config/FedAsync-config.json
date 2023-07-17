@@ -68,7 +68,7 @@
   "client": {
     "path": "client.NormalClient.NormalClient",
     "epochs": 2,
-    "batch_size": 16,
+    "batch_size": 32,
     "model": {
       "path": "model.CNN.CNN",
       "params": {}
@@ -76,9 +76,9 @@
     "loss": "torch.nn.functional.cross_entropy",
     "mu": 0.1,
     "optimizer": {
-      "path": "torch.optim.SGD",
+      "path": "torch.optim.Adam",
       "params": {
-        "lr": 0.01,
+        "lr": 0.005,
         "weight_decay": 0
       }
     }
