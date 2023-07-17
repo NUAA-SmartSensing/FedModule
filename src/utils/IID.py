@@ -133,7 +133,7 @@ def generate_label_lists(label_num_list, left, right, shuffle=False):
         labels = range(left, right)
         for label_num in label_num_list:
             label_list = np.random.choice(labels, label_num, replace=False)
-            label_lists.append(label_list)
+            label_lists.append(label_list.tolist())
     return label_lists
 
 
