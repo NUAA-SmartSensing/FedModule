@@ -69,7 +69,7 @@ class TestClient(NormalClient.NormalClient):
         self.print_lock.acquire()
         print("Client", self.client_id, "trained, accuracy:", accuracy, 'loss', loss)
         self.print_lock.release()
-        if self.global_var['updater'].config['enabled']:
+        if 'wandb' in self.config and self.config['wandb']:
             wandb.log({f'{self.client_id}_accuracy': accuracy, f'{self.client_id}_loss': loss, f'time_stamp': self.time_stamp, f'local_epoch': self.step})
             self.step += 1
         self.loss_list.append(loss)
