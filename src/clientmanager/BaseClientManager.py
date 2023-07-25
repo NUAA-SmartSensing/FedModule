@@ -48,13 +48,23 @@ class BaseClientManager:
 
     def init_clients(self):
         data_reader = DataReader(self.dataset)
-        mode, dev_num, dev_total = self.get_running_mode()
+        mode, dev_num, dev_total, dev_mem_list = self.get_running_mode()
         # 初始化clients
         self.client_thread_list = []
+        mem_total = 0
+        ratio_list = []
+        res_client = self.clients_num
+        if mode == 0:
+            for i in dev_mem_list:
+                mem_total += i
+            for i in range(len(dev_mem_list)-1):
+                c_num = int(dev_mem_list[i] / mem_total * self.clients_num)
+                res_client = res_client - c_num
+                ratio_list = ratio_list + [f'cuda:{i}' for _ in range(c_num)]
+            ratio_list = ratio_list + [f'cuda:{len(dev_mem_list)-1}' for _ in range(res_client)]
         for i in range(self.clients_num):
             if mode == 0:
-                dev = f'cuda:{dev_num}'
-                dev_num = (dev_num + 1) % dev_total
+                dev = ratio_list[i]
             elif mode == 1:
                 dev = 'cuda'
             else:
@@ -70,17 +80,21 @@ class BaseClientManager:
     def get_running_mode(self):
         dev_num = 0
         dev_total = 0
+        dev_list = []
         # 0: 多gpu，1：单gpu，2：cpu
         if torch.cuda.is_available():
             if self.multi_gpu:
                 mode = 0
                 dev_num = 0
                 dev_total = torch.cuda.device_count()
+                for i in range(dev_total):
+                    device = torch.device(f'cuda:{i}')
+                    dev_list.append(torch.cuda.get_device_properties(device).total_memory-torch.cuda.memory_allocated(device))
             else:
                 mode = 1
         else:
             mode = 2
-        return mode, dev_num, dev_total
+        return mode, dev_num, dev_total, dev_list
 
     def get_client_thread_list(self):
         self.thread_lock.acquire()
