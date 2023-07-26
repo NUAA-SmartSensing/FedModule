@@ -28,6 +28,12 @@ class DataReader:
         for batch in dl:
             self.total_data[0].append(batch[0][0])
             self.total_data[1].append(batch[1][0])
+        merged_list = list(zip(*self.total_data))
+        sorted_merged_list = sorted(merged_list, key=lambda x: x[1])
+        self.total_data = [[], []]
+        for data, label in sorted_merged_list:
+            self.total_data[0].append(data)
+            self.total_data[1].append(label)
 
 
 class MultiDataset(Dataset):
