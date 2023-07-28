@@ -71,8 +71,6 @@
     "path": "client.NormalClient.NormalClient",
     "epochs": 5,
     "batch_size": 32,
-    "test_size": 0.1,
-    "test_batch_size": 16,
     "model": {
       "path": "model.LeNet5.LeNet5",
       "params": {}
