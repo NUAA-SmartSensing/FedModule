@@ -42,7 +42,7 @@
         "path": "update.FedAsync.FedAsync",
         "params": {
           "a": 10,
-          "b": 4,
+          "b": 15,
           "alpha": 0.9,
           "r" : 1
         }
