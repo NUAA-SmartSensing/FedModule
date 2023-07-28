@@ -1426,6 +1426,14 @@ for key, var in client_weights.items():
 
 ## 联系我
 
+我们创建了一个QQ群用来讨论asyncFL框架和FL，欢迎大家加入~~
+
+以下是群号:
+
+895896624
+
+![group_number](./doc/pic/group.png)
+
 QQ: 527707607
 
 邮箱: desperado@qq.com

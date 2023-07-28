@@ -1539,6 +1539,14 @@ for key, var in client_weights.items():
 
 ## Contact us
 
+We created a QQ group to discuss the asyncFL framework and FL, welcome everyone to join~~
+
+Here is the group number:
+
+895896624
+
+![group_number](./doc/pic/group.png)
+
 QQ: 527707607
 
 email: desperado@qq.com
