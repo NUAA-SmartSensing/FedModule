@@ -1432,7 +1432,7 @@ for key, var in client_weights.items():
 
 895896624
 
-![group_number](./doc/pic/group.png)
+![group_number](./pic/group.png)
 
 QQ: 527707607
 
