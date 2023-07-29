@@ -49,8 +49,8 @@ class SemiAsyncUpdater(BaseUpdater):
 
     def update_group_weights(self, epoch, update_list):
         updated_parameters = self.group_update.update_server_weights(epoch, update_list)
-        for key, var in updated_parameters.items():
-            if torch.cuda.is_available():
+        if torch.cuda.is_available():
+            for key, var in updated_parameters.items():
                 updated_parameters[key] = updated_parameters[key].cuda()
         return updated_parameters
 
@@ -59,7 +59,7 @@ class SemiAsyncUpdater(BaseUpdater):
         for i in range(self.global_var['group_manager'].group_num):
             update_list.append({"weights": network_list[i]})
         updated_parameters = self.update_caller.update_server_weights(epoch, update_list)
-        for key, var in updated_parameters.items():
-            if torch.cuda.is_available():
+        if torch.cuda.is_available():
+            for key, var in updated_parameters.items():
                 updated_parameters[key] = updated_parameters[key].cuda()
         self.server_network.load_state_dict(updated_parameters)

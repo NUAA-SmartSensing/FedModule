@@ -56,8 +56,8 @@ class BaseUpdater(threading.Thread):
 
     def update_server_weights(self, epoch, update_list):
         updated_parameters = self.update_caller.update_server_weights(epoch, update_list)
-        for key, var in updated_parameters.items():
-            if torch.cuda.is_available():
+        if torch.cuda.is_available():
+            for key, var in updated_parameters.items():
                 updated_parameters[key] = updated_parameters[key].cuda()
         self.server_network.load_state_dict(updated_parameters)
 

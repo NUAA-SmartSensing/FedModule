@@ -19,8 +19,8 @@ class StepAsyncAvg(AbstractUpdate):
         server_weights = copy.deepcopy(self.global_var['updater'].server_network.state_dict())
 
         for i in range(len(update_list)):
-            for key, var in update_list[i]["weights"].items():
-                if torch.cuda.is_available():
+            if torch.cuda.is_available():
+                for key, var in update_list[i]["weights"].items():
                     update_list[i]["weights"][key] = update_list[i]["weights"][key].cuda()
 
         # 求每个客户端的上传频率q
