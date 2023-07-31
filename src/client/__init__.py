@@ -5,3 +5,4 @@ from client import SemiClient
 from client import DLClient
 from client import TestClient
 from client import ActiveClient
+from client import SemiTestClient
