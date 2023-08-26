@@ -1,6 +1,7 @@
 from multiprocessing.managers import SyncManager
 from queue import Queue
 from threading import Thread
+from time import sleep
 
 from utils.GlobalVarGetter import GlobalVarGetter
 
@@ -27,7 +28,26 @@ class ManagerWrapper:
         SyncManager.register('MessageQueue', MessageQueue)
 
 
-# nothing about server or client
+# this thread works in main process
+class DataGetter(Thread):
+    def __init__(self):
+        super().__init__()
+        self.queue_manager = GlobalVarGetter().get()['queue_manager']
+        self.is_end = False
+
+    def run(self) -> None:
+        while not self.is_end:
+            while not MessageQueue.uplink_empty():
+                self.queue_manager.raw_queue.put(MessageQueue.get_from_uplink())
+            self.queue_manager.data_process()
+            # Give up cpu to other threads
+            sleep(0.01)
+
+    def kill(self):
+        self.is_end = True
+
+
+# make sure this class is no about server or client
 class MessageQueue:
     uplink = {'update': Queue()}
     downlink = {'received_weights': {}, 'received_time_stamp': {}, 'time_stamp_buffer': {}, 'weights_buffer': {}}
