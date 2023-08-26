@@ -1,12 +1,30 @@
 import threading
+from functools import wraps
+from multiprocessing import Event
 
 import torch.cuda
 
 from utils import ModuleFindTool, Time
 from utils.GlobalVarGetter import GlobalVarGetter
+from utils.ProcessManager import ManagerWrapper, DataGetter
 
 
-class BaseServer:
+def decorator(func):
+    @wraps(func)
+    def wrapper(self, *args, **kwargs):
+        func(self, *args, **kwargs)
+        self.data_getter.kill()
+        del self.data_getter
+    return wrapper
+
+
+class Meta(type):
+    def __new__(cls, name, bases, attrs):
+        attrs['kill_main_class'] = decorator(attrs['kill_main_class'])
+        return super(Meta, cls).__new__(cls, name, bases, attrs)
+
+
+class BaseServer(metaclass=Meta):
     def __init__(self, config):
         self.config = config
         self.global_config = config['global']
@@ -47,7 +65,8 @@ class BaseServer:
         self.loss_list = []
         self.print_lock = threading.Lock()
         self.global_var['print_lock'] = self.print_lock
-        self.stop_event = threading.Event()
+        # process event
+        self.stop_event = Event()
         self.stop_event.clear()
         self.server_thread_lock = threading.Lock()
 
@@ -59,6 +78,11 @@ class BaseServer:
         self.scheduler_thread = None
         self.updater_thread = None
 
+        # 多进程交互进程
+        self.manager = ManagerWrapper.get_manager()
+        self.data_getter = DataGetter()
+        self.data_getter.start()
+
     def run(self):
         print("Start server:")
 
@@ -66,9 +90,9 @@ class BaseServer:
         self.scheduler_thread.start()
         self.updater_thread.start()
 
-        client_thread_list = self.client_manager.get_client_thread_list()
-        for client_thread in client_thread_list:
-            client_thread.join()
+        client_list = self.client_manager.get_client_list()
+        for client in client_list:
+            client.join()
         self.scheduler_thread.join()
         print("scheduler_thread joined")
         self.updater_thread.join()
