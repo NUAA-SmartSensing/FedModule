@@ -7,12 +7,12 @@ from client import Client
 from loss.LossFactory import LossFactory
 from utils import ModuleFindTool
 from utils.DataReader import FLDataset
+from utils.ProcessManager import MessageQueue
 
 
 class NormalClient(Client.Client):
-    def __init__(self, c_id, stop_event, delay, train_ds, index_list, config, dev):
-        Client.Client.__init__(self, c_id, stop_event, delay, train_ds, index_list, dev)
-        self.queue_manager = self.global_var["queue_manager"]
+    def __init__(self, c_id, stop_event, selected_event, delay, train_ds, index_list, config, dev):
+        Client.Client.__init__(self, c_id, stop_event, selected_event, delay, train_ds, index_list, dev)
         self.batch_size = config["batch_size"]
         self.epoch = config["epochs"]
         self.optimizer_config = config["optimizer"]
@@ -35,32 +35,26 @@ class NormalClient(Client.Client):
 
     def run(self):
         while not self.stop_event.is_set():
-            if self.received_weights:
+            if MessageQueue.get_from_downlink('received_weights', self.client_id):
                 # 更新模型参数
-                self.model.load_state_dict(self.weights_buffer, strict=True)
-                self.received_weights = False
-            if self.received_time_stamp:
-                self.time_stamp = self.time_stamp_buffer
-                self.received_time_stamp = False
-            if self.event_is_set:
-                self.event_is_set = False
+                self.model.load_state_dict(MessageQueue.get_from_downlink(self.client_id, 'weights_buffer'), strict=True)
+                MessageQueue.put_into_downlink(self.client_id, 'received_weights', False)
+            if self.received_time_stamp[self.client_id]:
+                self.time_stamp = MessageQueue.get_from_downlink(self.client_id, 'time_stamp_buffer')
+                MessageQueue.put_into_downlink(self.client_id, 'received_time_stamp', False)
 
             # 该client被选中，开始执行本地训练
             if self.event.is_set():
-                self.client_thread_lock.acquire()
                 # 该client进行训练
                 data_sum, weights = self.train()
 
                 # client传回server的信息具有延迟
-                self.print_lock.acquire()
                 print("Client", self.client_id, "trained")
-                self.print_lock.release()
                 time.sleep(self.delay)
 
                 # 返回其ID、模型参数和时间戳
                 self.upload(data_sum, weights)
                 self.event.clear()
-                self.client_thread_lock.release()
             # 该client等待被选中
             else:
                 self.event.wait()
@@ -71,7 +65,7 @@ class NormalClient(Client.Client):
     def upload(self, data_sum, weights):
         update_dict = {"client_id": self.client_id, "weights": weights, "data_sum": data_sum,
                        "time_stamp": self.time_stamp}
-        self.queue_manager.put(update_dict)
+        MessageQueue.put_into_uplink(self.client_id, update_dict)
 
     def train_one_epoch(self):
         if self.mu != 0:
