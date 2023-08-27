@@ -9,22 +9,7 @@ from utils.GlobalVarGetter import GlobalVarGetter
 from utils.ProcessManager import ManagerWrapper, DataGetter
 
 
-def decorator(func):
-    @wraps(func)
-    def wrapper(self, *args, **kwargs):
-        func(self, *args, **kwargs)
-        self.data_getter.kill()
-        del self.data_getter
-    return wrapper
-
-
-class Meta(type):
-    def __new__(cls, name, bases, attrs):
-        attrs['kill_main_class'] = decorator(attrs['kill_main_class'])
-        return super(Meta, cls).__new__(cls, name, bases, attrs)
-
-
-class BaseServer(metaclass=Meta):
+class BaseServer:
     def __init__(self, config):
         self.config = config
         self.global_config = config['global']
@@ -34,11 +19,9 @@ class BaseServer(metaclass=Meta):
         self.queue_manager_config = config['queue_manager']
 
         # 全局存储变量
-        self.global_var = GlobalVarGetter().set({'server': self, 'config': config, 'global_config': self.global_config,
-                                                 'server_config': self.server_config,
-                                                 'client_config': self.client_config,
-                                                 'client_manager_config': self.client_manager_config,
-                                                 'queue_manager_config': self.queue_manager_config})
+        self.global_var = GlobalVarGetter().get()
+        self.global_var['server'] = self
+
         # 全局模型
         model_class = ModuleFindTool.find_class_by_path(self.server_config["model"]["path"])
         self.server_network = model_class(**self.server_config["model"]["params"])
@@ -48,7 +31,8 @@ class BaseServer(metaclass=Meta):
 
         # 数据集
         dataset_class = ModuleFindTool.find_class_by_path(self.global_config["dataset"]["path"])
-        self.dataset = dataset_class(self.global_config["client_num"], self.global_config["iid"], self.global_config["dataset"]["params"])
+        self.dataset = dataset_class(self.global_config["client_num"], self.global_config["iid"],
+                                     self.global_config["dataset"]["params"])
         self.global_var['dataset'] = self.dataset
         self.config['global']['iid'] = self.dataset.get_config()
 
@@ -77,16 +61,16 @@ class BaseServer(metaclass=Meta):
         self.client_manager = None
         self.scheduler_thread = None
         self.updater_thread = None
+        self.data_getter_thread = DataGetter()
 
-        # 多进程交互进程
-        self.manager = ManagerWrapper.get_manager()
-        self.data_getter = DataGetter()
-        self.data_getter.start()
+        if 'mode' in GlobalVarGetter().get()['global_config'] and GlobalVarGetter().get()['global_config']['mode'] == 'process':
+            self.manager = ManagerWrapper.get_manager()
 
     def run(self):
         print("Start server:")
 
-        # 启动server中的两个线程
+        # 启动server中的三个线程
+        self.data_getter_thread.start()
         self.scheduler_thread.start()
         self.updater_thread.start()
 
@@ -97,8 +81,9 @@ class BaseServer(metaclass=Meta):
         print("scheduler_thread joined")
         self.updater_thread.join()
         print("updater_thread joined")
-        print("Thread count =", threading.active_count())
-        print(*threading.enumerate(), sep="\n")
+        self.data_getter_thread.kill()
+        self.data_getter_thread.join()
+        print("data_getter_thread joined")
 
         # 队列报告
         self.queue_manager.stop()
@@ -119,3 +104,4 @@ class BaseServer(metaclass=Meta):
         del self.updater_thread
         del self.client_manager
         del self.queue_manager
+        del self.data_getter_thread
