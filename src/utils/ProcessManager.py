@@ -1,3 +1,5 @@
+import multiprocessing
+import threading
 from multiprocessing.managers import SyncManager
 from queue import Queue
 from threading import Thread
@@ -32,14 +34,17 @@ class ManagerWrapper:
 class DataGetter(Thread):
     def __init__(self):
         super().__init__()
-        self.queue_manager = GlobalVarGetter().get()['queue_manager']
         self.is_end = False
+        self.queue_manager = None
+        self.message_queue = None
 
     def run(self) -> None:
+        self.queue_manager = GlobalVarGetter().get()['queue_manager']
+        self.message_queue = MessageQueueFactory.create_message_queue()
         while not self.is_end:
-            while not MessageQueue.uplink_empty():
-                self.queue_manager.raw_queue.put(MessageQueue.get_from_uplink())
-            self.queue_manager.data_process()
+            while not self.message_queue.uplink_empty():
+                update = self.message_queue.get_from_uplink()
+                self.queue_manager.put(update)
             # Give up cpu to other threads
             sleep(0.01)
 
@@ -50,7 +55,8 @@ class DataGetter(Thread):
 # make sure this class is no about server or client
 class MessageQueue:
     uplink = {'update': Queue()}
-    downlink = {'received_weights': {}, 'received_time_stamp': {}, 'time_stamp_buffer': {}, 'weights_buffer': {}}
+    downlink = {'received_weights': {}, 'received_time_stamp': {}, 'time_stamp_buffer': {}, 'weights_buffer': {}, 'schedule_time_stamp_buffer': {}}
+    training_status = {}
 
     @staticmethod
     def get_from_uplink(key='update'):
@@ -64,7 +70,9 @@ class MessageQueue:
 
     @staticmethod
     def get_from_downlink(client_id, key):
-        return MessageQueue.downlink[key][client_id]
+        if client_id in MessageQueue.downlink[key]:
+            return MessageQueue.downlink[key][client_id]
+        return None
 
     @staticmethod
     def put_into_downlink(client_id, key, item):
@@ -74,8 +82,30 @@ class MessageQueue:
 
     @staticmethod
     def uplink_empty(key='update'):
-        return MessageQueue.uplink[key].empty()
+        return not MessageQueue.uplink[key].qsize()
 
     @staticmethod
     def downlink_empty(client_id, key):
         return MessageQueue.downlink[key][client_id].empty()
+
+    @staticmethod
+    def set_training_status(client_id, value):
+        MessageQueue.training_status[client_id] = value
+
+
+class EventFactory:
+    @staticmethod
+    def create_Event():
+        if 'mode' in GlobalVarGetter().get()['global_config'] and GlobalVarGetter().get()['global_config']['mode'] == 'process':
+            return multiprocessing.Event()
+        else:
+            return threading.Event()
+
+
+class MessageQueueFactory:
+    @staticmethod
+    def create_message_queue():
+        if 'mode' in GlobalVarGetter().get()['global_config'] and GlobalVarGetter().get()['global_config']['mode'] == 'process':
+            return ManagerWrapper.get_manager().MessageQueue()
+        else:
+            return MessageQueue()
