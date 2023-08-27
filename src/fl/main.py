@@ -6,6 +6,8 @@ import threading
 
 import wandb
 
+from utils.GlobalVarGetter import GlobalVarGetter
+
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from utils.Tools import *
 from utils import ModuleFindTool
@@ -27,9 +29,14 @@ if __name__ == '__main__':
     global_config = config['global']
     server_config = config['server']
     client_config = config['client']
-    manager_config = config['client_manager']
+    client_manager_config = config['client_manager']
+    queue_manager_config = config['queue_manager']
     wandb_config = config['wandb']
-
+    GlobalVarGetter().set({'config': config, 'global_config': global_config,
+                           'server_config': server_config,
+                           'client_config': client_config,
+                           'client_manager_config': client_manager_config,
+                           'queue_manager_config': queue_manager_config})
     # 实验路径相关
     if not global_config["experiment"].endswith("/"):
         global_config["experiment"] = global_config["experiment"] + "/"
