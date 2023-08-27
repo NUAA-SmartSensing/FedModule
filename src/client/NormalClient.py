@@ -7,7 +7,6 @@ from client import Client
 from loss.LossFactory import LossFactory
 from utils import ModuleFindTool
 from utils.DataReader import FLDataset
-from utils.ProcessManager import MessageQueue
 
 
 class NormalClient(Client.Client):
@@ -35,13 +34,14 @@ class NormalClient(Client.Client):
 
     def run(self):
         while not self.stop_event.is_set():
-            if MessageQueue.get_from_downlink('received_weights', self.client_id):
+            if self.message_queue.get_from_downlink(self.client_id, 'received_weights'):
+                self.message_queue.put_into_downlink(self.client_id, 'received_weights', False)
                 # 更新模型参数
-                self.model.load_state_dict(MessageQueue.get_from_downlink(self.client_id, 'weights_buffer'), strict=True)
-                MessageQueue.put_into_downlink(self.client_id, 'received_weights', False)
-            if self.received_time_stamp[self.client_id]:
-                self.time_stamp = MessageQueue.get_from_downlink(self.client_id, 'time_stamp_buffer')
-                MessageQueue.put_into_downlink(self.client_id, 'received_time_stamp', False)
+                self.model.load_state_dict(self.message_queue.get_from_downlink(self.client_id, 'weights_buffer'), strict=True)
+            if self.message_queue.get_from_downlink(self.client_id, 'received_time_stamp'):
+                self.message_queue.put_into_downlink(self.client_id, 'received_time_stamp', False)
+                self.time_stamp = self.message_queue.get_from_downlink(self.client_id, 'time_stamp_buffer')
+                self.schedule_t = self.message_queue.get_from_downlink(self.client_id, 'schedule_time_stamp_buffer')
 
             # 该client被选中，开始执行本地训练
             if self.event.is_set():
@@ -55,6 +55,8 @@ class NormalClient(Client.Client):
                 # 返回其ID、模型参数和时间戳
                 self.upload(data_sum, weights)
                 self.event.clear()
+
+                self.message_queue.set_training_status(self.client_id, False)
             # 该client等待被选中
             else:
                 self.event.wait()
@@ -65,7 +67,7 @@ class NormalClient(Client.Client):
     def upload(self, data_sum, weights):
         update_dict = {"client_id": self.client_id, "weights": weights, "data_sum": data_sum,
                        "time_stamp": self.time_stamp}
-        MessageQueue.put_into_uplink(self.client_id, update_dict)
+        self.message_queue.put_into_uplink(update_dict)
 
     def train_one_epoch(self):
         if self.mu != 0:
