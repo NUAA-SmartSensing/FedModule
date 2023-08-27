@@ -26,17 +26,15 @@ class AsyncScheduler(BaseScheduler.BaseScheduler):
                     self.print_lock.acquire()
                     print("Begin client select")
                     self.print_lock.release()
-                    selected_client_threads = self.client_select()
+                    selected_clients = self.client_select()
                     self.print_lock.acquire()
-                    print("\nSchedulerThread select(", len(selected_client_threads), "clients):")
-                    for s_client_thread in selected_client_threads:
-                        print(s_client_thread.get_client_id(), end=" | ")
+                    print("\nSchedulerThread select(", len(selected_clients), "clients):")
+                    for client_id in selected_clients:
+                        print(client_id, end=" | ")
                         # 将server的模型参数和时间戳发给client
-                        s_client_thread.set_client_weight(self.server_weights)
-                        s_client_thread.set_time_stamp(current_time)
-                        s_client_thread.set_schedule_time_stamp(schedule_time)
+                        self.send_weights(client_id, current_time, schedule_time)
                         # 启动一次client线程
-                        s_client_thread.set_event()
+                        self.client_manager.selected_event_list[client_id].set()
                     print("\n-----------------------------------------------------------------Schedule complete")
                     self.print_lock.release()
                     self.schedule_t.time_add()

@@ -5,6 +5,7 @@ from abc import abstractmethod
 from schedule.ScheduleCaller import ScheduleCaller
 from utils import ModuleFindTool
 from utils.GlobalVarGetter import GlobalVarGetter
+from utils.ProcessManager import MessageQueueFactory
 
 
 class BaseScheduler(threading.Thread):
@@ -28,11 +29,21 @@ class BaseScheduler(threading.Thread):
         self.schedule_method = schedule_class(config["schedule"]["params"])
         self.schedule_caller = ScheduleCaller(self)
 
+        self.message_queue = MessageQueueFactory.create_message_queue()
+
     @abstractmethod
     def run(self):
         pass
 
     def client_select(self, *args, **kwargs):
-        client_list = self.client_manager.get_client_thread_list()
-        selected_client_threads = self.schedule_caller.schedule(client_list)
-        return selected_client_threads
+        client_list = self.client_manager.get_client_id_list()
+        selected_clients = self.schedule_caller.schedule(client_list)
+        return selected_clients
+
+    def send_weights(self, client_id, current_time, schedule_time):
+        self.message_queue.put_into_downlink(client_id, 'weights_buffer', self.server_weights)
+        self.message_queue.put_into_downlink(client_id, 'time_stamp_buffer', current_time)
+        self.message_queue.put_into_downlink(client_id, 'schedule_time_stamp_buffer', schedule_time)
+        self.message_queue.put_into_downlink(client_id, 'received_weights', True)
+        self.message_queue.put_into_downlink(client_id, 'received_time_stamp', True)
+

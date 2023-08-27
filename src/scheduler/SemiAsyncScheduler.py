@@ -37,21 +37,19 @@ class SemiAsyncScheduler(BaseScheduler.BaseScheduler):
                             j.set_group_id(i)
                         self.print_lock.acquire()
                         print(f"\nbegin select group {i}")
-                        selected_client_threads = self.client_select(i)
-                        print("SchedulerThread select(", len(selected_client_threads), "clients):")
+                        selected_clients = self.client_select(i)
+                        print("SchedulerThread select(", len(selected_clients), "clients):")
                         self.print_lock.release()
                         # 存储调度的客户端数量
-                        self.group_manager.group_client_num_list.append(len(selected_client_threads))
+                        self.group_manager.group_client_num_list.append(len(selected_clients))
                         # 全局存储各组模型列表
                         self.group_manager.network_list.append(self.server_weights)
-                        for s_client_thread in selected_client_threads:
-                            print(s_client_thread.get_client_id(), end=" | ")
+                        for client_id in selected_clients:
+                            print(client_id, end=" | ")
                             # 将server的模型参数和时间戳发给client
-                            s_client_thread.set_client_weight(self.server_weights)
-                            s_client_thread.set_time_stamp(current_time)
-                            s_client_thread.set_schedule_time_stamp(schedule_time)
+                            self.send_weights(client_id, current_time, schedule_time)
                             # 启动一次client线程
-                            s_client_thread.set_event()
+                            self.client_manager.selected_event_list[client_id].set()
                         print(
                             "\n-----------------------------------------------------------------Schedule complete")
                 else:
@@ -59,21 +57,20 @@ class SemiAsyncScheduler(BaseScheduler.BaseScheduler):
                     print(f"\nbegin select group {group_num}")
                     self.print_lock.release()
                     last_s_time = current_time
-                    selected_client_threads = self.client_select(group_num)
-                    self.group_manager.group_client_num_list[group_num] = len(selected_client_threads)
+                    selected_clients = self.client_select(group_num)
+                    self.group_manager.group_client_num_list[group_num] = len(selected_clients)
                     self.print_lock.acquire()
-                    print("\nSchedulerThread select(", len(selected_client_threads), "clients):")
+                    print("\nSchedulerThread select(", len(selected_clients), "clients):")
                     self.server_thread_lock.acquire()
                     server_weights = copy.deepcopy(self.server_network.state_dict())
                     self.server_thread_lock.release()
-                    for s_client_thread in selected_client_threads:
-                        print(s_client_thread.get_client_id(), end=" | ")
+                    for client_id in selected_clients:
+                        print(client_id, end=" | ")
                         # 将server的模型参数和时间戳发给client
-                        s_client_thread.set_client_weight(server_weights)
-                        s_client_thread.set_time_stamp(current_time)
+                        self.send_weights(client_id, current_time, schedule_time)
 
                         # 启动一次client线程
-                        s_client_thread.set_event()
+                        self.client_manager.selected_event_list[client_id].set()
                     del server_weights
                     print("\n-----------------------------------------------------------------Schedule complete")
                     self.print_lock.release()
@@ -87,5 +84,5 @@ class SemiAsyncScheduler(BaseScheduler.BaseScheduler):
 
     def client_select(self, *args, **kwargs):
         client_list = self.group_manager.get_group_list()[args[0]]
-        selected_client_threads = self.schedule_caller.schedule(client_list)
-        return selected_client_threads
+        selected_clients = self.schedule_caller.schedule(client_list)
+        return selected_clients
