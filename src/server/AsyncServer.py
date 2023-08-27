@@ -17,7 +17,6 @@ class AsyncServer(BaseServer.BaseServer):
         self.global_var['client_manager'] = self.client_manager
 
         # client_manager初始化
-        self.client_manager.init_clients()
         self.client_manager.start_all_clients()
 
         scheduler_class = ModuleFindTool.find_class_by_path(self.server_config['scheduler']['path'])
