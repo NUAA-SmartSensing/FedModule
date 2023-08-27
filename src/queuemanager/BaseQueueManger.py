@@ -18,6 +18,7 @@ class BaseQueueManager(AbstractQueueManager):
         self.receiver = None
         self.checker = None
 
+    # Automatically triggered when new data is uploaded
     @abstractmethod
     def put(self, update, *args, **kwargs):
         pass
@@ -59,4 +60,3 @@ class BaseQueueManager(AbstractQueueManager):
 
     def get_queue(self):
         return self.queue
-

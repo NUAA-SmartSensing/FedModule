@@ -17,6 +17,7 @@ class SingleQueueManager(BaseQueueManager):
         self.receiver = receiver_class(config["receiver"])
         self.receiver_caller = ReceiverCaller(self)
 
+    # Automatically triggered when new data is uploaded
     def put(self, update, *args, **kwargs):
         self.lock.acquire()
         if self.checker_caller.check(update):

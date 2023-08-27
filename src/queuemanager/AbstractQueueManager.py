@@ -2,6 +2,8 @@ from abc import abstractmethod
 
 
 class AbstractQueueManager:
+
+    # Automatically triggered when new data is uploaded
     @abstractmethod
     def put(self, update, *args, **kwargs):
         pass
