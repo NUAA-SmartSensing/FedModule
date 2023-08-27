@@ -1,11 +1,11 @@
 import copy
-import threading
 
 import torch.cuda
 
 from utils import ModuleFindTool
 from utils.DataReader import DataReader
 from utils.GlobalVarGetter import GlobalVarGetter
+from utils.ProcessManager import EventFactory
 
 
 class BaseClientManager:
@@ -13,7 +13,8 @@ class BaseClientManager:
         self.stop_event = stop_event
         self.config = config
         self.global_var = GlobalVarGetter().get()
-        self.client_thread_list = None
+        self.client_list = []
+        self.client_id_list = []
 
         self.multi_gpu = self.global_var["global_config"]["multi_gpu"]
         self.clients_num = self.global_var["global_config"]["client_num"]
@@ -29,28 +30,28 @@ class BaseClientManager:
         self.print_lock = self.global_var["print_lock"]
         self.init_weights = copy.deepcopy(self.global_var["server_network"].state_dict())
 
-        self.thread_lock = threading.Lock()
         self.client_class = ModuleFindTool.find_class_by_path(self.global_var["client_config"]["path"])
+        self.selected_event_list = [EventFactory.create_Event() for _ in range(self.clients_num)]
 
     def start_all_clients(self):
         self.init_clients()
         # 启动clients
-        self.global_var['client_list'] = self.client_thread_list
+        self.global_var['client_list'] = self.client_list
+        self.global_var['client_id_list'] = self.client_id_list
         print("Start clients:")
-        for client_thread in self.client_thread_list:
-            client_thread.start()
+        for client in self.client_list:
+            client.start()
 
     def stop_all_clients(self):
         # 终止所有client线程
         self.stop_event.set()
-        for client_threads in self.client_thread_list:
-            client_threads.set_event()
+        for i in range(self.clients_num):
+            self.selected_event_list[i].set()
 
     def init_clients(self):
         data_reader = DataReader(self.dataset)
         mode, dev_num, dev_total, dev_mem_list = self.get_running_mode()
         # 初始化clients
-        self.client_thread_list = []
         mem_total = 0
         ratio_list = []
         res_client = self.clients_num
@@ -70,12 +71,8 @@ class BaseClientManager:
             else:
                 dev = 'cpu'
             client_delay = self.client_staleness_list[i]
-            self.client_thread_list.append(self.client_class(i, self.stop_event, client_delay, data_reader.total_data, self.index_list[i], self.client_config, dev))
-
-    def set_client_thread_list(self, new_client_thread_list):
-        self.thread_lock.acquire()
-        self.client_thread_list = new_client_thread_list
-        self.thread_lock.release()
+            self.client_list.append(self.client_class(i, self.stop_event, self.selected_event_list[i], client_delay, data_reader.total_data, self.index_list[i], self.client_config, dev))
+            self.client_id_list.append(i)
 
     def get_running_mode(self):
         dev_num = 0
@@ -96,17 +93,9 @@ class BaseClientManager:
             mode = 2
         return mode, dev_num, dev_total, dev_list
 
-    def get_client_thread_list(self):
-        self.thread_lock.acquire()
-        client_thread_list = self.client_thread_list
-        self.thread_lock.release()
-        return client_thread_list
+    def get_client_list(self):
+        client_list = self.client_list
+        return client_list
 
-    def find_client_thread_by_c_id(self, c_id):
-        self.thread_lock.acquire()
-        target_client_thread = None
-        for client_thread in self.client_thread_list:
-            if client_thread.get_client_id() == c_id:
-                target_client_thread = client_thread
-        self.thread_lock.release()
-        return target_client_thread
+    def get_client_id_list(self):
+        return self.client_id_list
