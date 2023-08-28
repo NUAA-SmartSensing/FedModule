@@ -50,9 +50,6 @@ class AsyncScheduler(BaseScheduler.BaseScheduler):
 
 # this scheduler schedules clients according to the nums of update which clients update
 class AsyncSchedulerWithUpdate(AsyncScheduler):
-    def __init__(self, server_thread_lock, config):
-        super().__init__(server_thread_lock, config)
-
     def run(self):
         last_s_time = -1
         while self.current_t.get_time() <= self.T:
