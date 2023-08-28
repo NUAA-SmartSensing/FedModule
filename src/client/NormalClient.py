@@ -60,6 +60,7 @@ class NormalClient(Client.Client):
             # 该client等待被选中
             else:
                 self.event.wait()
+                self.message_queue.set_training_status(self.client_id, True)
 
     def train(self):
         return self.train_one_epoch()

@@ -11,8 +11,8 @@ from utils.Tools import saveAns
 
 
 class TestClient(NormalClient.NormalClient):
-    def __init__(self, c_id, stop_event, delay, train_ds, index_list, config, dev):
-        NormalClient.NormalClient.__init__(self, c_id, stop_event, delay, train_ds, index_list, config, dev)
+    def __init__(self, c_id, stop_event, selected_event, delay, train_ds, index_list, config, dev):
+        NormalClient.NormalClient.__init__(self, c_id, stop_event, selected_event, delay, train_ds, index_list, config, dev)
         self.train_ds, self.test_dataset = train_test_split(FLDataset(train_ds, index_list), test_size=config['test_size'])
         self.train_dl = DataLoader(self.train_ds, batch_size=self.batch_size, shuffle=True, drop_last=True)
         # 提供给wandb使用
@@ -22,20 +22,19 @@ class TestClient(NormalClient.NormalClient):
         self.loss_list = []
 
     def run(self):
+        self.global_config = self.message_queue.get_config("global_config")
         while not self.stop_event.is_set():
-            if self.received_weights:
+            if self.message_queue.get_from_downlink(self.client_id, 'received_weights'):
+                self.message_queue.put_into_downlink(self.client_id, 'received_weights', False)
                 # 更新模型参数
-                self.model.load_state_dict(self.weights_buffer, strict=True)
-                self.received_weights = False
-            if self.received_time_stamp:
-                self.time_stamp = self.time_stamp_buffer
-                self.received_time_stamp = False
-            if self.event_is_set:
-                self.event_is_set = False
+                self.model.load_state_dict(self.message_queue.get_from_downlink(self.client_id, 'weights_buffer'), strict=True)
+            if self.message_queue.get_from_downlink(self.client_id, 'received_time_stamp'):
+                self.message_queue.put_into_downlink(self.client_id, 'received_time_stamp', False)
+                self.time_stamp = self.message_queue.get_from_downlink(self.client_id, 'time_stamp_buffer')
+                self.schedule_t = self.message_queue.get_from_downlink(self.client_id, 'schedule_time_stamp_buffer')
 
             # 该client被选中，开始执行本地训练
             if self.event.is_set():
-                self.client_thread_lock.acquire()
                 # 该client进行训练
 
                 data_sum, weights = self.train()
@@ -46,10 +45,12 @@ class TestClient(NormalClient.NormalClient):
                 # 返回其ID、模型参数和时间戳
                 self.upload(data_sum, weights)
                 self.event.clear()
-                self.client_thread_lock.release()
+
+                self.message_queue.set_training_status(self.client_id, False)
             # 该client等待被选中
             else:
                 self.event.wait()
+                self.message_queue.set_training_status(self.client_id, True)
         saveAns(f'../results/{self.global_var["server"].global_config["experiment"]}/{self.client_id}_accuracy.txt', list(self.accuracy_list))
         saveAns(f'../results/{self.global_var["server"].global_config["experiment"]}/{self.client_id}_loss.txt', list(self.loss_list))
 
@@ -66,9 +67,7 @@ class TestClient(NormalClient.NormalClient):
             test_loss += self.loss_func(outputs, labels).item()
         accuracy = (test_correct * 100) / (len(dl) * self.config['test_batch_size'])
         loss = test_loss / len(dl)
-        self.print_lock.acquire()
         print("Client", self.client_id, "trained, accuracy:", accuracy, 'loss', loss)
-        self.print_lock.release()
         if 'wandb' in self.config and self.config['wandb']:
             wandb.log({f'{self.client_id}_accuracy': accuracy, f'{self.client_id}_loss': loss, f'time_stamp': self.time_stamp, f'local_epoch': self.step})
             self.step += 1

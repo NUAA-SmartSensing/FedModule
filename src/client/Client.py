@@ -7,26 +7,12 @@ from utils.GlobalVarGetter import GlobalVarGetter
 from utils.ProcessManager import MessageQueueFactory
 
 
-class Meta(type):
-    def __new__(cls, name, bases, attrs):
-        if len(GlobalVarGetter().get()) == 0:
-            bases = (Process,)
-        else:
-            bases = (Thread,)
-        return super(Meta, cls).__new__(cls, name, bases, attrs)
-
-    def __call__(cls, *args, **kwargs):
-        obj = cls.__new__(cls)
-        obj.__init__(*args, **kwargs)
-        return obj
-
-
-class Client(metaclass=Meta):
+class Client(Process if len(GlobalVarGetter().get()) == 0 else Thread):
     def __init__(self, c_id, stop_event, selected_event, delay, train_ds, index_list, dev):
-        if self.__class__.__bases__[0] is Thread:
-            Thread.__init__(self)
-        elif self.__class__.__bases__[0] is Process:
+        if Client.__bases__ == (Process,):
             Process.__init__(self)
+        else:
+            Thread.__init__(self)
         self.model = None
         self.client_id = c_id
         self.event = selected_event

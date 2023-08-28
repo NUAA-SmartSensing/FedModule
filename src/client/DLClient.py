@@ -6,13 +6,15 @@ from client import TestClient
 
 
 class DLClient(TestClient.TestClient):
-    def __init__(self, c_id, stop_event, delay, train_ds, index_list, config, dev):
-        TestClient.TestClient.__init__(self, c_id, stop_event, delay, train_ds, index_list, config, dev)
+    def __init__(self, c_id, stop_event, selected_event, delay, train_ds, index_list, config, dev):
+        TestClient.TestClient.__init__(self, c_id, stop_event, selected_event, delay, train_ds, index_list, config, dev)
         self.init = False
 
     def run(self):
         while not self.stop_event.is_set():
-            if self.received_weights:
+            if self.message_queue.get_from_downlink(self.client_id, 'received_weights'):
+                self.message_queue.put_into_downlink(self.client_id, 'received_weights', False)
+                self.weights_buffer = self.message_queue.get_from_downlink(self.client_id, 'weights_buffer')
                 # 更新模型参数
                 if self.init:
                     if self.client_id in self.weights_buffer.keys():
@@ -27,15 +29,13 @@ class DLClient(TestClient.TestClient):
                     self.model.load_state_dict(self.weights_buffer['global'], strict=True)
                     self.init = True
                 self.received_weights = False
-            if self.received_time_stamp:
-                self.time_stamp = self.time_stamp_buffer
-                self.received_time_stamp = False
-            if self.event_is_set:
-                self.event_is_set = False
+            if self.message_queue.get_from_downlink(self.client_id, 'received_time_stamp'):
+                self.message_queue.put_into_downlink(self.client_id, 'received_time_stamp', False)
+                self.time_stamp = self.message_queue.get_from_downlink(self.client_id, 'time_stamp_buffer')
+                self.schedule_t = self.message_queue.get_from_downlink(self.client_id, 'schedule_time_stamp_buffer')
 
             # 该client被选中，开始执行本地训练
             if self.event.is_set():
-                self.client_thread_lock.acquire()
                 # 该client进行训练
                 data_sum, weights = self.train()
                 # client传回server的信息具有延迟
@@ -43,12 +43,11 @@ class DLClient(TestClient.TestClient):
                 self.run_test()
                 time.sleep(self.delay)
 
-                # 返回其ID、模型参数和时间戳
-                update_dict = {"client_id": self.client_id, "weights": weights, "data_sum": data_sum,
-                               "time_stamp": self.time_stamp}
-                self.queue_manager.put(update_dict)
+                self.upload(data_sum, weights)
                 self.event.clear()
-                self.client_thread_lock.release()
+
+                self.message_queue.set_training_status(self.client_id, False)
             # 该client等待被选中
             else:
                 self.event.wait()
+                self.message_queue.set_training_status(self.client_id, True)
