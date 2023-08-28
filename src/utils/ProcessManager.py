@@ -61,7 +61,7 @@ class DataGetter(Thread):
 class MessageQueue:
     uplink = {'update': Queue()}
     downlink = {'received_weights': {}, 'received_time_stamp': {}, 'time_stamp_buffer': {}, 'weights_buffer': {},
-                'schedule_time_stamp_buffer': {}}
+                'schedule_time_stamp_buffer': {}, 'group_id': {}}
     training_status = {}
     config = None
     latest_model = None

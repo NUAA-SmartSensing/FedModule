@@ -34,7 +34,7 @@ class SemiAsyncScheduler(BaseScheduler.BaseScheduler):
                     last_s_time = current_time
                     for i in range(self.group_manager.get_group_num()):
                         for j in self.group_manager.get_group_list()[i]:
-                            j.set_group_id(i)
+                            self.message_queue.put_into_downlink(j, "group_id", i)
                         self.print_lock.acquire()
                         print(f"\nbegin select group {i}")
                         selected_clients = self.client_select(i)
