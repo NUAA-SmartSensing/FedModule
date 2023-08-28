@@ -8,42 +8,31 @@
     "use_file_system": false,
     "multi_gpu": false,
     "experiment": "FedLC/1",
-    "stale": {
-      "step": 1,
-      "shuffle": true,
-      "list": [50]
-    },
+    "stale": [0,0,0,0,0,8,8,8,8,8,8,8,8,8,8,16,16,16,16,16],
     "dataset": {
       "path": "dataset.MNIST.MNIST",
       "params": {}
     },
     "iid": {
-      "customize": true,
-      "label": {
-        "step": 1,
-        "list": [0, 0, 0, 0, 50]
-      },
-      "data": {
-
-      }
+      "beta": 0.5
     },
-    "client_num": 50
+    "client_num": 20
   },
   "server": {
     "path": "server.AsyncServer.AsyncServer",
-    "epochs": 50,
+    "epochs": 300,
     "model": {
-      "path": "model.CNN.CNN",
+      "path": "model.LeNet5.LeNet5",
       "params": {}
     },
     "scheduler": {
       "path": "scheduler.AsyncScheduler.AsyncScheduler",
-      "schedule_interval": 10,
+      "schedule_interval": 8,
       "schedule_delay": 20,
       "schedule": {
-        "path": "schedule.RoundRobin.RoundRobin",
+        "path": "schedule.RandomSchedule.RandomSchedule",
         "params": {
-          "c_ratio": 0.3
+          "c_ratio": 0.4
         }
       }
     },
@@ -55,8 +44,8 @@
         "path": "update.FedAsync.FedAsync",
         "params": {
           "a": 10,
-          "b": 4,
-          "alpha": 0.1,
+          "b": 8,
+          "alpha": 0.9,
           "r" : 1
         }
       }
@@ -81,9 +70,11 @@
   "client": {
     "path": "client.NormalClient.NormalClient",
     "epochs": 5,
-    "batch_size": 50,
+    "batch_size": 32,
+    "test_size": 0.1,
+    "test_batch_size": 16,
     "model": {
-      "path": "model.CNN.CNN",
+      "path": "model.LeNet5.LeNet5",
       "params": {}
     },
     "loss": {

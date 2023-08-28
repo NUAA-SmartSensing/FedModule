@@ -8,9 +8,13 @@
     "use_file_system": false,
     "multi_gpu": true,
     "experiment": "FedProx/1",
-    "stale": false,
+    "stale": {
+      "step": 1,
+      "shuffle": true,
+      "list": [10, 10, 10, 5, 5, 5, 5]
+    },
     "dataset": {
-      "path": "dataset.MNIST.MNIST",
+      "path": "dataset.FashionMNIST.FashionMNIST",
       "params": {}
     },
     "iid": true,
@@ -69,7 +73,7 @@
     "loss": "torch.nn.functional.cross_entropy",
     "mu": 0.01,
     "optimizer": {
-      "path": "torch.optim.Adam",
+      "path": "torch.optim.SGD",
       "params": {
         "lr": 0.01,
         "weight_decay": 0
