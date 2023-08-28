@@ -10,7 +10,7 @@ class FedLC(nn.Module):
     def __init__(self, config, client: Client):
         super().__init__()
         self.device = 'cuda:0' if torch.cuda.is_available() else 'cpu'
-        dataset = client.getDataset()
+        dataset = client.train_ds
         if isinstance(dataset, list):
             self.z = torch.from_numpy(np.bincount(dataset[1]))
         else:
