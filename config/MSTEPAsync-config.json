@@ -40,7 +40,7 @@
       }
     },
     "updater": {
-      "path": "updater.AsyncUpdater.AsyncUpdater",
+      "path": "updater.ActiveAsyncUpdater.ActiveAsyncUpdater",
       "num_generator": 3,
       "loss": "torch.nn.functional.cross_entropy",
       "update": {
