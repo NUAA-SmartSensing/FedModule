@@ -17,6 +17,11 @@ class ManagerWrapper:
             ManagerWrapper.__register()
             ManagerWrapper._manager = SyncManager()
             ManagerWrapper._manager.start()
+            config = GlobalVarGetter().get()
+            keys = ['config', 'global_config', 'server_config', 'client_config',
+                    'client_manager_config', 'queue_manager_config']
+            new_config = {k: config[k] for k in keys}
+            ManagerWrapper._manager.MessageQueue().set_config(new_config)
         return ManagerWrapper._manager
 
     @staticmethod
@@ -55,8 +60,12 @@ class DataGetter(Thread):
 # make sure this class is no about server or client
 class MessageQueue:
     uplink = {'update': Queue()}
-    downlink = {'received_weights': {}, 'received_time_stamp': {}, 'time_stamp_buffer': {}, 'weights_buffer': {}, 'schedule_time_stamp_buffer': {}}
+    downlink = {'received_weights': {}, 'received_time_stamp': {}, 'time_stamp_buffer': {}, 'weights_buffer': {},
+                'schedule_time_stamp_buffer': {}}
     training_status = {}
+    config = None
+    latest_model = None
+    current_t = None
 
     @staticmethod
     def get_from_uplink(key='update'):
@@ -91,6 +100,23 @@ class MessageQueue:
     @staticmethod
     def set_training_status(client_id, value):
         MessageQueue.training_status[client_id] = value
+
+    @staticmethod
+    def set_config(config):
+        MessageQueue.config = config
+
+    @staticmethod
+    def get_config(key):
+        return MessageQueue.config[key]
+
+    @staticmethod
+    def set_latest_model(model, current_t):
+        MessageQueue.latest_model = model
+        MessageQueue.current_t = current_t
+
+    @staticmethod
+    def get_latest_model():
+        return MessageQueue.latest_model, MessageQueue.current_t
 
 
 class EventFactory:
