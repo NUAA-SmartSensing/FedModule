@@ -1,7 +1,25 @@
 from abc import abstractmethod
+from functools import wraps
 
 
-class AbstractQueueManager:
+def counter(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        wrapper.count += 1
+        return func(*args, **kwargs)
+
+    wrapper.count = 0
+    return wrapper
+
+
+class Meta(type):
+    def __new__(cls, name, bases, attrs):
+        if 'get' in attrs:
+            attrs['get'] = counter(attrs['get'])
+        return super().__new__(cls, name, bases, attrs)
+
+
+class AbstractQueueManager(metaclass=Meta):
 
     # Automatically triggered when new data is uploaded
     @abstractmethod
