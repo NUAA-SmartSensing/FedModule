@@ -102,6 +102,18 @@ class MessageQueue:
         MessageQueue.training_status[client_id] = value
 
     @staticmethod
+    def get_training_status():
+        return MessageQueue.training_status
+
+    @staticmethod
+    def get_training_client_num():
+        total = 0
+        for _, v in MessageQueue.training_status.items():
+            if v:
+                total = total + 1
+        return total
+
+    @staticmethod
     def set_config(config):
         MessageQueue.config = config
 

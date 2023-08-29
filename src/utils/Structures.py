@@ -37,3 +37,22 @@ class BidirectionalMappedList:
 
     def get_group_for_id(self, data_id):
         return self.id_to_group[data_id]
+
+
+class ComputableDict(dict):
+    def __add__(self, other):
+        return ComputableDict({k: self[k] + other[k] for k in self.keys()})
+
+    def __mul__(self, other):
+        if isinstance(other, int) or isinstance(other, float):
+            return ComputableDict({k: self[k] * other for k in self.keys()})
+        else:
+            raise Exception("Not supported operation")
+
+    def __truediv__(self, other):
+        if other == 0:
+            raise ValueError("Division by zero")
+        if isinstance(other, int):
+            return ComputableDict({k: self[k] / other for k in self.keys()})
+        else:
+            raise Exception("Not supported operation")
