@@ -66,6 +66,8 @@ class NormalClient(Client.Client):
         return self.train_one_epoch()
 
     def upload(self, data_sum, weights):
+        for k, v in weights.items():
+            weights[k] = v.cpu()
         update_dict = {"client_id": self.client_id, "weights": weights, "data_sum": data_sum,
                        "time_stamp": self.time_stamp}
         self.message_queue.put_into_uplink(update_dict)
