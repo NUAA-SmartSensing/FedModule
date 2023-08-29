@@ -56,3 +56,8 @@ class ComputableDict(dict):
             return ComputableDict({k: self[k] / other for k in self.keys()})
         else:
             raise Exception("Not supported operation")
+
+    def to(self, device):
+        for key, value in self.items():
+            self[key] = value.to(device)
+        return self
