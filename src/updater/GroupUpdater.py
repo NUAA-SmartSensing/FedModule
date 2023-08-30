@@ -126,17 +126,17 @@ class GroupUpdater(AsyncUpdater):
             # 更新
             print("all averaging!!!")
             self.total_update_list[time_stamp] = self.total_update_list[time_stamp] / self.total_data_sum[time_stamp]
-            updated_parameters = ComputableDict(updated_parameters) + self.total_update_list[time_stamp] * self.alpha
+            updated_parameters = ComputableDict(updated_parameters) * (1 - self.alpha) + self.total_update_list[time_stamp] * self.alpha
             # 清理空间
             self.total_update_list.pop(time_stamp)
             self.total_data_sum.pop(time_stamp)
         if updated_parameters is not None:
             updated_parameters = dict(updated_parameters)
+            # 下发给客户端的权重
+            self.global_var['scheduler'].server_weights = copy.deepcopy(updated_parameters)
             if torch.cuda.is_available():
                 for key, var in updated_parameters.items():
                     updated_parameters[key] = updated_parameters[key].cuda()
             self.server_network.load_state_dict(updated_parameters)
-            # 下发给客户端的权重
-            self.global_var['scheduler'].server_weights = copy.deepcopy(updated_parameters)
             self.run_server_test(epoch)
             self.current_time.time_add()
