@@ -111,10 +111,9 @@ class GroupUpdater(AsyncUpdater):
                 self.total_data_sum[time_stamp] = self.total_data_sum[time_stamp] + self.data_sum_list[group_id][
                     time_stamp]
             else:
-                self.total_update_list[time_stamp] = self.update_list[group_id][time_stamp]
-                self.total_data_sum[time_stamp] = self.data_sum_list[group_id][time_stamp]
-            self.update_list[group_id][time_stamp] = self.update_list[group_id][time_stamp] / \
-                                                     self.data_sum_list[group_id][time_stamp]
+                self.total_update_list[time_stamp] = copy.deepcopy(self.update_list[group_id][time_stamp])
+                self.total_data_sum[time_stamp] = copy.deepcopy(self.data_sum_list[group_id][time_stamp])
+            self.update_list[group_id][time_stamp] = self.update_list[group_id][time_stamp] / self.data_sum_list[group_id][time_stamp]
 
             # 更新全局 fedasync
             updated_parameters = self.update_caller.update_server_weights(epoch, [
