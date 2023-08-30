@@ -6,9 +6,9 @@ import threading
 
 import wandb
 
-from utils.GlobalVarGetter import GlobalVarGetter
-
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from utils.GlobalVarGetter import GlobalVarGetter
 from utils.Tools import *
 from utils import ModuleFindTool
 from utils.ConfigManager import *
