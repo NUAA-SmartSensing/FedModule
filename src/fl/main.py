@@ -24,7 +24,7 @@ if __name__ == '__main__':
     if len(sys.argv) < 2:
         config_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../../config.json")
     else:
-        config_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), sys.argv[1])
+        config_file = sys.argv[1]
 
     config = getConfig(config_file)
     global_config = config['global']
