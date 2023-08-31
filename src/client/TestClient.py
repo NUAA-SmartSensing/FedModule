@@ -51,8 +51,8 @@ class TestClient(NormalClient.NormalClient):
             else:
                 self.event.wait()
                 self.message_queue.set_training_status(self.client_id, True)
-        saveAns(f'../results/{self.global_var["server"].global_config["experiment"]}/{self.client_id}_accuracy.txt', list(self.accuracy_list))
-        saveAns(f'../results/{self.global_var["server"].global_config["experiment"]}/{self.client_id}_loss.txt', list(self.loss_list))
+        saveAns(f'../results/{self.global_config["experiment"]}/{self.client_id}_accuracy.txt', list(self.accuracy_list))
+        saveAns(f'../results/{self.global_config["experiment"]}/{self.client_id}_loss.txt', list(self.loss_list))
 
     def run_test(self):
         dl = DataLoader(self.test_dataset, batch_size=self.config['test_batch_size'], shuffle=True, drop_last=True)
