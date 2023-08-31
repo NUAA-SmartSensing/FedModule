@@ -13,8 +13,8 @@ class SVHN(BaseDataset):
             transforms.ToTensor()
         ])
         # 获取数据集
-        self.train_dataset = datasets.SVHN(root='../data/', transform=transformer, download=True)
-        self.test_dataset = datasets.SVHN(root='../data/', transform=transformer, download=True)
+        self.train_dataset = datasets.SVHN(root=self.path, transform=transformer, download=True)
+        self.test_dataset = datasets.SVHN(root=self.path, transform=transformer, download=True)
         self.init(clients, self.train_dataset, self.test_dataset)
 
     def init(self, clients, train_dataset, test_dataset):

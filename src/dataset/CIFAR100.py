@@ -13,8 +13,8 @@ class CIFAR100(BaseDataset):
             transforms.Normalize(mean=[0.5071, 0.4865, 0.4409], std=[0.2009, 0.1984, 0.2023]),
         ])
         # 获取数据集
-        self.train_dataset = datasets.CIFAR100(root='../data/', train=True,
+        self.train_dataset = datasets.CIFAR100(root=self.path, train=True,
                                                transform=transformer, download=True)
-        self.test_dataset = datasets.CIFAR100(root='../data/', train=False,
+        self.test_dataset = datasets.CIFAR100(root=self.path, train=False,
                                               transform=transformer, download=True)
         self.init(clients, self.train_dataset, self.test_dataset)

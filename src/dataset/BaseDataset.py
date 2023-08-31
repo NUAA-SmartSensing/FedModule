@@ -1,3 +1,5 @@
+import os
+
 import numpy as np
 
 from utils.IID import generate_iid_data, generate_non_iid_data
@@ -17,6 +19,7 @@ class BaseDataset:
         self.train_labels = None
         self.raw_data = None
         self.train_dataset = None
+        self.path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../data/')
 
     def init(self, clients, train_dataset, test_dataset):
         self.raw_data = train_dataset.data

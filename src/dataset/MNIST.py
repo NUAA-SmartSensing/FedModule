@@ -11,8 +11,8 @@ class MNIST(BaseDataset):
             transforms.ToTensor()
         ])
         # 获取数据集
-        self.train_dataset = datasets.MNIST(root='../data/', train=True,
+        self.train_dataset = datasets.MNIST(root=self.path, train=True,
                                             transform=transformer, download=True)
-        self.test_dataset = datasets.MNIST(root='../data/', train=False,
+        self.test_dataset = datasets.MNIST(root=self.path, train=False,
                                            transform=transformer, download=True)
         self.init(clients, self.train_dataset, self.test_dataset)

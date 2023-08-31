@@ -14,8 +14,8 @@ class FashionMNIST(BaseDataset):
         ])
 
         # 获取数据集
-        self.train_dataset = datasets.FashionMNIST(root='../data/', train=True,
+        self.train_dataset = datasets.FashionMNIST(root=self.path, train=True,
                                                    transform=transformer, download=True)
-        self.test_dataset = datasets.FashionMNIST(root='../data/', train=False,
+        self.test_dataset = datasets.FashionMNIST(root=self.path, train=False,
                                                   transform=transformer, download=True)
         self.init(clients, self.train_dataset, self.test_dataset)
