@@ -17,8 +17,8 @@ from exception import ClientSumError
 
 if __name__ == '__main__':
     # 创建结果文件夹
-    if not os.path.exists("../results"):
-        os.mkdir("../results")
+    if not os.path.exists(os.path.join(os.path.dirname(os.path.abspath(__file__)), "../results")):
+        os.mkdir(os.path.join(os.path.dirname(os.path.abspath(__file__)), "../results"))
 
     # 配置文件读取
     if len(sys.argv) < 2:
@@ -43,8 +43,8 @@ if __name__ == '__main__':
     # 实验路径相关
     if not global_config["experiment"].endswith("/"):
         global_config["experiment"] = global_config["experiment"] + "/"
-    if not os.path.exists("../results/" + global_config["experiment"]):
-        os.makedirs("../results/" + global_config["experiment"])
+    if not os.path.exists(os.path.join(os.path.dirname(os.path.abspath(__file__)), "../results/", global_config["experiment"])):
+        os.makedirs(os.path.join(os.path.dirname(os.path.abspath(__file__)), "../results/", global_config["experiment"]))
 
     # 客户端延迟文件生成
     stale = global_config['stale']
@@ -65,7 +65,7 @@ if __name__ == '__main__':
 
     is_cover = True
     # 保存配置文件
-    if os.path.exists("../results/" + global_config["experiment"] + "config.json"):
+    if os.path.exists(os.path.join(os.path.dirname(os.path.abspath(__file__)), "../results/", global_config["experiment"], "config.json")):
         is_cover = input("实验路径已存在，是否覆盖(y/n):")
         if is_cover == 'y' or is_cover == 'Y':
             is_cover = True
@@ -117,16 +117,16 @@ if __name__ == '__main__':
     if is_cover:
         try:
             global_config['stale'] = client_staleness_list
-            with open("../results/" + global_config["experiment"] + "config.json", "w") as r:
+            with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "../results/", global_config["experiment"], "config.json"), "w") as r:
                 json.dump(config, r, indent=4)
         except shutil.SameFileError:
             pass
 
         # 保存结果
-        saveAns("../results/" + global_config["experiment"] + "accuracy.txt", list(accuracy_list))
-        saveAns("../results/" + global_config["experiment"] + "loss.txt", list(loss_list))
-        saveAns("../results/" + global_config["experiment"] + "time.txt", end_time - start_time)
-        result_to_markdown("../results/" + global_config["experiment"] + "实验阐述.md", config)
+        saveAns(os.path.join(os.path.dirname(os.path.abspath(__file__)), "../results/", global_config["experiment"], "accuracy.txt"), list(accuracy_list))
+        saveAns(os.path.join(os.path.dirname(os.path.abspath(__file__)), "../results/", global_config["experiment"], "loss.txt"), list(loss_list))
+        saveAns(os.path.join(os.path.dirname(os.path.abspath(__file__)), "../results/", global_config["experiment"], "time.txt"), end_time - start_time)
+        result_to_markdown(os.path.join(os.path.dirname(os.path.abspath(__file__)), "../results/", global_config["experiment"], "实验阐述.md"), config)
         if wandb_config['enabled']:
             saveAns(os.path.join(wandb.run.dir, "accuracy.txt"), list(accuracy_list))
             saveAns(os.path.join(wandb.run.dir, "loss.txt"), list(loss_list))
