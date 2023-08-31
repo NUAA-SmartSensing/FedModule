@@ -9,6 +9,7 @@ import wandb
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from utils.GlobalVarGetter import GlobalVarGetter
+from utils.ProcessManager import MessageQueueFactory
 from utils.Tools import *
 from utils import ModuleFindTool
 from utils.ConfigManager import *
@@ -37,6 +38,8 @@ if __name__ == '__main__':
                            'client_config': client_config,
                            'client_manager_config': client_manager_config,
                            'queue_manager_config': queue_manager_config})
+    MessageQueueFactory.create_message_queue().set_config(GlobalVarGetter().get())
+
     # 实验路径相关
     if not global_config["experiment"].endswith("/"):
         global_config["experiment"] = global_config["experiment"] + "/"
