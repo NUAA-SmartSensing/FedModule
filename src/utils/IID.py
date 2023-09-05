@@ -21,11 +21,13 @@ class DatasetSplit(Dataset):
 
 
 def generate_iid_data(dataset, clients):
-    index_list = []
-    for i in range(clients):
-        idx = np.arange(i, dataset.train_data_size, clients)
-        index_list.append(idx)
-    return index_list
+    class_idx = [np.argwhere(dataset.train_labels == y).flatten() for y in range(max(dataset.train_labels)-min(dataset.train_labels)+1)]
+    client_idx = [[] for _ in range(clients + 1)]
+    for c in class_idx:
+        for i, idcs in enumerate(np.array_split(c, clients)):
+            client_idx[i] += [idcs]
+    client_idx = [np.concatenate(client_idx[i]) for i in range(clients)]
+    return client_idx
 
 
 def generate_non_iid_data(iid_config, dataset, clients, left, right, datasets):
@@ -73,11 +75,11 @@ def dirichlet_distribution(iid_config, dataset, clients, left, right):
     beta = iid_config["beta"]
     label_distribution = np.random.dirichlet([beta] * clients, right - left)
     class_idx = [np.argwhere(dataset.train_labels == y).flatten() for y in range(right - left)]
-    client_idx = [[] for _ in range(clients)]
+    client_idx = [[] for _ in range(clients+1)]
     for c, fracs in zip(class_idx, label_distribution):
         # np.split按照比例将类别为k的样本划分为了N个子集
         # for i, idcs 为遍历第i个client对应样本集合的索引
-        for i, idcs in enumerate(np.split(c, (np.cumsum(fracs)[:-1] * len(c)).astype(int))):
+        for i, idcs in enumerate(np.split(c, (np.cumsum(fracs) * len(c)).astype(int))):
             client_idx[i] += [idcs]
     client_idx = [np.concatenate(idcs) for idcs in client_idx]
     return client_idx
