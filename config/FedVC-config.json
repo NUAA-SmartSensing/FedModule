@@ -1,0 +1,104 @@
+{
+  "wandb": {
+    "enabled": true,
+    "project": "FedVC-测试",
+    "name": "20client"
+  },
+  "global": {
+    "mode": "process",
+    "use_file_system": false,
+    "multi_gpu": true,
+    "experiment": "FedVC/1",
+    "stale": [0,0,0,0,0,8,8,8,8,8,8,8,8,8,8,16,16,16,16,16],
+    "dataset": {
+      "path": "dataset.MNIST.MNIST",
+      "params": {}
+    },
+    "iid": {
+      "beta": 0.5
+    },
+    "client_num": 20
+  },
+  "server": {
+    "path": "server.SemiAsyncServer.SemiAsyncServer",
+    "epochs": 300,
+    "model": {
+      "path": "model.LeNet5.LeNet5",
+      "params": {}
+    },
+    "scheduler": {
+      "path": "scheduler.SemiAsyncScheduler.SemiAsyncScheduler",
+      "schedule":{
+        "path": "schedule.FullSchedule.FullSchedule",
+        "params": {
+        }
+      }
+    },
+    "updater": {
+      "path": "updater.VCUpdater.VCUpdater",
+      "update": {
+        "path": "update.FedVC.FedVC",
+        "params": {
+          "can": 0.6,
+          "a": 10,
+          "b": 3,
+          "alpha": 0.9,
+          "r" : 1
+        }
+      },
+      "loss": "torch.nn.functional.cross_entropy",
+      "params": {
+      },
+      "group": {
+        "path": "update.FedAvg.FedAvg",
+        "params": {
+        }
+      }
+    }
+  },
+  "group_manager": {
+    "path": "groupmanager.NormalGroupManager.NormalGroupManager",
+    "group_method": {
+      "path": "group.VCGroup.VCGroup",
+      "params": {
+        "step": 8,
+        "ratio": 0.25
+      }
+    }
+  },
+  "queue_manager": {
+    "path": "queuemanager.QueueListManager.QueueListManager",
+    "receiver": {
+      "path": "receiver.MultiQueueReceiver.MultiQueueReceiver",
+      "params": {
+      }
+    },
+    "checker": {
+      "path": "checker.AllChecker.AllChecker",
+      "params": {
+      }
+    }
+  },
+  "client_manager": {
+    "path": "clientmanager.NormalClientManager.NormalClientManager"
+  },
+  "client": {
+    "path": "client.VCClient.VCClient",
+    "epochs": 5,
+    "batch_size": 32,
+    "model": {
+      "path": "model.LeNet5.LeNet5",
+      "params": {}
+    },
+    "classes": 10,
+    "loss": "torch.nn.functional.cross_entropy",
+    "mu": 0,
+    "optimizer": {
+      "path": "torch.optim.SGD",
+      "params": {
+        "lr": 0.01,
+        "weight_decay": 0
+      }
+    }
+  }
+}
