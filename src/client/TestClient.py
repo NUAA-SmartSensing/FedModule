@@ -13,8 +13,13 @@ from utils.Tools import saveAns
 class TestClient(NormalClient.NormalClient):
     def __init__(self, c_id, stop_event, selected_event, delay, train_ds, index_list, config, dev):
         NormalClient.NormalClient.__init__(self, c_id, stop_event, selected_event, delay, train_ds, index_list, config, dev)
-        self.train_ds, self.test_dataset = train_test_split(FLDataset(train_ds, index_list), test_size=config['test_size'])
-        self.train_dl = DataLoader(self.train_ds, batch_size=self.batch_size, shuffle=True, drop_last=True)
+        test_size = config['test_size']
+        n1 = int(len(index_list) * test_size)
+        n2 = len(index_list) - n1
+        test_index_list, train_index_list = torch.utils.data.random_split(index_list, [n1, n2])
+        self.train_dl = DataLoader(FLDataset(self.train_ds, list(train_index_list)), batch_size=self.batch_size, shuffle=True, drop_last=True)
+        self.test_dl = DataLoader(FLDataset(self.train_ds, list(test_index_list)), batch_size=self.config['test_batch_size'], shuffle=True, drop_last=True)
+
         # 提供给wandb使用
         self.step = 1
         # 本地数据存储
@@ -55,18 +60,17 @@ class TestClient(NormalClient.NormalClient):
         saveAns(f'../results/{self.global_config["experiment"]}/{self.client_id}_loss.txt', list(self.loss_list))
 
     def run_test(self):
-        dl = DataLoader(self.test_dataset, batch_size=self.config['test_batch_size'], shuffle=True, drop_last=True)
         test_correct = 0
         test_loss = 0
-        for data in dl:
+        for data in self.test_dl:
             inputs, labels = data
             inputs, labels = inputs.to(self.dev), labels.to(self.dev)
             outputs = self.model(inputs)
             _, id = torch.max(outputs.data, 1)
             test_correct += torch.sum(id == labels.data).cpu().numpy()
             test_loss += self.loss_func(outputs, labels).item()
-        accuracy = (test_correct * 100) / (len(dl) * self.config['test_batch_size'])
-        loss = test_loss / len(dl)
+        accuracy = (test_correct * 100) / (len(self.test_dl) * self.config['test_batch_size'])
+        loss = test_loss / len(self.test_dl)
         print("Client", self.client_id, "trained, accuracy:", accuracy, 'loss', loss)
         if 'wandb' in self.config and self.config['wandb']:
             wandb.log({f'{self.client_id}_accuracy': accuracy, f'{self.client_id}_loss': loss, f'time_stamp': self.time_stamp, f'local_epoch': self.step})

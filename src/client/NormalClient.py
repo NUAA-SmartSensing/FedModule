@@ -30,7 +30,7 @@ class NormalClient(Client.Client):
         # loss函数
         self.loss_func = LossFactory(config["loss"], self).create_loss()
 
-        self.train_dl = DataLoader(FLDataset(self.train_ds, index_list), batch_size=self.batch_size, drop_last=True)
+        self.train_dl = DataLoader(FLDataset(self.train_ds, index_list), batch_size=self.batch_size, shuffle=True, drop_last=True)
 
     def run(self):
         while not self.stop_event.is_set():
