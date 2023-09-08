@@ -5,6 +5,7 @@
     "name": "1"
   },
   "global": {
+    "mode": "process",
     "use_file_system": false,
     "multi_gpu": true,
     "experiment": "FedAvg/1",
@@ -67,7 +68,7 @@
   "client": {
     "path": "client.NormalClient.NormalClient",
     "epochs": 2,
-    "batch_size": 50,
+    "batch_size": 128,
     "model": {
       "path": "torchvision.models.resnet.resnet18",
       "params": {
@@ -75,6 +76,10 @@
       }
     },
     "loss": "torch.nn.functional.cross_entropy",
+    "transform": {
+      "path": "transforms.Transforms.TransformForCIFARFactory",
+      "params": {}
+    },
     "mu": 0,
     "optimizer": {
       "path": "torch.optim.SGD",
