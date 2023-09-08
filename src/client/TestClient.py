@@ -17,7 +17,7 @@ class TestClient(NormalClient.NormalClient):
         n1 = int(len(index_list) * test_size)
         n2 = len(index_list) - n1
         test_index_list, train_index_list = torch.utils.data.random_split(index_list, [n1, n2])
-        self.train_dl = DataLoader(FLDataset(self.train_ds, list(train_index_list)), batch_size=self.batch_size, shuffle=True, drop_last=True)
+        self.train_dl = DataLoader(FLDataset(self.train_ds, list(train_index_list), self.transform), batch_size=self.batch_size, shuffle=True, drop_last=True)
         self.test_dl = DataLoader(FLDataset(self.train_ds, list(test_index_list)), batch_size=self.config['test_batch_size'], shuffle=True, drop_last=True)
 
         # 提供给wandb使用

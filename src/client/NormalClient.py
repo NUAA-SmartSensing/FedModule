@@ -17,6 +17,15 @@ class NormalClient(Client.Client):
         self.optimizer_config = config["optimizer"]
         self.mu = config["mu"]
         self.config = config
+        self.transform = None
+
+        # transform
+        if "transform" in config:
+            transform_class = ModuleFindTool.find_class_by_path(config["transform"]["path"])
+            self.transform = transform_class.createTransform(config["transform"]["params"])
+        if "target_transform" in config:
+            target_transform_class = ModuleFindTool.find_class_by_path(config["target_transform"]["path"])
+            self.transform = target_transform_class.createTransform(config["target_transform"]["params"])
 
         # 本地模型
         model_class = ModuleFindTool.find_class_by_path(config["model"]["path"])
@@ -30,7 +39,7 @@ class NormalClient(Client.Client):
         # loss函数
         self.loss_func = LossFactory(config["loss"], self).create_loss()
 
-        self.train_dl = DataLoader(FLDataset(self.train_ds, index_list), batch_size=self.batch_size, shuffle=True, drop_last=True)
+        self.train_dl = DataLoader(FLDataset(self.train_ds, index_list, self.transform), batch_size=self.batch_size, shuffle=True, drop_last=True)
 
     def run(self):
         while not self.stop_event.is_set():
