@@ -15,7 +15,7 @@
   <summary><b>Table of Contents</b></summary>
   <p>
 
-- [Original Intention](#original-intention)
+- [Brief](#brief)
 - [Git Branch Description](#git-branch-description)
 - [Requirements](#requirements)
 - [Getting Started](#getting-started)
@@ -50,11 +50,11 @@
   </p>
 </details>
 
-## Original Intention
+## Brief
 
-The initial intention of this project is to build an asynchronous federated learning framework and conduct experiments on it during my undergraduate thesis.
+Use thread/process simulation clients for federated learning. The modular design makes the project highly scalable and supports various current mainstream federated learning models: synchronous, asynchronous, semi-asynchronous, personalized, etc. Thread mode provides users with a good debugging environment, while process mode improves experimental efficiency and optimizes experimental data.
 
-However, when I tried to search for related open-source projects on GitHub, I found that the field of asynchronous federated learning is quite closed-source, with almost no open-source projects available. Additionally, mainstream frameworks also lack compatibility with asynchronous FL and only support synchronous FL. Thus, this project was born.
+wandb synchronizes experimental data to the cloud with one click, so there is no need to worry about data loss.
 
 ## Git Branch Description
 
@@ -124,6 +124,7 @@ docker run -it async-fl config/FedAvg-config.json
 - [ ] Support for leaf-related datasets
 - [x] Support for multiple GPUs
 - [x] Docker deployment
+- [x] Process thread switching
 
 ## Project Directory
 
