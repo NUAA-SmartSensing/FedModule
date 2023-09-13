@@ -3,6 +3,7 @@ import torch.nn as nn
 '''ShuffleNet: 通道混合轻量级网络'''
 '''即 MobileNet（DepthWise Net）基础上引入通道混合机制（Channel Shuffle）'''
 
+
 class ChannelShuffleModule(nn.Module):
     def __init__(self, channels, groups):
         super().__init__()
@@ -24,7 +25,6 @@ class ChannelShuffleModule(nn.Module):
         x = x.permute(0, 2, 1, 3, 4)
         x = x.reshape(batch, self.channels, series, modal)
         return x
-
 
 
 class ShuffleNet(nn.Module):
@@ -61,7 +61,7 @@ class ShuffleNet(nn.Module):
             ChannelShuffleModule(channels=512, groups=16)
         )
         self.ada_pool = nn.AdaptiveAvgPool2d((1, train_shape[-1]))
-        self.fc = nn.Linear(512*train_shape[-1], category)
+        self.fc = nn.Linear(512 * train_shape[-1], category)
 
     def forward(self, x):
         '''

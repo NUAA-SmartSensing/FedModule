@@ -1,7 +1,9 @@
-import torch.nn as nn
 import torch
+import torch.nn as nn
 
 '''Res2Net: 感受野堆叠'''
+
+
 class Res2NetBlock(nn.Module):
     def __init__(self, channel):
         super().__init__()
@@ -21,7 +23,7 @@ class Res2NetBlock(nn.Module):
             nn.Conv2d(channel, channel, (3, 1), (1, 1), (1, 0)),
             nn.BatchNorm2d(channel)
         )
-        self.merge = nn.Conv2d(channel*4, channel, 1, 1, 0)
+        self.merge = nn.Conv2d(channel * 4, channel, 1, 1, 0)
         self.relu = nn.ReLU()
 
     def forward(self, x):
@@ -40,9 +42,10 @@ class Res2NetBlock(nn.Module):
         x4 = x + y3
         y4 = self.k4(self.relu(x4))
 
-        out = self.merge(torch.cat([y1, y2, y3, y4], dim=1)) # 按channel维度cat后进行合并
+        out = self.merge(torch.cat([y1, y2, y3, y4], dim=1))  # 按channel维度cat后进行合并
 
         return out
+
 
 class Block(nn.Module):
     def __init__(self, inchannel, outchannel, stride=1):
@@ -67,7 +70,8 @@ class Block(nn.Module):
         '''
         out = self.block(x) + self.short(x)
         return nn.ReLU()(out)
-    
+
+
 class Res2Net(nn.Module):
     def __init__(self, train_shape, category):
         super().__init__()
@@ -80,7 +84,7 @@ class Res2Net(nn.Module):
         self.layer3 = self.make_layers(128, 256, 2, 1)
         self.layer4 = self.make_layers(256, 512, 2, 1)
         self.ada_pool = nn.AdaptiveAvgPool2d((1, train_shape[-1]))
-        self.fc = nn.Linear(512*train_shape[-1], category)
+        self.fc = nn.Linear(512 * train_shape[-1], category)
 
     def forward(self, x):
         '''
@@ -94,7 +98,7 @@ class Res2Net(nn.Module):
         x = x.view(x.size(0), -1)
         x = self.fc(x)
         return x
-    
+
     def make_layers(self, inchannel, outchannel, stride, blocks):
         layer = [Block(inchannel, outchannel, stride)]
         for i in range(1, blocks):

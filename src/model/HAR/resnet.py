@@ -1,6 +1,8 @@
 import torch.nn as nn
 
 '''Resdual Neural Network'''
+
+
 class Block(nn.Module):
     def __init__(self, inchannel, outchannel, stride):
         super().__init__()
@@ -24,7 +26,8 @@ class Block(nn.Module):
         '''
         out = self.block(x) + self.short(x)
         return nn.ReLU()(out)
-    
+
+
 class ResNet(nn.Module):
     def __init__(self, train_shape, category):
         super().__init__()
@@ -37,7 +40,7 @@ class ResNet(nn.Module):
         self.layer3 = self.make_layers(128, 256, 2, 1)
         self.layer4 = self.make_layers(256, 512, 2, 1)
         self.ada_pool = nn.AdaptiveAvgPool2d((1, train_shape[-1]))
-        self.fc = nn.Linear(512*train_shape[-1], category)
+        self.fc = nn.Linear(512 * train_shape[-1], category)
 
     def forward(self, x):
         '''
@@ -51,7 +54,7 @@ class ResNet(nn.Module):
         x = x.view(x.size(0), -1)
         x = self.fc(x)
         return x
-    
+
     def make_layers(self, inchannel, outchannel, stride, blocks):
         layer = [Block(inchannel, outchannel, stride)]
         for i in range(1, blocks):

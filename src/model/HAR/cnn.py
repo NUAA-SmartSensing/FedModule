@@ -1,6 +1,8 @@
 import torch.nn as nn
 
 '''Convolutional Neural Network'''
+
+
 class CNN(nn.Module):
     def __init__(self, train_shape, category):
         super(CNN, self).__init__()
@@ -26,7 +28,7 @@ class CNN(nn.Module):
             nn.ReLU()
         )
         self.ada_pool = nn.AdaptiveAvgPool2d((1, train_shape[-1]))
-        self.fc = nn.Linear(512*train_shape[-1], category)
+        self.fc = nn.Linear(512 * train_shape[-1], category)
 
     def forward(self, x):
         '''

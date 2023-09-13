@@ -1,7 +1,8 @@
-import torch.nn as nn
 import torch
+import torch.nn as nn
 
 '''Selective Kernel Resdual Network: 选择核残差网络'''
+
 
 class SKBlock(nn.Module):
     def __init__(self, inchannel, outchannel, stride=1):
@@ -10,7 +11,7 @@ class SKBlock(nn.Module):
         self.kernel1 = nn.Sequential(
             nn.Conv2d(inchannel, outchannel, (3, 1), (stride, 1), (1, 0)),
             nn.BatchNorm2d(outchannel)
-        ) 
+        )
         self.kernel2 = nn.Sequential(
             nn.Conv2d(inchannel, outchannel, (5, 1), (stride, 1), (2, 0)),
             nn.BatchNorm2d(outchannel)
@@ -26,7 +27,7 @@ class SKBlock(nn.Module):
 
         self.gap = nn.AdaptiveAvgPool2d(1)
         self.att_fc = nn.Sequential(
-            nn.Linear(outchannel, outchannel*4),
+            nn.Linear(outchannel, outchannel * 4),
             nn.Sigmoid()
         )
 
@@ -34,18 +35,19 @@ class SKBlock(nn.Module):
         '''
             x.shape: [b, c, series, modal]
         '''
-        y1 = self.kernel1(x).unsqueeze(1) # [b, 1, outchannel, h, modal]
+        y1 = self.kernel1(x).unsqueeze(1)  # [b, 1, outchannel, h, modal]
         y2 = self.kernel2(x).unsqueeze(1)
         y3 = self.kernel3(x).unsqueeze(1)
-        y4 = self.kernel4(x).unsqueeze(1) 
-        y_total = torch.cat([y1, y2, y3, y4], dim=1) # [b, 4, outchannel, h, modal]
+        y4 = self.kernel4(x).unsqueeze(1)
+        y_total = torch.cat([y1, y2, y3, y4], dim=1)  # [b, 4, outchannel, h, modal]
 
-        attn = self.att_fc(self.gap(torch.sum(y_total, dim=1)).squeeze(-1).squeeze(-1)) # [b, outchanel * 4]
-        attn = attn.reshape(x.size(0), 4, -1).unsqueeze(-1).unsqueeze(-1) # [b, 4, outchanel, 1, 1]
+        attn = self.att_fc(self.gap(torch.sum(y_total, dim=1)).squeeze(-1).squeeze(-1))  # [b, outchanel * 4]
+        attn = attn.reshape(x.size(0), 4, -1).unsqueeze(-1).unsqueeze(-1)  # [b, 4, outchanel, 1, 1]
 
-        attn_y = y_total * attn #[b, 4, outchannel, h, modal] * [b, 4, outchanel, 1, 1] = [b, 4, outchannel, h, modal]
-        out = torch.sum(attn_y, dim=1) # [b, outchannel, h, modal]
+        attn_y = y_total * attn  # [b, 4, outchannel, h, modal] * [b, 4, outchanel, 1, 1] = [b, 4, outchannel, h, modal]
+        out = torch.sum(attn_y, dim=1)  # [b, outchannel, h, modal]
         return out
+
 
 class Block(nn.Module):
     def __init__(self, inchannel, outchannel, stride=1):
@@ -70,7 +72,8 @@ class Block(nn.Module):
         '''
         out = self.block(x) + self.short(x)
         return nn.ReLU()(out)
-    
+
+
 class SKResNet(nn.Module):
     def __init__(self, train_shape, category):
         super().__init__()
@@ -83,7 +86,7 @@ class SKResNet(nn.Module):
         self.layer3 = self.make_layers(128, 256, 2, 1)
         self.layer4 = self.make_layers(256, 512, 2, 1)
         self.ada_pool = nn.AdaptiveAvgPool2d((1, train_shape[-1]))
-        self.fc = nn.Linear(512*train_shape[-1], category)
+        self.fc = nn.Linear(512 * train_shape[-1], category)
 
     def forward(self, x):
         '''
@@ -97,7 +100,7 @@ class SKResNet(nn.Module):
         x = x.view(x.size(0), -1)
         x = self.fc(x)
         return x
-    
+
     def make_layers(self, inchannel, outchannel, stride, blocks):
         layer = [Block(inchannel, outchannel, stride)]
         for i in range(1, blocks):
