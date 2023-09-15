@@ -3,11 +3,26 @@ from torch.utils.data import DataLoader, Dataset
 from utils.GlobalVarGetter import GlobalVarGetter
 
 
+class CustomDataset(Dataset):
+
+    def __init__(self, data, targets):
+        self.data = data
+        self.targets = targets
+
+    def __getitem__(self, index):
+        x = self.data[index]
+        y = self.targets[index]
+        return x, y
+
+    def __len__(self):
+        return len(self.data)
+
+
 class FLDataset(Dataset):
     def __init__(self, dataset, idxs, transform=None, target_transform=None):
         self.dataset = dataset
         self.data = dataset[0]
-        self.target = dataset[1]
+        self.targets = dataset[1]
         self.idxs = idxs
         self.transform = transform
         self.target_transform = target_transform
