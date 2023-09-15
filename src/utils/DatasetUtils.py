@@ -14,7 +14,7 @@ def download_dataset(dataset_name, file_url, dataset_dir):
         数据集下载
     '''
     # 检查是否存在源数据
-    if os.path.exists(dataset_dir):
+    if os.path.exists(os.path.join(dataset_dir, dataset_name)):
         return
     print(
         '\n==================================================【 %s 数据集下载】===================================================\n' % (
@@ -32,15 +32,17 @@ def download_dataset(dataset_name, file_url, dataset_dir):
         os.system(f"wget -O {dataset_file_path} {file_url}")
 
         # unpack
+        print("解压数据集")
         while glob.glob(os.path.join(dataset_dir, '*.zip')):
             for file in glob.glob(os.path.join(dataset_dir, '*.zip')):
                 for format in ["zip", "tar", "gztar", "bztar", "xztar"]:
                     try:
-                        shutil.unpack_archive(filename=file, extract_dir=dataset_dir, format=format)
+                        shutil.unpack_archive(filename=file, extract_dir=os.path.join(dataset_dir, dataset_name), format=format)
                         break
                     except:
                         continue
                 os.remove(file)
+        print("解压完成")
 
     print()
 
