@@ -7,6 +7,7 @@ from client import Client
 from loss.LossFactory import LossFactory
 from utils import ModuleFindTool
 from utils.DataReader import FLDataset
+import torch
 
 
 class NormalClient(Client.Client):
@@ -29,6 +30,9 @@ class NormalClient(Client.Client):
 
         # 本地模型
         model_class = ModuleFindTool.find_class_by_path(config["model"]["path"])
+        for k, v in config["model"]["params"].items():
+            if isinstance(v, str):
+                config["model"]["params"][k] = eval(v)
         self.model = model_class(**config["model"]["params"])
         self.model = self.model.to(self.dev)
 

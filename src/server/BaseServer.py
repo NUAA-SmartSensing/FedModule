@@ -21,19 +21,22 @@ class BaseServer:
         self.global_var = GlobalVarGetter().get()
         self.global_var['server'] = self
 
-        # 全局模型
-        model_class = ModuleFindTool.find_class_by_path(self.server_config["model"]["path"])
-        self.server_network = model_class(**self.server_config["model"]["params"])
-        self.dev = 'cuda' if torch.cuda.is_available() else 'cpu'
-        self.server_network = self.server_network.to(self.dev)
-        self.global_var['server_network'] = self.server_network
-
         # 数据集
         dataset_class = ModuleFindTool.find_class_by_path(self.global_config["dataset"]["path"])
         self.dataset = dataset_class(self.global_config["client_num"], self.global_config["iid"],
                                      self.global_config["dataset"]["params"])
         self.global_var['dataset'] = self.dataset
         self.config['global']['iid'] = self.dataset.get_config()
+
+        # 全局模型
+        model_class = ModuleFindTool.find_class_by_path(self.server_config["model"]["path"])
+        for k, v in self.server_config["model"]["params"].items():
+            if isinstance(v, str):
+                self.server_config["model"]["params"][k] = eval(v)
+        self.server_network = model_class(**self.server_config["model"]["params"])
+        self.dev = 'cuda' if torch.cuda.is_available() else 'cpu'
+        self.server_network = self.server_network.to(self.dev)
+        self.global_var['server_network'] = self.server_network
 
         # 计时变量
         self.T = self.server_config["epochs"]
