@@ -32,11 +32,16 @@ class Client(Process if len(GlobalVarGetter().get()) == 0 else Thread):
         self.schedule_t = None
         self.index_list = index_list
         self.message_queue = MessageQueueFactory.create_message_queue()
+        self.training_params = self.message_queue.get_training_params()
 
     @abstractmethod
     def run(self):
         pass
 
+    @abstractmethod
     def train_one_epoch(self):
         pass
 
+    @abstractmethod
+    def wait_notify(self):
+        pass

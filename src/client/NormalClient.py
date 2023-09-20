@@ -7,7 +7,6 @@ from client import Client
 from loss.LossFactory import LossFactory
 from utils import ModuleFindTool
 from utils.DataReader import FLDataset
-import torch
 
 
 class NormalClient(Client.Client):
@@ -47,14 +46,7 @@ class NormalClient(Client.Client):
 
     def run(self):
         while not self.stop_event.is_set():
-            if self.message_queue.get_from_downlink(self.client_id, 'received_weights'):
-                self.message_queue.put_into_downlink(self.client_id, 'received_weights', False)
-                # 更新模型参数
-                self.model.load_state_dict(self.message_queue.get_from_downlink(self.client_id, 'weights_buffer'), strict=True)
-            if self.message_queue.get_from_downlink(self.client_id, 'received_time_stamp'):
-                self.message_queue.put_into_downlink(self.client_id, 'received_time_stamp', False)
-                self.time_stamp = self.message_queue.get_from_downlink(self.client_id, 'time_stamp_buffer')
-                self.schedule_t = self.message_queue.get_from_downlink(self.client_id, 'schedule_time_stamp_buffer')
+            self.wait_notify()
 
             # 该client被选中，开始执行本地训练
             if self.event.is_set():
@@ -113,3 +105,17 @@ class NormalClient(Client.Client):
         for k, v in weights.items():
             weights[k] = weights[k].cpu().detach()
         return data_sum, weights
+
+    def wait_notify(self):
+        if self.message_queue.get_from_downlink(self.client_id, 'received_weights'):
+            self.message_queue.put_into_downlink(self.client_id, 'received_weights', False)
+            weights_buffer = self.message_queue.get_from_downlink(self.client_id, 'weights_buffer')
+            state_dict = self.model.state_dict()
+            for k in weights_buffer:
+                if self.training_params[k]:
+                    state_dict[k] = weights_buffer[k]
+            self.model.load_state_dict(self.message_queue.get_from_downlink(self.client_id, 'weights_buffer'), strict=True)
+        if self.message_queue.get_from_downlink(self.client_id, 'received_time_stamp'):
+            self.message_queue.put_into_downlink(self.client_id, 'received_time_stamp', False)
+            self.time_stamp = self.message_queue.get_from_downlink(self.client_id, 'time_stamp_buffer')
+            self.schedule_t = self.message_queue.get_from_downlink(self.client_id, 'schedule_time_stamp_buffer')

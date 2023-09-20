@@ -13,6 +13,7 @@ from utils.Tools import saveAns
 class TestClient(NormalClient.NormalClient):
     def __init__(self, c_id, stop_event, selected_event, delay, train_ds, index_list, config, dev):
         NormalClient.NormalClient.__init__(self, c_id, stop_event, selected_event, delay, train_ds, index_list, config, dev)
+        self.global_config = None
         test_size = config['test_size']
         n1 = int(len(index_list) * test_size)
         n2 = len(index_list) - n1
@@ -29,21 +30,15 @@ class TestClient(NormalClient.NormalClient):
     def run(self):
         self.global_config = self.message_queue.get_config("global_config")
         while not self.stop_event.is_set():
-            if self.message_queue.get_from_downlink(self.client_id, 'received_weights'):
-                self.message_queue.put_into_downlink(self.client_id, 'received_weights', False)
-                # 更新模型参数
-                self.model.load_state_dict(self.message_queue.get_from_downlink(self.client_id, 'weights_buffer'), strict=True)
-            if self.message_queue.get_from_downlink(self.client_id, 'received_time_stamp'):
-                self.message_queue.put_into_downlink(self.client_id, 'received_time_stamp', False)
-                self.time_stamp = self.message_queue.get_from_downlink(self.client_id, 'time_stamp_buffer')
-                self.schedule_t = self.message_queue.get_from_downlink(self.client_id, 'schedule_time_stamp_buffer')
+            self.wait_notify()
 
             # 该client被选中，开始执行本地训练
             if self.event.is_set():
                 # 该client进行训练
-
                 data_sum, weights = self.train()
+
                 # client传回server的信息具有延迟
+                # 本地测试
                 self.run_test()
                 time.sleep(self.delay)
 
