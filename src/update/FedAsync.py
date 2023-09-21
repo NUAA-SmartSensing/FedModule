@@ -34,6 +34,4 @@ class FedAsync(AbstractUpdate):
                 updated_parameters[key] = updated_parameters[key].cuda()
         for key, var in server_weights.items():
             updated_parameters[key] = (alpha * updated_parameters[key] + (1 - alpha) * server_weights[key])
-        # 下发给客户端的权重
-        self.global_var['scheduler'].server_weights = copy.deepcopy(updated_parameters)
-        return updated_parameters
+        return updated_parameters, updated_parameters

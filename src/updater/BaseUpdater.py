@@ -1,3 +1,4 @@
+import copy
 import threading
 from abc import abstractmethod
 
@@ -55,11 +56,12 @@ class BaseUpdater(threading.Thread):
         pass
 
     def update_server_weights(self, epoch, update_list):
-        updated_parameters = self.update_caller.update_server_weights(epoch, update_list)
+        global_model, delivery_weights = self.update_caller.update_server_weights(epoch, update_list)
         if torch.cuda.is_available():
-            for key, var in updated_parameters.items():
-                updated_parameters[key] = updated_parameters[key].cuda()
-        self.server_network.load_state_dict(updated_parameters)
+            for key, var in global_model.items():
+                global_model[key] = global_model[key].cuda()
+        self.server_network.load_state_dict(global_model)
+        self.set_delivery_weights(delivery_weights)
 
     def run_server_test(self, epoch):
         dl = DataLoader(self.test_data, batch_size=100, shuffle=True, drop_last=True)
@@ -86,3 +88,6 @@ class BaseUpdater(threading.Thread):
 
     def get_accuracy_and_loss_list(self):
         return self.accuracy_list, self.loss_list
+
+    def set_delivery_weights(self, weights):
+        self.global_var['scheduler'].server_weights = copy.deepcopy(weights)

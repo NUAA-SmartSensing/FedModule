@@ -45,9 +45,8 @@ class FedDL(AbstractUpdate):
                     if i not in self.client_weights.keys():
                         self.client_weights[i] = {}
                     self.client_weights[i][key] = updated_parameter.clone()
-        # 下发给客户端的权重
-        self.global_var['scheduler'].server_weights = copy.deepcopy(self.client_weights)
-        return self.updater_thread.server_network.state_dict()
+
+        return self.updater_thread.server_network.state_dict(), self.client_weights
 
     def kld_cluster(self, key, update_list, clusters: dict, id_update_idx_map):
         label = 0

@@ -20,6 +20,4 @@ class FedAT(AbstractUpdate):
             client_weights = update_dict["weights"]
             for key, var in client_weights.items():
                 updated_parameters[key] += client_weights[key] * epoch_list[group_num - 1 - i] / epoch
-        # 下发给客户端的权重
-        self.global_var['scheduler'].server_weights = copy.deepcopy(updated_parameters)
-        return updated_parameters
+        return updated_parameters, updated_parameters
