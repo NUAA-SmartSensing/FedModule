@@ -12,6 +12,7 @@ from update.UpdateCaller import UpdateCaller
 from utils import ModuleFindTool
 from utils.DataReader import DataReader, FLDataset
 from utils.GlobalVarGetter import GlobalVarGetter
+from utils.ProcessManager import MessageQueueFactory
 
 
 class BaseUpdater(threading.Thread):
@@ -51,6 +52,12 @@ class BaseUpdater(threading.Thread):
         self.update_method = update_class(self.config['update']['params'])
         self.update_caller = UpdateCaller(self)
 
+        self.message_queue = MessageQueueFactory.create_message_queue()
+        self.optimizer = None
+        # server_opt
+        if "optimizer" in self.config:
+            self.optimizer = ModuleFindTool.find_class_by_path(self.config['optimizer']['path'])(self.server_network.parameters(), **self.config["optimizer"]["params"])
+
     @abstractmethod
     def run(self):
         pass
@@ -60,8 +67,12 @@ class BaseUpdater(threading.Thread):
         if torch.cuda.is_available():
             for key, var in global_model.items():
                 global_model[key] = global_model[key].cuda()
-        self.server_network.load_state_dict(global_model)
-        self.set_delivery_weights(delivery_weights)
+        new_global_model = self.update_global_model(global_model)
+        # process the PFL
+        if delivery_weights != global_model:
+            self.set_delivery_weights(delivery_weights)
+        else:
+            self.set_delivery_weights(new_global_model)
 
     def run_server_test(self, epoch):
         dl = DataLoader(self.test_data, batch_size=100, shuffle=True, drop_last=True)
@@ -91,3 +102,18 @@ class BaseUpdater(threading.Thread):
 
     def set_delivery_weights(self, weights):
         self.global_var['scheduler'].server_weights = copy.deepcopy(weights)
+
+    def update_global_model(self, new_model):
+        if self.optimizer is not None:
+            training_params = self.message_queue.get_training_params()
+            global_model = self.server_network.state_dict()
+            g = {}
+            for k in global_model:
+                if training_params[k]:
+                    g[k] = new_model[k] - global_model[k]
+            for k, w in zip(g, self.server_network.parameters()):
+                w.grad = -g[k]
+            self.optimizer.step()
+        else:
+            self.server_network.load_state_dict(new_model)
+        return self.server_network.state_dict()
