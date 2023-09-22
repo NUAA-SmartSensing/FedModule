@@ -87,6 +87,7 @@ FedAT
 FedLC
 FedDL
 M-Step AsyncFL
+FedAdam
 ```
 
 ### Docker
