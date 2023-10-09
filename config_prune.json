@@ -1,34 +1,34 @@
 {
   "wandb": {
     "enabled": false,
-    "project": "FedAvg",
+    "project": "FedPFSL",
     "name": "1"
   },
   "global": {
     "use_file_system": false,
     "multi_gpu": true,
-    "experiment": "FedAvg/1",
+    "experiment": "FedPFSL/1",
     "stale": {
       "step": 1,
       "shuffle": true,
-      "list": [10, 10, 10, 5, 5, 5, 5]
+      "list": [5, 5, 4, 4, 4, 4, 4]
     },
     "dataset": {
-      "path": "dataset.FashionMNIST.FashionMNIST",
+      "path": "dataset.MNIST.MNIST",
       "params": {}
     },
     "iid": true,
-    "client_num": 50
+    "client_num": 30
   },
   "server": {
     "path": "server.SyncServer.SyncServer",
-    "epochs": 1,
+    "epochs":49,
     "model": {
-      "path": "model.CNN.CNN_pruning",
+      "path": "model.CNN_pruning.CNN_pruning",
       "params": {}
     },
     "scheduler": {
-      "path": "scheduler.SyncScheduler.SyncScheduler",
+      "path": "scheduler.PreSyncScheduler.PreSyncScheduler",
       "schedule": {
         "path": "schedule.RandomSchedule.RandomSchedule",
         "params": {
@@ -37,11 +37,12 @@
       }
     },
     "updater": {
-      "path": "updater.SyncUpdater.SyncUpdater",
+      "path": "updater.PersonalUpdater.PersonalUpdater",
       "loss": "torch.nn.functional.cross_entropy",
       "update": {
-        "path": "update.FedAvg.FedAvg",
+        "path": "update.Fedpfsl.Fedpfsl",
         "params": {
+          "n_clusters": 2
         }
       }
     }
@@ -63,10 +64,17 @@
     "path": "clientmanager.NormalClientManager.NormalClientManager"
   },
   "client": {
-    "path": "client.NormalClient.NormalClient",
+    "path": "client.PFSLClient.PFSLClient",
     "epochs": 2,
-    "batch_size": 50,
+    "batch_size": 32,
+    "alpha": 0.3,
+    "test_size": 0.1,
+    "test_batch_size": 16,
     "model": {
+      "path": "model.CNN_pruning.CNN_pruning",
+      "params": {}
+    },
+    "teacher_model": {
       "path": "model.CNN.CNN",
       "params": {}
     },
