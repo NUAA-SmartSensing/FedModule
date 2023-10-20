@@ -1,9 +1,9 @@
 import copy
+import torch.multiprocessing as mp
 
 import torch.cuda
 
 from utils import ModuleFindTool
-from utils.DataReader import DataReader
 from utils.GlobalVarGetter import GlobalVarGetter
 from utils.ProcessManager import EventFactory
 
@@ -33,6 +33,8 @@ class BaseClientManager:
         self.client_class = ModuleFindTool.find_class_by_path(self.global_var["client_config"]["path"])
         self.selected_event_list = [EventFactory.create_Event() for _ in range(self.clients_num)]
 
+        self.init_lock = mp.Lock()
+
     def start_all_clients(self):
         self.init_clients()
         # 启动clients
@@ -49,7 +51,6 @@ class BaseClientManager:
             self.selected_event_list[i].set()
 
     def init_clients(self):
-        data_reader = DataReader(self.dataset)
         mode, dev_num, dev_total, dev_mem_list = self.get_running_mode()
         # 初始化clients
         mem_total = 0
@@ -71,7 +72,7 @@ class BaseClientManager:
             else:
                 dev = 'cpu'
             client_delay = self.client_staleness_list[i]
-            self.client_list.append(self.client_class(i, self.stop_event, self.selected_event_list[i], client_delay, data_reader.total_data, self.index_list[i], self.client_config, dev))
+            self.client_list.append(self.client_class(i, self.init_lock, self.stop_event, self.selected_event_list[i], client_delay, self.index_list[i], self.client_config, dev))
             self.client_id_list.append(i)
 
     def get_running_mode(self):

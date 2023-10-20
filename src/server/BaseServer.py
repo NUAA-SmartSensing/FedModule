@@ -1,11 +1,28 @@
+import copy
 import threading
-from multiprocessing import Event
 
 import torch.cuda
+from torch.multiprocessing import Event
+from torch.utils.data import DataLoader
 
 from utils import ModuleFindTool, Time
+from utils.DataReader import CustomDataset
 from utils.GlobalVarGetter import GlobalVarGetter
-from utils.ProcessManager import ManagerWrapper, DataGetter, MessageQueueFactory
+from utils.ProcessManager import DataGetter, MessageQueueFactory
+
+
+def _read_data(dataset):
+    data = []
+    targets = []
+    dl = DataLoader(dataset, batch_size=1)
+    for x, y in dl:
+        data.append(x[0])
+        targets.append(y[0])
+    data = torch.stack(data)
+    targets = torch.stack(targets)
+    data.share_memory_()
+    targets.share_memory_()
+    return data, targets
 
 
 class BaseServer:
@@ -17,6 +34,8 @@ class BaseServer:
         self.client_manager_config = config['client_manager']
         self.queue_manager_config = config['queue_manager']
 
+        # 消息队列
+        self.message_queue = MessageQueueFactory.create_message_queue()
         # 全局存储变量
         self.global_var = GlobalVarGetter().get()
         self.global_var['server'] = self
@@ -27,6 +46,8 @@ class BaseServer:
                                      self.global_config["dataset"]["params"])
         self.global_var['dataset'] = self.dataset
         self.config['global']['iid'] = self.dataset.get_config()
+        # 根据配置情况将数据集发送给客户端
+        self.send_dataset()
 
         # 全局模型
         model_class = ModuleFindTool.find_class_by_path(self.server_config["model"]["path"])
@@ -37,6 +58,7 @@ class BaseServer:
         self.dev = 'cuda' if torch.cuda.is_available() else 'cpu'
         self.server_network = self.server_network.to(self.dev)
         self.global_var['server_network'] = self.server_network
+
         # 对模型非更新参数进行检测
         d = self.server_network.state_dict()
         w = [v for v in self.server_network.parameters()]
@@ -48,7 +70,7 @@ class BaseServer:
             else:
                 i += 1
                 training_params[k] = True
-        self.message_queue = MessageQueueFactory.create_message_queue()
+
         self.message_queue.set_training_params(training_params)
 
         # 计时变量
@@ -77,9 +99,6 @@ class BaseServer:
         self.scheduler_thread = None
         self.updater_thread = None
         self.data_getter_thread = DataGetter()
-
-        if 'mode' in GlobalVarGetter().get()['global_config'] and GlobalVarGetter().get()['global_config']['mode'] == 'process':
-            self.manager = ManagerWrapper.get_manager()
 
     def run(self):
         print("Start server:")
@@ -120,3 +139,13 @@ class BaseServer:
         del self.client_manager
         del self.queue_manager
         del self.data_getter_thread
+
+    def send_dataset(self):
+        # 预加载
+        if 'dataset_pre_load' in self.global_config and self.global_config['dataset_pre_load']:
+            dataset = self.dataset.get_train_dataset()
+            data, targets = _read_data(dataset)
+            self.message_queue.set_dataset(CustomDataset(data, targets))
+        # 静态加载
+        else:
+            self.message_queue.set_dataset(self.dataset.get_train_dataset())

@@ -3,15 +3,18 @@ import time
 
 from torch.utils.data import DataLoader
 
-from client import Client
+from client.Client import Client
 from loss.LossFactory import LossFactory
 from utils import ModuleFindTool
 from utils.DataReader import FLDataset
 
 
-class NormalClient(Client.Client):
-    def __init__(self, c_id, stop_event, selected_event, delay, train_ds, index_list, config, dev):
-        Client.Client.__init__(self, c_id, stop_event, selected_event, delay, train_ds, index_list, dev)
+class NormalClient(Client):
+    def __init__(self, c_id, init_lock, stop_event, selected_event, delay, index_list, config, dev):
+        Client.__init__(self, c_id, init_lock, stop_event, selected_event, delay, index_list, dev)
+        self.opti = None
+        self.loss_func = None
+        self.train_dl = None
         self.batch_size = config["batch_size"]
         self.epoch = config["epochs"]
         self.optimizer_config = config["optimizer"]
@@ -19,35 +22,11 @@ class NormalClient(Client.Client):
         self.config = config
         self.transform = None
 
-        # transform
-        if "transform" in config:
-            transform_class = ModuleFindTool.find_class_by_path(config["transform"]["path"])
-            self.transform = transform_class.createTransform(config["transform"]["params"])
-        if "target_transform" in config:
-            target_transform_class = ModuleFindTool.find_class_by_path(config["target_transform"]["path"])
-            self.transform = target_transform_class.createTransform(config["target_transform"]["params"])
-
-        # 本地模型
-        model_class = ModuleFindTool.find_class_by_path(config["model"]["path"])
-        for k, v in config["model"]["params"].items():
-            if isinstance(v, str):
-                config["model"]["params"][k] = eval(v)
-        self.model = model_class(**config["model"]["params"])
-        self.model = self.model.to(self.dev)
-
-        # 优化器
-        opti_class = ModuleFindTool.find_class_by_path(self.optimizer_config["path"])
-        self.opti = opti_class(self.model.parameters(), **self.optimizer_config["params"])
-
-        # loss函数
-        self.loss_func = LossFactory(config["loss"], self).create_loss()
-
-        self.train_dl = DataLoader(FLDataset(self.train_ds, index_list, self.transform), batch_size=self.batch_size, shuffle=True, drop_last=True)
-
     def run(self):
+        self.init()
+
         while not self.stop_event.is_set():
             self.wait_notify()
-
             # 该client被选中，开始执行本地训练
             if self.event.is_set():
                 # 该client进行训练
@@ -114,8 +93,37 @@ class NormalClient(Client.Client):
             for k in weights_buffer:
                 if self.training_params[k]:
                     state_dict[k] = weights_buffer[k]
-            self.model.load_state_dict(self.message_queue.get_from_downlink(self.client_id, 'weights_buffer'), strict=True)
+            self.model.load_state_dict(state_dict)
         if self.message_queue.get_from_downlink(self.client_id, 'received_time_stamp'):
             self.message_queue.put_into_downlink(self.client_id, 'received_time_stamp', False)
             self.time_stamp = self.message_queue.get_from_downlink(self.client_id, 'time_stamp_buffer')
             self.schedule_t = self.message_queue.get_from_downlink(self.client_id, 'schedule_time_stamp_buffer')
+
+    def init(self):
+        config = self.config
+        # transform
+        if "transform" in config:
+            transform_func = ModuleFindTool.find_class_by_path(config["transform"]["path"])
+            self.transform = transform_func(**config["transform"]["params"])
+        if "target_transform" in config:
+            target_transform_func = ModuleFindTool.find_class_by_path(config["target_transform"]["path"])
+            self.transform = target_transform_func(**config["target_transform"]["params"])
+
+        # 本地模型
+        model_class = ModuleFindTool.find_class_by_path(config["model"]["path"])
+        for k, v in config["model"]["params"].items():
+            if isinstance(v, str):
+                config["model"]["params"][k] = eval(v)
+        self.model = model_class(**config["model"]["params"]).to(self.dev)
+
+        # 优化器
+        opti_class = ModuleFindTool.find_class_by_path(self.optimizer_config["path"])
+        self.opti = opti_class(self.model.parameters(), **self.optimizer_config["params"])
+
+        # loss函数
+        self.loss_func = LossFactory(config["loss"], self).create_loss()
+
+        self.train_ds = self.message_queue.get_dataset()
+        self.train_dl = DataLoader(FLDataset(self.train_ds, self.index_list, self.transform),
+                                   batch_size=self.batch_size, drop_last=True)
+

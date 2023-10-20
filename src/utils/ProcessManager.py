@@ -1,4 +1,4 @@
-import multiprocessing
+import torch.multiprocessing as mp
 import threading
 from multiprocessing.managers import SyncManager
 from queue import Queue
@@ -59,12 +59,13 @@ class DataGetter(Thread):
 
 # make sure this class is no about server or client
 class MessageQueue:
+    dataset = None
     uplink = {'update': Queue()}
     downlink = {'received_weights': {}, 'received_time_stamp': {}, 'time_stamp_buffer': {}, 'weights_buffer': {},
                 'schedule_time_stamp_buffer': {}, 'group_id': {}}
     training_status = {}
     training_params = {}
-    config = None
+    config = {}
     latest_model = None
     current_t = None
 
@@ -127,6 +128,10 @@ class MessageQueue:
         MessageQueue.config = config
 
     @staticmethod
+    def set_config_by_key(k, v):
+        MessageQueue.config[k] = v
+
+    @staticmethod
     def get_config(key):
         return MessageQueue.config[key]
 
@@ -139,12 +144,29 @@ class MessageQueue:
     def get_latest_model():
         return MessageQueue.latest_model, MessageQueue.current_t
 
+    @staticmethod
+    def set_dataset(dataset):
+        MessageQueue.dataset = dataset
+
+    @staticmethod
+    def get_dataset():
+        return MessageQueue.dataset
+
+
+def mode_is_process():
+    if len(GlobalVarGetter().get()) == 0:
+        return True
+    if "global_config" not in GlobalVarGetter().get():
+        return False
+    return 'mode' in GlobalVarGetter().get()['global_config'] and GlobalVarGetter().get()['global_config'][
+        'mode'] == 'process'
+
 
 class EventFactory:
     @staticmethod
     def create_Event():
-        if 'mode' in GlobalVarGetter().get()['global_config'] and GlobalVarGetter().get()['global_config']['mode'] == 'process':
-            return multiprocessing.Event()
+        if mode_is_process():
+            return mp.Event()
         else:
             return threading.Event()
 
@@ -152,7 +174,7 @@ class EventFactory:
 class MessageQueueFactory:
     @staticmethod
     def create_message_queue():
-        if 'mode' in GlobalVarGetter().get()['global_config'] and GlobalVarGetter().get()['global_config']['mode'] == 'process':
+        if mode_is_process():
             return ManagerWrapper.get_manager().MessageQueue()
         else:
             return MessageQueue()

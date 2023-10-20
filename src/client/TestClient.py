@@ -2,17 +2,16 @@ import time
 
 import torch
 import wandb
-from sklearn.model_selection import train_test_split
 from torch.utils.data import DataLoader
 
-from client import NormalClient
+from client.NormalClient import NormalClient
 from utils.DataReader import FLDataset
 from utils.Tools import saveAns
 
 
-class TestClient(NormalClient.NormalClient):
-    def __init__(self, c_id, stop_event, selected_event, delay, train_ds, index_list, config, dev):
-        NormalClient.NormalClient.__init__(self, c_id, stop_event, selected_event, delay, train_ds, index_list, config, dev)
+class TestClient(NormalClient):
+    def __init__(self, c_id, init_lock, stop_event, selected_event, delay, index_list, config, dev):
+        NormalClient.__init__(self, c_id, init_lock, stop_event, selected_event, delay, index_list, config, dev)
         self.global_config = None
         test_size = config['test_size']
         n1 = int(len(index_list) * test_size)

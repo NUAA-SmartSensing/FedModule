@@ -2,7 +2,6 @@ import copy
 import threading
 from abc import abstractmethod
 
-import numpy as np
 import torch.utils.data
 import wandb
 from torch.utils.data import DataLoader
@@ -10,9 +9,19 @@ from torch.utils.data import DataLoader
 from loss.LossFactory import LossFactory
 from update.UpdateCaller import UpdateCaller
 from utils import ModuleFindTool
-from utils.DataReader import DataReader, FLDataset
+from utils.DataReader import CustomDataset
 from utils.GlobalVarGetter import GlobalVarGetter
 from utils.ProcessManager import MessageQueueFactory
+
+
+def _read_data(dataset):
+    data = []
+    targets = []
+    dl = DataLoader(dataset, batch_size=1, shuffle=False)
+    for x, y in dl:
+        data.append(x[0])
+        targets.append(y[0])
+    return data, targets
 
 
 class BaseUpdater(threading.Thread):
@@ -30,8 +39,7 @@ class BaseUpdater(threading.Thread):
         self.client_manager = self.global_var['client_manager']
 
         test_data = self.global_var['dataset'].get_test_dataset()
-        data_reader = DataReader(test_data)
-        self.test_data = FLDataset(data_reader.total_data, np.arange(len(data_reader.total_data[0])))
+        self.test_data = self._get_test_dataset(test_data)
 
         self.queue_manager = self.global_var['queue_manager']
         self.print_lock = self.global_var['print_lock']
@@ -56,7 +64,8 @@ class BaseUpdater(threading.Thread):
         self.optimizer = None
         # server_opt
         if "optimizer" in self.config:
-            self.optimizer = ModuleFindTool.find_class_by_path(self.config['optimizer']['path'])(self.server_network.parameters(), **self.config["optimizer"]["params"])
+            self.optimizer = ModuleFindTool.find_class_by_path(self.config['optimizer']['path'])(
+                self.server_network.parameters(), **self.config["optimizer"]["params"])
 
     @abstractmethod
     def run(self):
@@ -117,3 +126,12 @@ class BaseUpdater(threading.Thread):
         else:
             self.server_network.load_state_dict(new_model)
         return self.server_network.state_dict()
+
+    def _get_test_dataset(self, test_data):
+        # 预加载
+        if 'dataset_pre_load' in self.global_var['global_config'] and self.global_var['global_config']['dataset_pre_load']:
+            data, targets = _read_data(test_data)
+            return CustomDataset(data, targets)
+        # 静态加载
+        else:
+            return test_data

@@ -2,12 +2,12 @@ import time
 
 import torch
 
-from client import TestClient
+from client.TestClient import TestClient
 
 
-class DLClient(TestClient.TestClient):
-    def __init__(self, c_id, stop_event, selected_event, delay, train_ds, index_list, config, dev):
-        TestClient.TestClient.__init__(self, c_id, stop_event, selected_event, delay, train_ds, index_list, config, dev)
+class DLClient(TestClient):
+    def __init__(self, c_id, init_lock, stop_event, selected_event, delay, index_list, config, dev):
+        TestClient.__init__(self, c_id, init_lock, stop_event, selected_event, delay, index_list, config, dev)
         self.init = False
 
     def wait_notify(self):

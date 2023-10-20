@@ -4,9 +4,18 @@ from torchvision import transforms
 
 
 class TransformForCIFARFactory:
-    @abstractmethod
-    def createTransform(self):
+    @staticmethod
+    def createTransform():
         transform = transforms.Compose([
+            transforms.Pad(4),
+            transforms.RandomHorizontalFlip(),
+            transforms.RandomCrop(32)])
+        return transform
+
+    @staticmethod
+    def createTransformWithTensor():
+        transform = transforms.Compose([
+            transforms.ToTensor(),
             transforms.Pad(4),
             transforms.RandomHorizontalFlip(),
             transforms.RandomCrop(32)])

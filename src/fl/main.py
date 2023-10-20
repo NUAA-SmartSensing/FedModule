@@ -4,7 +4,7 @@ import shutil
 import sys
 import threading
 
-import SharedArray
+import torch.multiprocessing as mp
 import wandb
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -151,20 +151,14 @@ def cleanup():
     print()
     print("="*20)
     print("开始缓存清理")
-    global_var = GlobalVarGetter().get()
-    if 'shared_mem' in global_var:
-        for i in global_var['shared_mem']:
-            try:
-                print(f"开始清理{i}")
-                SharedArray.delete(i)
-            finally:
-                pass
+    # to clean up some memory
     print("缓存清理完成")
     print("="*20)
 
 
 if __name__ == '__main__':
     try:
+        mp.set_start_method('spawn')
         main()
     finally:
         cleanup()

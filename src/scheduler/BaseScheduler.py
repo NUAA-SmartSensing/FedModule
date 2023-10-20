@@ -55,6 +55,6 @@ class BaseScheduler(threading.Thread):
         elif isinstance(data, list):
             return [self.to_cpu(v) for v in data]
         elif isinstance(data, torch.Tensor):
-            return data.cpu()
+            return data.cpu().detach()
         else:
             return data
