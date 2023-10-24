@@ -23,7 +23,7 @@ class NormalClient(Client):
         self.transform = None
 
     def run(self):
-        self.init()
+        self.init_client()
 
         while not self.stop_event.is_set():
             self.wait_notify()
@@ -99,7 +99,7 @@ class NormalClient(Client):
             self.time_stamp = self.message_queue.get_from_downlink(self.client_id, 'time_stamp_buffer')
             self.schedule_t = self.message_queue.get_from_downlink(self.client_id, 'schedule_time_stamp_buffer')
 
-    def init(self):
+    def init_client(self):
         config = self.config
         # transform
         if "transform" in config:

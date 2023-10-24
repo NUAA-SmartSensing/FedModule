@@ -78,7 +78,7 @@ class BaseUpdater(threading.Thread):
                 global_model[key] = global_model[key].cuda()
         new_global_model = self.update_global_model(global_model)
         # process the PFL
-        if delivery_weights != global_model:
+        if delivery_weights is not None:
             self.set_delivery_weights(delivery_weights)
         else:
             self.set_delivery_weights(new_global_model)

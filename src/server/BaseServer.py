@@ -9,6 +9,7 @@ from utils import ModuleFindTool, Time
 from utils.DataReader import CustomDataset
 from utils.GlobalVarGetter import GlobalVarGetter
 from utils.ProcessManager import DataGetter, MessageQueueFactory
+from memory_profiler import profile
 
 
 def _read_data(dataset):
@@ -26,6 +27,7 @@ def _read_data(dataset):
 
 
 class BaseServer:
+    @profile
     def __init__(self, config):
         self.config = config
         self.global_config = config['global']
@@ -146,6 +148,7 @@ class BaseServer:
             dataset = self.dataset.get_train_dataset()
             data, targets = _read_data(dataset)
             self.message_queue.set_dataset(CustomDataset(data, targets))
+            self.dataset.delete_train_dataset()
         # 静态加载
         else:
             self.message_queue.set_dataset(self.dataset.get_train_dataset())

@@ -7,15 +7,11 @@ class ActiveClient(NormalClient.NormalClient):
     def __init__(self, c_id, init_lock, stop_event, selected_event, delay, index_list, config, dev):
         NormalClient.NormalClient.__init__(self, c_id, init_lock, stop_event, selected_event, delay, index_list, config, dev)
         self.acquire_model_delay = config['acquire_model_delay']
-        self.init = False
 
     def run(self):
+        self.init_client()
+        self.wait_notify()
         while not self.stop_event.is_set():
-            # 初始化
-            if not self.init:
-                self.wait_notify()
-                self.init = True
-
             # 该client被选中，开始执行本地训练
             if self.event.is_set():
                 # 该client进行训练
