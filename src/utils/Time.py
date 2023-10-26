@@ -4,9 +4,6 @@ import threading
 class Time:
     def __init__(self, init_time):
         self.current_time = init_time
-
-        # self.c_dict = {}
-        # self.cluster_client_dict = {}
         self.thread_lock = threading.Lock()
 
     def time_add(self):

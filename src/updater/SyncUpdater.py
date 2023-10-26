@@ -1,7 +1,5 @@
 import time
 
-import torch
-
 from updater.BaseUpdater import BaseUpdater
 
 

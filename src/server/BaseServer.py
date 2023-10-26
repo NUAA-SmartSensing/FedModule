@@ -1,4 +1,3 @@
-import copy
 import threading
 
 import torch.cuda
@@ -9,7 +8,6 @@ from utils import ModuleFindTool, Time
 from utils.DataReader import CustomDataset
 from utils.GlobalVarGetter import GlobalVarGetter
 from utils.ProcessManager import DataGetter, MessageQueueFactory
-from memory_profiler import profile
 
 
 def _read_data(dataset):
@@ -27,7 +25,6 @@ def _read_data(dataset):
 
 
 class BaseServer:
-    @profile
     def __init__(self, config):
         self.config = config
         self.global_config = config['global']

@@ -1,3 +1,5 @@
+import copy
+
 import torch.multiprocessing as mp
 import threading
 from multiprocessing.managers import SyncManager
@@ -71,7 +73,7 @@ class MessageQueue:
 
     @staticmethod
     def get_from_uplink(key='update'):
-        return MessageQueue.uplink[key].get()
+        return copy.deepcopy(MessageQueue.uplink[key].get())
 
     @staticmethod
     def put_into_uplink(item, key='update'):
@@ -82,7 +84,7 @@ class MessageQueue:
     @staticmethod
     def get_from_downlink(client_id, key):
         if client_id in MessageQueue.downlink[key]:
-            return MessageQueue.downlink[key][client_id]
+            return copy.deepcopy(MessageQueue.downlink[key][client_id])
         return None
 
     @staticmethod
@@ -142,7 +144,7 @@ class MessageQueue:
 
     @staticmethod
     def get_latest_model():
-        return MessageQueue.latest_model, MessageQueue.current_t
+        return copy.deepcopy(MessageQueue.latest_model), MessageQueue.current_t
 
     @staticmethod
     def set_dataset(dataset):
@@ -150,7 +152,7 @@ class MessageQueue:
 
     @staticmethod
     def get_dataset():
-        return MessageQueue.dataset
+        return copy.deepcopy(MessageQueue.dataset)
 
 
 def mode_is_process():

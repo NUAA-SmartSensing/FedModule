@@ -1,12 +1,14 @@
 import copy
 import time
 
+import torch
 from torch.utils.data import DataLoader
 
 from client.Client import Client
 from loss.LossFactory import LossFactory
 from utils import ModuleFindTool
 from utils.DataReader import FLDataset
+from utils.Tools import to_cpu
 
 
 class NormalClient(Client):
@@ -20,11 +22,9 @@ class NormalClient(Client):
         self.optimizer_config = config["optimizer"]
         self.mu = config["mu"]
         self.config = config
-        self.transform = None
 
     def run(self):
         self.init_client()
-
         while not self.stop_event.is_set():
             self.wait_notify()
             # 该client被选中，开始执行本地训练
@@ -47,7 +47,8 @@ class NormalClient(Client):
                 self.message_queue.set_training_status(self.client_id, True)
 
     def train(self):
-        return self.train_one_epoch()
+        data_sum, weights = self.train_one_epoch()
+        return data_sum, to_cpu(weights)
 
     def upload(self, data_sum, weights):
         update_dict = {"client_id": self.client_id, "weights": weights, "data_sum": data_sum,
@@ -56,7 +57,7 @@ class NormalClient(Client):
 
     def train_one_epoch(self):
         if self.mu != 0:
-            global_model = copy.deepcopy(self.model)
+            global_model_params = copy.deepcopy(self.model.parameters())
         # 设置迭代次数
         data_sum = 0
         for epoch in range(self.epoch):
@@ -70,7 +71,7 @@ class NormalClient(Client):
                 # 正则项
                 if self.mu != 0:
                     proximal_term = 0.0
-                    for w, w_t in zip(self.model.parameters(), global_model.parameters()):
+                    for w, w_t in zip(self.model.parameters(), global_model_params):
                         proximal_term += (w - w_t).norm(2)
                     loss = loss + (self.mu / 2) * proximal_term
                 # 反向传播
@@ -80,9 +81,8 @@ class NormalClient(Client):
                 # 将梯度归零，初始化梯度
                 self.opti.zero_grad()
         # 返回当前Client基于自己的数据训练得到的新的模型参数
-        weights = copy.deepcopy(self.model.state_dict())
-        for k, v in weights.items():
-            weights[k] = weights[k].cpu().detach()
+        weights = self.model.state_dict()
+        torch.cuda.empty_cache()
         return data_sum, weights
 
     def wait_notify(self):
@@ -102,12 +102,14 @@ class NormalClient(Client):
     def init_client(self):
         config = self.config
         # transform
+        transform = None
+        target_transform = None
         if "transform" in config:
             transform_func = ModuleFindTool.find_class_by_path(config["transform"]["path"])
-            self.transform = transform_func(**config["transform"]["params"])
+            transform = transform_func(**config["transform"]["params"])
         if "target_transform" in config:
             target_transform_func = ModuleFindTool.find_class_by_path(config["target_transform"]["path"])
-            self.transform = target_transform_func(**config["target_transform"]["params"])
+            target_transform = target_transform_func(**config["target_transform"]["params"])
 
         # 本地模型
         model_class = ModuleFindTool.find_class_by_path(config["model"]["path"])
@@ -124,6 +126,5 @@ class NormalClient(Client):
         self.loss_func = LossFactory(config["loss"], self).create_loss()
 
         self.train_ds = self.message_queue.get_dataset()
-        self.train_dl = DataLoader(FLDataset(self.train_ds, self.index_list, self.transform),
+        self.train_dl = DataLoader(FLDataset(self.train_ds, self.index_list, transform, target_transform),
                                    batch_size=self.batch_size, drop_last=True)
-

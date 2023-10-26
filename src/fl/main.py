@@ -155,9 +155,10 @@ def cleanup():
     print("缓存清理完成")
     print("="*20)
 
+
 if __name__ == '__main__':
     try:
-        mp.set_start_method('spawn')
+        mp.set_start_method('forkserver')
         main()
     finally:
         cleanup()

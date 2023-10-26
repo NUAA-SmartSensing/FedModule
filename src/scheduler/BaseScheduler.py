@@ -8,6 +8,7 @@ from schedule.ScheduleCaller import ScheduleCaller
 from utils import ModuleFindTool
 from utils.GlobalVarGetter import GlobalVarGetter
 from utils.ProcessManager import MessageQueueFactory
+from utils.Tools import to_cpu, share_memory
 
 
 class BaseScheduler(threading.Thread):
@@ -25,7 +26,9 @@ class BaseScheduler(threading.Thread):
         self.queue_manager = self.global_var['queue_manager']
         self.print_lock = self.global_var['print_lock']
 
-        self.server_weights = copy.deepcopy(self.server_network.state_dict())
+        # we suggest every tensor which would transform between clients and server should use share_memory method
+        self.server_weights = self.server_network.state_dict()
+        share_memory(self.server_weights)
 
         schedule_class = ModuleFindTool.find_class_by_path(config["schedule"]["path"])
         self.schedule_method = schedule_class(config["schedule"]["params"])
@@ -43,18 +46,9 @@ class BaseScheduler(threading.Thread):
         return selected_clients
 
     def send_weights(self, client_id, current_time, schedule_time):
-        self.message_queue.put_into_downlink(client_id, 'weights_buffer', self.to_cpu(self.server_weights))
+        self.message_queue.put_into_downlink(client_id, 'weights_buffer', to_cpu(self.server_weights))
         self.message_queue.put_into_downlink(client_id, 'time_stamp_buffer', current_time)
         self.message_queue.put_into_downlink(client_id, 'schedule_time_stamp_buffer', schedule_time)
         self.message_queue.put_into_downlink(client_id, 'received_weights', True)
         self.message_queue.put_into_downlink(client_id, 'received_time_stamp', True)
 
-    def to_cpu(self, data):
-        if isinstance(data, dict):
-            return {k: self.to_cpu(v) for k, v in data.items()}
-        elif isinstance(data, list):
-            return [self.to_cpu(v) for v in data]
-        elif isinstance(data, torch.Tensor):
-            return data.cpu().detach()
-        else:
-            return data

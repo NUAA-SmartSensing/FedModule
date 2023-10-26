@@ -1,15 +1,6 @@
-import torch
+import torch.cuda
 
-
-def to_cpu(data):
-    if isinstance(data, dict):
-        return {k: to_cpu(v) for k, v in data.items()}
-    elif isinstance(data, list):
-        return [to_cpu(v) for v in data]
-    elif isinstance(data, torch.Tensor):
-        return data.cpu().detach()
-    else:
-        return data
+from utils.Tools import to_cpu, to_dev
 
 
 class UpdateCaller:
@@ -17,6 +8,9 @@ class UpdateCaller:
         self.updater = updater
 
     def update_server_weights(self, epoch, update_list, *args, **kwargs):
+        # 确保形参进入GPU
+        if torch.cuda.is_available():
+            update_list = to_dev(update_list, 'cuda')
         # 确保返参进入CPU
         a, b = self.updater.update_method.update_server_weights(epoch, update_list)
         return to_cpu(a), to_cpu(b)

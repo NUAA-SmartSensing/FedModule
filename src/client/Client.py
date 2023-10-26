@@ -1,4 +1,3 @@
-import collections
 from abc import abstractmethod
 from threading import Thread
 
@@ -18,12 +17,7 @@ class Client(Process if mode_is_process() else Thread):
         self.stop_event = stop_event
         self.delay = delay
         self.dev = dev
-
-        self.weights_buffer = collections.OrderedDict()
         self.time_stamp = 0
-        self.time_stamp_buffer = 0
-        self.received_weights = False
-        self.received_time_stamp = False
         self.params = {}
         self.event_is_set = False
         self.schedule_t = None
