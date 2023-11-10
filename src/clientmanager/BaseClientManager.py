@@ -16,16 +16,10 @@ class BaseClientManager:
 
         self.multi_gpu = self.global_var["global_config"]["multi_gpu"]
         self.clients_num = self.global_var["global_config"]["client_num"]
-        self.batch_size = self.global_var["client_config"]["batch_size"]
         self.client_staleness_list = self.global_var["client_config"]["stale_list"]
         self.epoch = self.global_var["client_config"]["epochs"]
         self.client_config = self.global_var["client_config"]
-        self.current_time = self.global_var["current_t"]
-        self.schedule_t = self.global_var["schedule_t"]
         self.index_list = self.global_var["dataset"].get_index_list()
-        self.queue_manager = self.global_var["queue_manager"]
-        self.print_lock = self.global_var["print_lock"]
-        self.init_weights = self.global_var["server_network"].state_dict()
 
         self.client_class = ModuleFindTool.find_class_by_path(self.global_var["client_config"]["path"])
         self.selected_event_list = [EventFactory.create_Event() for _ in range(self.clients_num)]

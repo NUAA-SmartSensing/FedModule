@@ -57,7 +57,7 @@ class NormalClient(Client):
 
     def train_one_epoch(self):
         if self.mu != 0:
-            global_model_params = copy.deepcopy(self.model.parameters())
+            global_model = copy.deepcopy(self.model)
         # 设置迭代次数
         data_sum = 0
         for epoch in range(self.epoch):
@@ -71,7 +71,7 @@ class NormalClient(Client):
                 # 正则项
                 if self.mu != 0:
                     proximal_term = 0.0
-                    for w, w_t in zip(self.model.parameters(), global_model_params):
+                    for w, w_t in zip(self.model.parameters(), global_model.parameters()):
                         proximal_term += (w - w_t).norm(2)
                     loss = loss + (self.mu / 2) * proximal_term
                 # 反向传播
