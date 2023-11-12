@@ -87,6 +87,8 @@ class NormalClient(Client):
 
     def wait_notify(self):
         if self.message_queue.get_from_downlink(self.client_id, 'received_weights'):
+            if self.training_params is None:
+                self.training_params = self.message_queue.get_training_params()
             self.message_queue.put_into_downlink(self.client_id, 'received_weights', False)
             weights_buffer = self.message_queue.get_from_downlink(self.client_id, 'weights_buffer')
             state_dict = self.model.state_dict()
@@ -116,7 +118,8 @@ class NormalClient(Client):
         for k, v in config["model"]["params"].items():
             if isinstance(v, str):
                 config["model"]["params"][k] = eval(v)
-        self.model = model_class(**config["model"]["params"]).to(self.dev)
+        self.model = model_class(**config["model"]["params"])
+        self.model = self.model.to(self.dev)
 
         # 优化器
         opti_class = ModuleFindTool.find_class_by_path(self.optimizer_config["path"])
@@ -125,6 +128,6 @@ class NormalClient(Client):
         # loss函数
         self.loss_func = LossFactory(config["loss"], self).create_loss()
 
-        self.train_ds = self.message_queue.get_dataset()
+        self.train_ds = self.message_queue.get_train_dataset()
         self.train_dl = DataLoader(FLDataset(self.train_ds, self.index_list, transform, target_transform),
                                    batch_size=self.batch_size, drop_last=True)

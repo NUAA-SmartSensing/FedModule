@@ -21,22 +21,18 @@ class SyncScheduler(BaseScheduler):
             if last_s_time != current_time:
                 if current_time > self.T:
                     break
-                self.print_lock.acquire()
                 print("| current_epoch |", current_time)
                 print("Begin client select")
-                self.print_lock.release()
                 last_s_time = current_time
                 selected_client = self.client_select()
-                self.print_lock.acquire()
                 print("\nSchedulerThread select(", len(selected_client), "clients):")
                 for client_id in selected_client:
                     print(client_id, end=" | ")
                     # 将server的模型参数和时间戳发给client
                     self.send_weights(client_id, current_time, schedule_time)
                     # 启动一次client线程
-                    self.client_manager.selected_event_list[client_id].set()
+                    self.selected_event_list[client_id].set()
                 print("\n-----------------------------------------------------------------Schedule complete")
-                self.print_lock.release()
                 # 等待所有客户端上传更新
                 self.queue_manager.receive(len(selected_client))
                 # 通知updater聚合权重

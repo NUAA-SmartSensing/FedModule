@@ -7,7 +7,7 @@ from utils.GlobalVarGetter import GlobalVarGetter
 class FedAT(AbstractUpdate):
     def __init__(self, config):
         self.config = config
-        self.global_var = GlobalVarGetter().get()
+        self.global_var = GlobalVarGetter.get()
 
     def update_server_weights(self, epoch, update_list):
         group_num = self.global_var["group_manager"].group_num

@@ -7,7 +7,7 @@ from utils.GlobalVarGetter import GlobalVarGetter
 class FedAvg(AbstractUpdate):
     def __init__(self, config):
         self.config = config
-        self.global_var = GlobalVarGetter().get()
+        self.global_var = GlobalVarGetter.get()
 
     def update_server_weights(self, epoch, update_list):
         total_nums = 0

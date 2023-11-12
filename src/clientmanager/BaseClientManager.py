@@ -7,27 +7,27 @@ from utils.ProcessManager import EventFactory
 
 
 class BaseClientManager:
-    def __init__(self, stop_event, config):
+    def __init__(self, stop_event, all_config):
         self.stop_event = stop_event
-        self.config = config
-        self.global_var = GlobalVarGetter().get()
+        self.all_config = all_config
+        self.global_var = GlobalVarGetter.get()
         self.client_list = []
         self.client_id_list = []
 
-        self.multi_gpu = self.global_var["global_config"]["multi_gpu"]
-        self.clients_num = self.global_var["global_config"]["client_num"]
-        self.client_staleness_list = self.global_var["client_config"]["stale_list"]
-        self.epoch = self.global_var["client_config"]["epochs"]
-        self.client_config = self.global_var["client_config"]
-        self.index_list = self.global_var["dataset"].get_index_list()
+        self.multi_gpu = all_config["global"]["multi_gpu"]
+        self.clients_num = all_config["global"]["client_num"]
+        self.client_staleness_list = all_config["client"]["stale_list"]
+        self.index_list = all_config["client"]["index_list"]
+        self.epoch = all_config["client"]["epochs"]
+        self.client_config = all_config["client"]
 
-        self.client_class = ModuleFindTool.find_class_by_path(self.global_var["client_config"]["path"])
+        self.client_class = ModuleFindTool.find_class_by_path(all_config["client"]["path"])
         self.selected_event_list = [EventFactory.create_Event() for _ in range(self.clients_num)]
-
+        self.global_var['selected_event_list'] = self.selected_event_list
         self.init_lock = mp.Lock()
 
     def start_all_clients(self):
-        self.init_clients()
+        self.__init_clients()
         # 启动clients
         self.global_var['client_list'] = self.client_list
         self.global_var['client_id_list'] = self.client_id_list
@@ -41,7 +41,7 @@ class BaseClientManager:
         for i in range(self.clients_num):
             self.selected_event_list[i].set()
 
-    def init_clients(self):
+    def __init_clients(self):
         mode, dev_num, dev_total, dev_mem_list = self.get_running_mode()
         # 初始化clients
         mem_total = 0

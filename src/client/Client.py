@@ -23,7 +23,7 @@ class Client(Process if mode_is_process() else Thread):
         self.schedule_t = None
         self.index_list = index_list
         self.message_queue = MessageQueueFactory.create_message_queue()
-        self.training_params = self.message_queue.get_training_params()
+        self.training_params = None
 
         self.train_ds = None
 

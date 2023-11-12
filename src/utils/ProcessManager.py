@@ -19,10 +19,10 @@ class ManagerWrapper:
             ManagerWrapper.__register()
             ManagerWrapper._manager = SyncManager()
             ManagerWrapper._manager.start()
-            config = GlobalVarGetter().get()
+            global_var = GlobalVarGetter.get()
             keys = ['config', 'global_config', 'server_config', 'client_config',
                     'client_manager_config', 'queue_manager_config']
-            new_config = {k: config[k] for k in keys}
+            new_config = {k: global_var[k] for k in keys}
             ManagerWrapper._manager.MessageQueue().set_config(new_config)
         return ManagerWrapper._manager
 
@@ -46,7 +46,7 @@ class DataGetter(Thread):
         self.message_queue = None
 
     def run(self) -> None:
-        self.queue_manager = GlobalVarGetter().get()['queue_manager']
+        self.queue_manager = GlobalVarGetter.get()['queue_manager']
         self.message_queue = MessageQueueFactory.create_message_queue()
         while not self.is_end:
             while not self.message_queue.uplink_empty():
@@ -61,7 +61,8 @@ class DataGetter(Thread):
 
 # make sure this class is no about server or client
 class MessageQueue:
-    dataset = None
+    train_dataset = None
+    test_dataset = None
     uplink = {'update': Queue()}
     downlink = {'received_weights': {}, 'received_time_stamp': {}, 'time_stamp_buffer': {}, 'weights_buffer': {},
                 'schedule_time_stamp_buffer': {}, 'group_id': {}}
@@ -147,20 +148,28 @@ class MessageQueue:
         return copy.deepcopy(MessageQueue.latest_model), MessageQueue.current_t
 
     @staticmethod
-    def set_dataset(dataset):
-        MessageQueue.dataset = dataset
+    def set_train_dataset(train_dataset):
+        MessageQueue.train_dataset = train_dataset
 
     @staticmethod
-    def get_dataset():
-        return copy.deepcopy(MessageQueue.dataset)
+    def get_train_dataset():
+        return copy.deepcopy(MessageQueue.train_dataset)
+
+    @staticmethod
+    def set_test_dataset(test_dataset):
+        MessageQueue.test_dataset = test_dataset
+
+    @staticmethod
+    def get_test_dataset():
+        return copy.deepcopy(MessageQueue.test_dataset)
 
 
 def mode_is_process():
-    if len(GlobalVarGetter().get()) == 0:
+    if len(GlobalVarGetter.get()) == 0:
         return True
-    if "global_config" not in GlobalVarGetter().get():
+    if "global_config" not in GlobalVarGetter.get():
         return False
-    return 'mode' in GlobalVarGetter().get()['global_config'] and GlobalVarGetter().get()['global_config'][
+    return 'mode' in GlobalVarGetter.get()['global_config'] and GlobalVarGetter.get()['global_config'][
         'mode'] == 'process'
 
 

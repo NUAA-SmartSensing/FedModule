@@ -24,10 +24,8 @@ class ActiveAsyncUpdater(AsyncUpdater):
                         c_id = update_list[i]["client_id"]
                         time_stamp = update_list[i]["time_stamp"]
                         self.sum_delay += (self.current_time.get_time() - time_stamp)
-                        self.print_lock.acquire()
                         print("Updater received data from client", c_id, "| staleness =", time_stamp, "-",
                               self.current_time.get_time(), "| queue size = ", self.queue_manager.size())
-                        self.print_lock.release()
                     self.event.set()
                 else:
                     update_list = []
@@ -49,8 +47,3 @@ class ActiveAsyncUpdater(AsyncUpdater):
             time.sleep(0.01)
 
         print("Average delay =", (self.sum_delay / self.T))
-
-        # 终止所有client线程
-        self.client_manager.stop_all_clients()
-
-

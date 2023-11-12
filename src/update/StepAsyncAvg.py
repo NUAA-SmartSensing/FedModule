@@ -10,7 +10,7 @@ class StepAsyncAvg(AbstractUpdate):
         self.config = config
         self.num_cnt = {}
         self.sum_cnt = 0
-        self.global_var = GlobalVarGetter().get()
+        self.global_var = GlobalVarGetter.get()
 
     def update_server_weights(self, epoch, update_list):
         rho = self.config["rho"]

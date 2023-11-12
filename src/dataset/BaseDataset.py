@@ -47,13 +47,8 @@ class BaseDataset:
         return self.index_list
 
     def get_train_dataset(self):
-        if self.train_dataset is None:
-            raise Exception("train_dataset has been deleted")
         return self.train_dataset
 
     def get_config(self):
         return self.iid_config
 
-    def delete_train_dataset(self):
-        del self.train_dataset
-        self.train_dataset = None

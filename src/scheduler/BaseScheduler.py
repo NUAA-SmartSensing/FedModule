@@ -17,14 +17,13 @@ class BaseScheduler(threading.Thread):
         self.server_thread_lock = server_thread_lock
         self.config = config
 
-        self.global_var = GlobalVarGetter().get()
-        self.client_manager = self.global_var['client_manager']
+        self.global_var = GlobalVarGetter.get()
+        self.selected_event_list = self.global_var['selected_event_list']
         self.current_t = self.global_var['current_t']
         self.schedule_t = self.global_var['schedule_t']
         self.server_network = self.global_var['server_network']
         self.T = self.global_var['T']
         self.queue_manager = self.global_var['queue_manager']
-        self.print_lock = self.global_var['print_lock']
 
         # we suggest every tensor which would transform between clients and server should use share_memory method
         self.server_weights = self.server_network.state_dict()
@@ -41,7 +40,7 @@ class BaseScheduler(threading.Thread):
         pass
 
     def client_select(self, *args, **kwargs):
-        client_list = self.client_manager.get_client_id_list()
+        client_list = self.global_var['client_id_list']
         selected_clients = self.schedule_caller.schedule(client_list)
         return selected_clients
 

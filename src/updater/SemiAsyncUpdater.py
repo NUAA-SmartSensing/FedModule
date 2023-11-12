@@ -20,7 +20,6 @@ class SemiAsyncUpdater(BaseUpdater):
         group_update_class = ModuleFindTool.find_class_by_path(config["group"]["path"])
         self.group_update = group_update_class(self.config["group"]["params"])
 
-
     def run(self):
         for i in range(self.T):
             self.full_sem.acquire()
@@ -30,8 +29,10 @@ class SemiAsyncUpdater(BaseUpdater):
             # 接收所有的更新
             while not self.queue_manager.empty(self.queue_manager.group_ready_num):
                 update_list.append(self.queue_manager.get(self.queue_manager.group_ready_num))
-            self.group_manager.network_list[self.queue_manager.group_ready_num] = self.update_group_weights(epoch, update_list)
-            self.group_manager.epoch_list[self.queue_manager.group_ready_num] = self.group_manager.epoch_list[self.queue_manager.group_ready_num] + 1
+            self.group_manager.network_list[self.queue_manager.group_ready_num] = self.update_group_weights(epoch,
+                                                                                                            update_list)
+            self.group_manager.epoch_list[self.queue_manager.group_ready_num] = self.group_manager.epoch_list[
+                                                                                    self.queue_manager.group_ready_num] + 1
 
             self.server_thread_lock.acquire()
             self.update_server_weights(epoch, self.group_manager.network_list)
@@ -43,9 +44,6 @@ class SemiAsyncUpdater(BaseUpdater):
             self.current_time.time_add()
             self.mutex_sem.release()
             self.empty_sem.release()
-
-        # 终止所有client线程
-        self.client_manager.stop_all_clients()
 
     def update_group_weights(self, epoch, update_list):
         global_model, _ = self.group_update.update_server_weights(epoch, update_list)
@@ -59,4 +57,3 @@ class SemiAsyncUpdater(BaseUpdater):
         for i in range(self.global_var['group_manager'].group_num):
             update_list.append({"weights": network_list[i]})
         BaseUpdater.update_server_weights(self, epoch, update_list)
-

@@ -11,7 +11,7 @@ class BaseQueueManager(AbstractQueueManager):
     def __init__(self, config, *args, **kwargs):
         super().__init__()
         self.config = config
-        self.global_var = GlobalVarGetter().get()
+        self.global_var = GlobalVarGetter.get()
         self.pre_queue = None
         self.lock = threading.Lock()
         self.queue = Queue()

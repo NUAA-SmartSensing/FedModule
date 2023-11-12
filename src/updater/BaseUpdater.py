@@ -1,4 +1,3 @@
-import copy
 import threading
 from abc import abstractmethod
 
@@ -9,20 +8,9 @@ from torch.utils.data import DataLoader
 from loss.LossFactory import LossFactory
 from update.UpdateCaller import UpdateCaller
 from utils import ModuleFindTool
-from utils.DataReader import CustomDataset
 from utils.GlobalVarGetter import GlobalVarGetter
 from utils.ProcessManager import MessageQueueFactory
 from utils.Tools import share_memory, to_cpu, to_dev
-
-
-def _read_data(dataset):
-    data = []
-    targets = []
-    dl = DataLoader(dataset, batch_size=1, shuffle=False)
-    for x, y in dl:
-        data.append(x[0])
-        targets.append(y[0])
-    return data, targets
 
 
 class BaseUpdater(threading.Thread):
@@ -31,19 +19,17 @@ class BaseUpdater(threading.Thread):
         self.server_thread_lock = server_thread_lock
         self.stop_event = stop_event
         self.config = config
-        self.global_var = GlobalVarGetter().get()
+        self.global_var = GlobalVarGetter.get()
 
         self.T = self.global_var['T']
         self.current_time = self.global_var['current_t']
         self.schedule_t = self.global_var['schedule_t']
         self.server_network = self.global_var['server_network']
-        self.client_manager = self.global_var['client_manager']
 
-        test_data = self.global_var['dataset'].get_test_dataset()
-        self.test_data = self._get_test_dataset(test_data)
+        self.message_queue = MessageQueueFactory.create_message_queue()
+        self.test_data = self.message_queue.get_test_dataset()
 
         self.queue_manager = self.global_var['queue_manager']
-        self.print_lock = self.global_var['print_lock']
 
         self.event = threading.Event()
         self.event.clear()
@@ -98,11 +84,9 @@ class BaseUpdater(threading.Thread):
             loss = test_loss / len(dl)
             self.loss_list.append(loss)
             self.accuracy_list.append(accuracy)
-            self.print_lock.acquire()
             print('Epoch(t):', epoch, 'accuracy:', accuracy, 'loss', loss)
             if self.config['enabled']:
                 wandb.log({'accuracy': accuracy, 'loss': loss})
-            self.print_lock.release()
         return accuracy, loss
 
     def get_accuracy_and_loss_list(self):
@@ -128,12 +112,3 @@ class BaseUpdater(threading.Thread):
             self.server_network.load_state_dict(new_model)
         weights = self.server_network.state_dict()
         return to_cpu(weights)
-
-    def _get_test_dataset(self, test_data):
-        # 预加载
-        if 'dataset_pre_load' in self.global_var['global_config'] and self.global_var['global_config']['dataset_pre_load']:
-            data, targets = _read_data(test_data)
-            return CustomDataset(data, targets)
-        # 静态加载
-        else:
-            return test_data
