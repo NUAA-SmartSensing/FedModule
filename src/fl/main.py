@@ -1,3 +1,4 @@
+import copy
 import datetime
 import os
 import shutil
@@ -8,10 +9,9 @@ import torch.multiprocessing as mp
 import wandb
 from torch.utils.data import DataLoader
 
-from utils.DataReader import CustomDataset
-
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+from utils.DataReader import CustomDataset
 from utils.GlobalVarGetter import GlobalVarGetter
 from utils.ProcessManager import MessageQueueFactory
 from utils.Tools import *

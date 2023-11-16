@@ -85,14 +85,3 @@ def to_dev(data, dev):
         return data.to(dev)
     else:
         return data
-
-
-def share_memory(data):
-    if isinstance(data, dict):
-        return {k: share_memory(v) for k, v in data.items()}
-    elif isinstance(data, list):
-        return [share_memory(v) for v in data]
-    elif isinstance(data, torch.Tensor):
-        return data.share_memory_()
-    else:
-        return data

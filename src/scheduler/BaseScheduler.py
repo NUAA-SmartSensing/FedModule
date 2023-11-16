@@ -1,14 +1,12 @@
-import copy
 import threading
 from abc import abstractmethod
 
-import torch
 
 from schedule.ScheduleCaller import ScheduleCaller
 from utils import ModuleFindTool
 from utils.GlobalVarGetter import GlobalVarGetter
 from utils.ProcessManager import MessageQueueFactory
-from utils.Tools import to_cpu, share_memory
+from utils.Tools import to_cpu
 
 
 class BaseScheduler(threading.Thread):
@@ -25,9 +23,7 @@ class BaseScheduler(threading.Thread):
         self.T = self.global_var['T']
         self.queue_manager = self.global_var['queue_manager']
 
-        # we suggest every tensor which would transform between clients and server should use share_memory method
         self.server_weights = self.server_network.state_dict()
-        share_memory(self.server_weights)
 
         schedule_class = ModuleFindTool.find_class_by_path(config["schedule"]["path"])
         self.schedule_method = schedule_class(config["schedule"]["params"])

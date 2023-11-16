@@ -10,7 +10,7 @@ from update.UpdateCaller import UpdateCaller
 from utils import ModuleFindTool
 from utils.GlobalVarGetter import GlobalVarGetter
 from utils.ProcessManager import MessageQueueFactory
-from utils.Tools import share_memory, to_cpu, to_dev
+from utils.Tools import to_cpu, to_dev
 
 
 class BaseUpdater(threading.Thread):
@@ -93,7 +93,6 @@ class BaseUpdater(threading.Thread):
         return self.accuracy_list, self.loss_list
 
     def set_delivery_weights(self, weights):
-        share_memory(weights)
         self.global_var['scheduler'].server_weights = weights
 
     def update_global_model(self, new_model):
