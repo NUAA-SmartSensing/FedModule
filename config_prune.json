@@ -7,22 +7,22 @@
   "global": {
     "use_file_system": false,
     "multi_gpu": true,
-    "experiment": "FedPFSL/1",
+    "experiment": "FedPFSL/α=1,β=2,kl_distill",
     "stale": {
       "step": 1,
       "shuffle": true,
-      "list": [5, 5, 4, 4, 4, 4, 4]
+      "list": [7, 7, 7, 7, 7, 7, 8]
     },
     "dataset": {
       "path": "dataset.MNIST.MNIST",
       "params": {}
     },
     "iid": true,
-    "client_num": 30
+    "client_num": 50
   },
   "server": {
     "path": "server.SyncServer.SyncServer",
-    "epochs":49,
+    "epochs": 100,
     "model": {
       "path": "model.CNN_pruning.CNN_pruning",
       "params": {}
@@ -32,7 +32,7 @@
       "schedule": {
         "path": "schedule.RandomSchedule.RandomSchedule",
         "params": {
-          "c_ratio": 0.3
+          "c_ratio": 0.2
         }
       }
     },
@@ -67,7 +67,7 @@
     "path": "client.PFSLClient.PFSLClient",
     "epochs": 2,
     "batch_size": 32,
-    "alpha": 0.3,
+    "alpha": 0,
     "test_size": 0.1,
     "test_batch_size": 16,
     "model": {

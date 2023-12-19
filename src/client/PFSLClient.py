@@ -9,8 +9,10 @@ import torch
 
 
 def distillation(y, labels, teacher_scores, T, alpha):
-    return F.kl_div(F.log_softmax(y / T, dim=1), F.softmax(teacher_scores / T, dim=1), reduction='batchmean') * (
-            T * T * alpha) + F.cross_entropy(y, labels) * (1.0 - alpha)
+    loss1 = F.kl_div(F.log_softmax(y / T, dim=1), F.softmax(teacher_scores / T, dim=1), reduction='batchmean') * T * T * 2
+    loss2 = F.cross_entropy(y, labels)
+    # loss1 = F.mse_loss(y, teacher_scores) * 2
+    return loss1 + loss2
 
 
 class PFSLClient(DLClient.DLClient):
@@ -36,14 +38,13 @@ class PFSLClient(DLClient.DLClient):
                 if self.time_stamp == -1:
                     # 预训练
                     data_sum, weights = self.pre_train()
-                    self.run_test()
                 else:
                     # 该client进行训练
                     data_sum, weights = self.train()
                     # client传回server的信息具有延迟
                     # 本地测试
                     self.run_test()
-                    time.sleep(self.delay)
+                    time.sleep(0.01)
 
                 # 返回其ID、模型参数和时间戳
                 self.upload(data_sum, weights)
@@ -77,7 +78,7 @@ class PFSLClient(DLClient.DLClient):
         # 根据delay计算模型剪枝率
         self.prune_ratio = 0.3 + self.delay / 6 * 0.4
         self.model.pruning_by_ratio(self.prune_ratio)
-        print("client id:", self.client_id, "pruning over,remain", (1 - self.prune_ratio) * 100, "%")
+        print("client id:", self.client_id, "pruning over,remain", round((1 - self.prune_ratio), 2) * 100, "%")
         for k, v in weights.items():
             weights[k] = weights[k].cpu().detach()
         return data_sum, weights

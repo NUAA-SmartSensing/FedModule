@@ -17,12 +17,10 @@ class PersonalUpdater(SyncUpdater):
             # 接收所有的更新
             while not self.queue_manager.empty():
                 update_list.append(self.queue_manager.get())
-
             self.server_thread_lock.acquire()
             self.update_server_weights(epoch, update_list)
             self.run_personalization_test(epoch, update_list)
             self.server_thread_lock.release()
-
             self.current_time.time_add()
             # 本轮结束
             self.mutex_sem.release()
