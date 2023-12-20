@@ -37,7 +37,7 @@
       }
     },
     "updater": {
-      "path": "updater.PersonalUpdater.PersonalUpdater",
+      "path": "updater.SyncUpdater.SyncUpdater",
       "loss": "torch.nn.functional.cross_entropy",
       "update": {
         "path": "update.FedDL.FedDL",
