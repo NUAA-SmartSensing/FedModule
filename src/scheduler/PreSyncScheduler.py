@@ -10,22 +10,20 @@ class PreSyncScheduler(SyncScheduler):
     def run(self):
         # 预训练阶段
         print("start pretraining")
+        self.empty_sem.acquire()
+        self.mutex_sem.acquire()
         client_list = self.client_manager.get_client_id_list()
         for client_id in client_list:
             # 将server的模型参数和时间戳发给client
             self.send_weights(client_id, -1, 0)
             # 启动一次client线程
             self.client_manager.selected_event_list[client_id].set()
-        time.sleep(2)
-        while True:
-            flag = False
-            training_params = self.message_queue.get_training_status()
-            for _, v in training_params.items():
-                if v is True:
-                    flag = True
-            if not flag:
-                break
-            time.sleep(1)
+        self.queue_manager.receive(len(client_list))
+        # 通知updater聚合权重
+        self.mutex_sem.release()
+        self.full_sem.release()
+        time.sleep(0.01)
+
         print("\n-----------------------------------------------------------------pretraining over")
 
         super().run()

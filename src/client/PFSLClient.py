@@ -8,11 +8,12 @@ import torch.nn.functional as F
 import torch
 
 
-def distillation(y, labels, teacher_scores, T, alpha):
-    loss1 = F.kl_div(F.log_softmax(y / T, dim=1), F.softmax(teacher_scores / T, dim=1), reduction='batchmean') * T * T * 2
-    loss2 = F.cross_entropy(y, labels)
+def distillation(y, labels, teacher_scores, T, alpha, beta):
+    # loss1 = F.kl_div(F.log_softmax(y / T, dim=1), F.softmax(teacher_scores / T, dim=1),
+     #                 reduction='batchmean') * T * T * beta
+    loss2 = F.cross_entropy(y, labels) * alpha
     # loss1 = F.mse_loss(y, teacher_scores) * 2
-    return loss1 + loss2
+    return loss2
 
 
 class PFSLClient(DLClient.DLClient):
@@ -28,6 +29,7 @@ class PFSLClient(DLClient.DLClient):
         self.teacher_model = teacher_model_class(**config["teacher_model"]["params"])
         self.teacher_model = self.teacher_model.to(self.dev)
         self.alpha = self.config['alpha']
+        self.beta = self.config['beta']
 
     def run(self):
         while not self.stop_event.is_set():
@@ -38,6 +40,8 @@ class PFSLClient(DLClient.DLClient):
                 if self.time_stamp == -1:
                     # 预训练
                     data_sum, weights = self.pre_train()
+                    self.run_test()
+                    time.sleep(0.01)
                 else:
                     # 该client进行训练
                     data_sum, weights = self.train()
@@ -95,7 +99,8 @@ class PFSLClient(DLClient.DLClient):
                 teacher_output = self.teacher_model(data)
                 teacher_output = teacher_output.detach()
                 # 计算损失函数
-                loss = distillation(output, label, teacher_output, T=20, alpha=self.config['alpha'])
+                loss = distillation(output, label, teacher_output, T=20, alpha=self.config['alpha'],
+                                    beta=self.config['beta'])
                 data_sum += label.size(0)
                 # 反向传播
                 loss.backward()
@@ -114,12 +119,11 @@ class PFSLClient(DLClient.DLClient):
         return self.loss_list[len(self.loss_list) - 1], self.accuracy_list[len(self.accuracy_list) - 1]
 
     def upload(self, data_sum, weights):
-        if self.time_stamp != -1:
-            update_dict = {"client_id": self.client_id, "weights": weights, "data_sum": data_sum,
-                           "time_stamp": self.time_stamp, "prune_ratio": self.prune_ratio,
-                           "accuracy": self.accuracy_list[len(self.accuracy_list) - 1],
-                           "loss": self.loss_list[len(self.loss_list) - 1]}
-            self.message_queue.put_into_uplink(update_dict)
+        update_dict = {"client_id": self.client_id, "weights": weights, "data_sum": data_sum,
+                       "time_stamp": self.time_stamp, "prune_ratio": self.prune_ratio,
+                       "accuracy": self.accuracy_list[len(self.accuracy_list) - 1],
+                       "loss": self.loss_list[len(self.loss_list) - 1]}
+        self.message_queue.put_into_uplink(update_dict)
 
     def wait_notify(self):
         if self.message_queue.get_from_downlink(self.client_id, 'received_time_stamp'):
@@ -136,13 +140,9 @@ class PFSLClient(DLClient.DLClient):
                 self.received_weights = False
             else:
                 # 获取教师模型
-                if self.init:
-                    if self.client_id in self.weights_buffer.keys():
-                        # self.model.load_state_dict(self.weights_buffer[self.client_id], strict=True)
-                        self.teacher_model.load_state_dict(self.weights_buffer[self.client_id], strict=True)
-                else:
-                    self.teacher_model.load_state_dict(copy.deepcopy(self.model.state_dict()), strict=True)
-                    self.init = True
+                if self.client_id in self.weights_buffer.keys():
+                    self.model.load_state_dict(self.weights_buffer[self.client_id], strict=True)
+                    # self.teacher_model.load_state_dict(self.weights_buffer[self.client_id], strict=True)
                 self.received_weights = False
 
     def run_model_test(self, model):

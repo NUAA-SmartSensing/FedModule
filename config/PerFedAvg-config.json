@@ -1,51 +1,47 @@
 {
   "wandb": {
     "enabled": false,
-    "project": "FedPFSL",
+    "project": "FedAvg",
     "name": "1"
   },
   "global": {
     "use_file_system": false,
     "multi_gpu": true,
-    "experiment": "FedPFSL/α=1,β=2,kl_distill,non-iid",
+    "experiment": "FedAvg/1",
     "stale": {
       "step": 1,
       "shuffle": true,
-      "list": [4, 4, 4, 4, 4, 4, 6]
+      "list": [10, 10, 10, 5, 5, 5, 5]
     },
     "dataset": {
-      "path": "dataset.CIFAR10.CIFAR10",
+      "path": "dataset.FashionMNIST.FashionMNIST",
       "params": {}
     },
-    "iid": {
-    "customize": false,
-    "beta": 0.5
-    },
-    "client_num": 30
+    "iid": true,
+    "client_num": 50
   },
   "server": {
     "path": "server.SyncServer.SyncServer",
     "epochs": 20,
     "model": {
-      "path": "model.CNN_pruning.CNN_pruning",
+      "path": "model.CNN.CNN",
       "params": {}
     },
     "scheduler": {
-      "path": "scheduler.PreSyncScheduler.PreSyncScheduler",
+      "path": "scheduler.SyncScheduler.SyncScheduler",
       "schedule": {
         "path": "schedule.RandomSchedule.RandomSchedule",
         "params": {
-          "c_ratio": 0.2
+          "c_ratio": 0.3
         }
       }
     },
     "updater": {
-      "path": "updater.PersonalUpdater.PersonalUpdater",
+      "path": "updater.SyncUpdater.SyncUpdater",
       "loss": "torch.nn.functional.cross_entropy",
       "update": {
-        "path": "update.Fedpfsl.Fedpfsl",
+        "path": "update.FedAvg.FedAvg",
         "params": {
-          "n_clusters": 2
         }
       }
     }
@@ -58,7 +54,7 @@
       }
     },
     "checker": {
-      "path": "checker.AllChecker.AllChecker",
+      "path": "checker.SyncChecker.SyncChecker",
       "params": {
       }
     }
@@ -67,18 +63,10 @@
     "path": "clientmanager.NormalClientManager.NormalClientManager"
   },
   "client": {
-    "path": "client.PFSLClient.PFSLClient",
-    "epochs": 1,
-    "batch_size": 32,
-    "alpha": 1,
-    "beta": 2,
-    "test_size": 0.1,
-    "test_batch_size": 16,
+    "path": "client.NormalClient.NormalClient",
+    "epochs": 2,
+    "batch_size": 50,
     "model": {
-      "path": "model.CNN_pruning.CNN_pruning",
-      "params": {}
-    },
-    "teacher_model": {
       "path": "model.CNN.CNN",
       "params": {}
     },
