@@ -6,3 +6,5 @@ from client import DLClient
 from client import TestClient
 from client import ActiveClient
 from client import SemiTestClient
+from client import PFSLClient
+from client import PerAvgClient
