@@ -22,9 +22,9 @@
   },
   "server": {
     "path": "server.SyncServer.SyncServer",
-    "epochs": 1,
+    "epochs": 20,
     "model": {
-      "path": "model.CNN.CNN_pruning",
+      "path": "model.CNN.CNN",
       "params": {}
     },
     "scheduler": {
