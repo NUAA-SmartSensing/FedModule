@@ -67,7 +67,7 @@ class BaseClientManager:
             if mode == 0:
                 dev = ratio_list[i]
             elif mode == 1:
-                dev = 'cuda'
+                dev = 'cuda:2'
             else:
                 dev = 'cpu'
             client_delay = self.client_staleness_list[i]
