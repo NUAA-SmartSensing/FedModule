@@ -1,0 +1,98 @@
+{
+  "wandb": {
+    "enabled": true,
+    "project": "FedAT",
+    "name": "paper-setting-cifar10"
+  },
+  "global": {
+    "use_file_system": false,
+    "multi_gpu": false,
+    "experiment": "FedAT/paper-setting-cifar10",
+    "stale": {
+      "step": 5,
+      "shuffle": false,
+      "list": [20, 20, 20, 20, 20]
+    },
+    "dataset": {
+      "path": "dataset.CIFAR10.CIFAR10",
+      "params": {}
+    },
+    "iid": true,
+    "client_num": 100
+  },
+  "server": {
+    "path": "server.SemiAsyncServer.SemiAsyncServer",
+    "epochs": 50,
+    "model": {
+      "path": "model.CNN.CNN_CIFAR10",
+      "params": {}
+    },
+    "scheduler": {
+      "path": "scheduler.SemiAsyncScheduler.SemiAsyncScheduler",
+      "schedule": {
+        "path": "schedule.FullSchedule.FullSchedule",
+        "params": {
+        }
+      }
+    },
+    "updater": {
+      "path": "updater.SemiAsyncUpdater.SemiAsyncUpdater",
+      "update": {
+        "path": "update.FedAT.FedAT",
+        "params": {
+        }
+      },
+      "loss": "torch.nn.functional.cross_entropy",
+      "params": {
+      },
+      "group": {
+        "path": "update.FedAvg.FedAvg",
+        "params": {
+        }
+      }
+    }
+  },
+  "group_manager": {
+    "path": "groupmanager.NormalGroupManager.NormalGroupManager",
+    "group_method": {
+      "path": "group.DelayGroup.DelayGroup",
+      "params": {
+        "step": 5
+      }
+    }
+  },
+  "queue_manager": {
+    "path": "queuemanager.QueueListManager.QueueListManager",
+    "receiver": {
+      "path": "receiver.MultiQueueReceiver.MultiQueueReceiver",
+      "params": {
+      }
+    },
+    "checker": {
+      "path": "checker.AllChecker.AllChecker",
+      "params": {
+      }
+    }
+  },
+  "client_manager": {
+    "path": "clientmanager.NormalClientManager.NormalClientManager"
+  },
+  "client": {
+    "path": "client.SemiClient.SemiClient",
+    "epochs": 3,
+    "batch_size": 10,
+    "model": {
+      "path": "model.CNN.CNN_CIFAR10",
+      "params": {}
+    },
+    "loss": "torch.nn.functional.cross_entropy",
+    "mu": 0.01,
+    "optimizer": {
+      "path": "torch.optim.Adam",
+      "params": {
+        "lr": 0.01,
+        "weight_decay": 0
+      }
+    }
+  }
+}

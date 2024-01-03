@@ -1,13 +1,13 @@
 {
   "wandb": {
-    "enabled": false,
+    "enabled": true,
     "project": "MStep",
-    "name": "1"
+    "name": "baseline"
   },
   "global": {
     "use_file_system": false,
     "multi_gpu": false,
-    "experiment": "MStep/1",
+    "experiment": "MStep/baseline",
     "stale": {
       "step": 2,
       "shuffle": true,

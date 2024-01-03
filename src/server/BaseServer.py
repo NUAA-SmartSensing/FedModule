@@ -47,7 +47,7 @@ class BaseServer:
         self.accuracy_list = []
         self.loss_list = []
         self.print_lock = threading.Lock()
-        self.global_var['print_lock'] = self.print_lock
+        self.global_var['print_lock'] = self.print_lock # 上锁，防止多线程的数据不一致问题
         # process event
         self.stop_event = Event()
         self.stop_event.clear()

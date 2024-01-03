@@ -1,0 +1,108 @@
+{
+  "wandb": {
+    "enabled": true,
+    "project": "FedAsyncVSFedAT",
+    "name": "FedAT"
+  },
+  "global": {
+    "use_file_system": false,
+    "multi_gpu": false,
+    "experiment": "FedAsyncVSFedAT/FedAT",
+    "stale": {
+      "step": 4,
+      "shuffle": true,
+      "list": [10, 20, 20]
+    },
+    "dataset": {
+      "path": "dataset.FashionMNIST.FashionMNIST",
+      "params": {}
+    },
+    "iid": {
+      "customize": true,
+      "label": {
+        "step": 2,
+        "list": [0, 25, 25]
+      },
+      "data": {
+      }
+    },
+    "client_num": 50
+  },
+  "server": {
+    "path": "server.SemiAsyncServer.SemiAsyncServer",
+    "epochs": 2000,
+    "model": {
+      "path": "model.LeNet5.LeNet5",
+      "params": {}
+    },
+    "scheduler": {
+      "path": "scheduler.SemiAsyncScheduler.SemiAsyncScheduler",
+      "schedule":{
+        "path": "schedule.FullSchedule.FullSchedule",
+        "params": {
+        }
+      }
+    },
+    "updater": {
+      "path": "updater.SemiAsyncUpdater.SemiAsyncUpdater",
+      "update": {
+        "path": "update.FedAT.FedAT",
+        "params": {
+        }
+      },
+      "loss": "torch.nn.functional.cross_entropy",
+      "params": {
+      },
+      "group": {
+        "path": "update.FedAvg.FedAvg",
+        "params": {
+        }
+      }
+    }
+  },
+  "group_manager": {
+    "path": "groupmanager.NormalGroupManager.NormalGroupManager",
+    "group_method": {
+      "path": "group.DelayGroup.DelayGroup",
+      "params": {
+        "step": 5
+      }
+    }
+  },
+  "queue_manager": {
+    "path": "queuemanager.QueueListManager.QueueListManager",
+    "receiver": {
+      "path": "receiver.MultiQueueReceiver.MultiQueueReceiver",
+      "params": {
+      }
+    },
+    "checker": {
+      "path": "checker.AllChecker.AllChecker",
+      "params": {
+      }
+    }
+  },
+  "client_manager": {
+    "path": "clientmanager.NormalClientManager.NormalClientManager"
+  },
+  "client": {
+    "path": "client.SemiClient.SemiClient",
+    "epochs": 2,
+    "batch_size": 32,
+    "test_size": 0.1,
+    "test_batch_size": 16,
+    "model": {
+      "path": "model.LeNet5.LeNet5",
+      "params": {}
+    },
+    "loss": "torch.nn.functional.cross_entropy",
+    "mu": 0,
+    "optimizer": {
+      "path": "torch.optim.SGD",
+      "params": {
+        "lr": 0.01,
+        "weight_decay": 0
+      }
+    }
+  }
+}

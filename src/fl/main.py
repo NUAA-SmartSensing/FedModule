@@ -1,4 +1,5 @@
 import datetime
+from doctest import debug
 import os
 import shutil
 import sys
@@ -20,9 +21,11 @@ if __name__ == '__main__':
     if not os.path.exists(os.path.join(os.path.dirname(os.path.abspath(__file__)), "../results")):
         os.mkdir(os.path.join(os.path.dirname(os.path.abspath(__file__)), "../results"))
 
+    debug_mode  = False
     # 配置文件读取
     if len(sys.argv) < 2:
         config_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../../config.json")
+        debug_mode = True
     else:
         config_file = sys.argv[1]
 
@@ -50,7 +53,7 @@ if __name__ == '__main__':
     stale = global_config['stale']
     if isinstance(stale, list):
         client_staleness_list = stale
-    elif isinstance(stale, bool):
+    elif isinstance(stale, bool): #stale为0
         client_staleness_list = []
         for i in range(global_config["client_num"]):
             client_staleness_list.append(0)
@@ -60,18 +63,23 @@ if __name__ == '__main__':
             total_sum += i
         if total_sum != global_config['client_num']:
             raise ClientSumError.ClientSumError()
-        client_staleness_list = generate_stale_list(stale['step'], stale['shuffle'], stale['list'])
+        client_staleness_list = generate_stale_list(stale['step'], stale['shuffle'], stale['list']) # 以step为固定间隔，在之间分别随机抽取list[1:]为stale值
     client_config["stale_list"] = client_staleness_list
+    # print("stale_list",client_staleness_list)
 
     is_cover = True
     # 保存配置文件
-    if os.path.exists(os.path.join(os.path.dirname(os.path.abspath(__file__)), "../results/", global_config["experiment"], "config.json")):
-        is_cover = input("实验路径已存在，是否覆盖(y/n):")
-        if is_cover == 'y' or is_cover == 'Y':
-            is_cover = True
-        else:
-            print("试验结果将不会被存储")
-            is_cover = False
+    if debug_mode:
+        is_cover = False
+    else:
+        if os.path.exists(os.path.join(os.path.dirname(os.path.abspath(__file__)), "../results/", global_config["experiment"], "config.json")) :
+            is_cover = input("实验路径已存在，是否覆盖(y/n):")
+            if is_cover == 'y' or is_cover == 'Y':
+                is_cover = True
+            else:
+                print("试验结果将不会被存储")
+                is_cover = False
+
 
     # 初始化wandb
     if wandb_config["enabled"]:
@@ -87,6 +95,9 @@ if __name__ == '__main__':
                 json.dump(config, r, indent=4)
         except shutil.SameFileError:
             pass
+    
+    print("stale_list:",client_staleness_list)
+
     start_time = datetime.datetime.now()
 
     # 改用文件系统存储内存
