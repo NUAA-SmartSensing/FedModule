@@ -20,8 +20,9 @@
     "iid": {
       "customize": true,
       "label": {
-        "step": 2,
-        "list": [100]
+        "shuffle":true,
+        "step": 1,
+        "list": [0,100]
       },
       "data": {
       }
