@@ -31,6 +31,8 @@ class BaseDataset:
 
         self.train_data_size = self.train_data.shape[0]
 
+
+
         if isinstance(self.iid_config, bool):
             print("generating iid data...")
             self.index_list = generate_iid_data(self, clients)

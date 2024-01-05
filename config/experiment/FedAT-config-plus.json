@@ -2,23 +2,31 @@
   "wandb": {
     "enabled": true,
     "project": "FedAT",
-    "name": "FMiidSGD"
+    "name": "baseline-plus"
   },
   "global": {
     "use_file_system": false,
-    "multi_gpu": true,
-    "experiment": "FedAT/FMiidSGD",
+    "multi_gpu": false,
+    "experiment": "FedAT/baseline-plus",
     "stale": {
       "step": 5,
-      "shuffle": false,
-      "list": [20, 20, 20, 20, 20]
+      "shuffle": true,
+      "list": [0, 30, 20]
     },
     "dataset": {
       "path": "dataset.FashionMNIST.FashionMNIST",
       "params": {}
     },
-    "iid": true,
-    "client_num": 100
+    "iid": {
+      "customize": true,
+      "label": {
+        "step": 2,
+        "list": [0, 25, 25]
+      },
+      "data": {
+      }
+    },
+    "client_num": 50
   },
   "server": {
     "path": "server.SemiAsyncServer.SemiAsyncServer",
@@ -29,7 +37,7 @@
     },
     "scheduler": {
       "path": "scheduler.SemiAsyncScheduler.SemiAsyncScheduler",
-      "schedule": {
+      "schedule":{
         "path": "schedule.FullSchedule.FullSchedule",
         "params": {
         }
@@ -79,14 +87,14 @@
   },
   "client": {
     "path": "client.SemiClient.SemiClient",
-    "epochs": 3,
-    "batch_size": 32,
+    "epochs": 2,
+    "batch_size": 50,
     "model": {
       "path": "model.CNN.CNN",
       "params": {}
     },
     "loss": "torch.nn.functional.cross_entropy",
-    "mu": 0.4,
+    "mu": 0.01,
     "optimizer": {
       "path": "torch.optim.SGD",
       "params": {

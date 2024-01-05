@@ -2,12 +2,12 @@
   "wandb": {
     "enabled": true,
     "project": "FedAT",
-    "name": "FMiidSGD"
+    "name": "baseline"
   },
   "global": {
     "use_file_system": false,
     "multi_gpu": true,
-    "experiment": "FedAT/FMiidSGD",
+    "experiment": "FedAT/baseline",
     "stale": {
       "step": 5,
       "shuffle": false,
@@ -17,7 +17,16 @@
       "path": "dataset.FashionMNIST.FashionMNIST",
       "params": {}
     },
-    "iid": true,
+    "iid": {
+      "customize": true,
+      "label": {
+        "shuffle": true,
+        "step": 2,
+        "list": [0, 100]
+      },
+      "data": {
+      }
+    },
     "client_num": 100
   },
   "server": {
@@ -29,7 +38,7 @@
     },
     "scheduler": {
       "path": "scheduler.SemiAsyncScheduler.SemiAsyncScheduler",
-      "schedule": {
+      "schedule":{
         "path": "schedule.FullSchedule.FullSchedule",
         "params": {
         }
@@ -79,14 +88,14 @@
   },
   "client": {
     "path": "client.SemiClient.SemiClient",
-    "epochs": 3,
-    "batch_size": 32,
+    "epochs": 2,
+    "batch_size": 50,
     "model": {
       "path": "model.CNN.CNN",
       "params": {}
     },
     "loss": "torch.nn.functional.cross_entropy",
-    "mu": 0.4,
+    "mu": 0.01,
     "optimizer": {
       "path": "torch.optim.SGD",
       "params": {
