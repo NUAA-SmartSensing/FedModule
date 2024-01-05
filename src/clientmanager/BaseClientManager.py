@@ -25,13 +25,13 @@ class BaseClientManager:
         self.current_time = self.global_var["current_t"]
         self.schedule_t = self.global_var["schedule_t"]
         self.dataset = self.global_var["dataset"].get_train_dataset()
-        self.index_list = self.global_var["dataset"].get_index_list()
+        self.index_list = self.global_var["dataset"].get_index_list() # 每个client下的数据集index
         self.queue_manager = self.global_var["queue_manager"]
         self.print_lock = self.global_var["print_lock"]
         self.init_weights = copy.deepcopy(self.global_var["server_network"].state_dict())
 
         self.client_class = ModuleFindTool.find_class_by_path(self.global_var["client_config"]["path"])
-        self.selected_event_list = [EventFactory.create_Event() for _ in range(self.clients_num)]
+        self.selected_event_list = [EventFactory.create_Event() for _ in range(self.clients_num)] # 每个client被选中的记录？？？
 
     def start_all_clients(self):
         self.init_clients()
@@ -55,19 +55,21 @@ class BaseClientManager:
         mem_total = 0
         ratio_list = []
         res_client = self.clients_num
-        if mode == 0:
+        if mode == 0: # 多gpu下，更具剩余显存分配client到gpu device
             for i in dev_mem_list:
                 mem_total += i
             for i in range(len(dev_mem_list)-1):
-                c_num = int(dev_mem_list[i] / mem_total * self.clients_num)
+                c_num = int(dev_mem_list[i] / mem_total * self.clients_num) # 比例乘以总数
                 res_client = res_client - c_num
                 ratio_list = ratio_list + [f'cuda:{i}' for _ in range(c_num)]
-            ratio_list = ratio_list + [f'cuda:{len(dev_mem_list)-1}' for _ in range(res_client)]
+            ratio_list = ratio_list + [f'cuda:{len(dev_mem_list)-1}' for _ in range(res_client)] #剩余塞到最后一个显卡上
         for i in range(self.clients_num):
             if mode == 0:
                 dev = ratio_list[i]
             elif mode == 1:
-                dev = 'cuda:0'
+                # 自动选择剩余显存最大的显卡
+                dev_idx = dev_mem_list.index(max(dev_mem_list))
+                dev = f'cuda:' + str(dev_idx)
             else:
                 dev = 'cpu'
             client_delay = self.client_staleness_list[i]
@@ -86,7 +88,7 @@ class BaseClientManager:
                 dev_total = torch.cuda.device_count()
                 for i in range(dev_total):
                     device = torch.device(f'cuda:{i}')
-                    dev_list.append(torch.cuda.get_device_properties(device).total_memory-torch.cuda.memory_allocated(device))
+                    dev_list.append(torch.cuda.get_device_properties(device).total_memory-torch.cuda.memory_allocated(device)) # 每个显卡的剩余内存
             else:
                 mode = 1
         else:

@@ -32,13 +32,13 @@ class BaseServer:
         model_class = ModuleFindTool.find_class_by_path(self.server_config["model"]["path"])
         for k, v in self.server_config["model"]["params"].items():
             if isinstance(v, str):
-                self.server_config["model"]["params"][k] = eval(v)
-        self.server_network = model_class(**self.server_config["model"]["params"])
+                self.server_config["model"]["params"][k] = eval(v) # eval将字符串解析为python表达式
+        self.server_network = model_class(**self.server_config["model"]["params"]) # 所用的CNN模型，作全局测试？
         self.dev = 'cuda' if torch.cuda.is_available() else 'cpu'
         self.server_network = self.server_network.to(self.dev)
         self.global_var['server_network'] = self.server_network
-        # 对模型非更新参数进行检测
-        d = self.server_network.state_dict()
+        # 对模型非更新参数进行检测，不是很懂
+        d = self.server_network.state_dict() # model.state_dict()其实返回的是一个OrderDict，存储了网络结构的名字和对应的参数，可用于模型保存与加载；主要有
         w = [v for v in self.server_network.parameters()]
         i = 0
         training_params = {}

@@ -14,6 +14,10 @@
             "console": "integratedTerminal",
             "justMyCode": true,
             // "stopOnEntry": true,
+
+            "env":{
+                "CUDA_VISIBLE_DEVICES":"",
+            }
         }
     ]
 }

@@ -2,12 +2,12 @@
   "wandb": {
     "enabled": true,
     "project": "FedAT",
-    "name": "baseline-iid"
+    "name": "baseline-iid-FedAsync"
   },
   "global": {
     "use_file_system": false,
     "multi_gpu": true,
-    "experiment": "FedAT/baseline-iid",
+    "experiment": "FedAsync/baseline-iid-FedAsync",
     "stale": {
       "step": 5,
       "shuffle": false,
@@ -21,50 +21,42 @@
     "client_num": 50
   },
   "server": {
-    "path": "server.SemiAsyncServer.SemiAsyncServer",
-    "epochs": 50,
+    "path": "server.AsyncServer.AsyncServer",
+    "epochs": 300,
     "model": {
       "path": "model.CNN.CNN",
       "params": {}
     },
     "scheduler": {
-      "path": "scheduler.SemiAsyncScheduler.SemiAsyncScheduler",
-      "schedule":{
-        "path": "schedule.FullSchedule.FullSchedule",
+      "path": "scheduler.AsyncScheduler.AsyncScheduler",
+      "schedule_interval": 5,
+      "schedule_delay": 10,
+      "schedule": {
+        "path": "schedule.RandomSchedule.RandomSchedule",
         "params": {
+          "c_ratio": 0.4
         }
       }
     },
     "updater": {
-      "path": "updater.SemiAsyncUpdater.SemiAsyncUpdater",
-      "update": {
-        "path": "update.FedAT.FedAT",
-        "params": {
-        }
-      },
+      "path": "updater.AsyncUpdater.AsyncUpdater",
+      "num_generator": 1,
       "loss": "torch.nn.functional.cross_entropy",
-      "params": {
-      },
-      "group": {
-        "path": "update.FedAvg.FedAvg",
+      "update": {
+        "path": "update.FedAsync.FedAsync",
         "params": {
+          "a": 10,
+          "b": 8,
+          "alpha": 0.9,
+          "r" : 1
         }
-      }
-    }
-  },
-  "group_manager": {
-    "path": "groupmanager.NormalGroupManager.NormalGroupManager",
-    "group_method": {
-      "path": "group.DelayGroup.DelayGroup",
-      "params": {
-        "step": 5
       }
     }
   },
   "queue_manager": {
-    "path": "queuemanager.QueueListManager.QueueListManager",
+    "path": "queuemanager.SingleQueueManager.SingleQueueManager",
     "receiver": {
-      "path": "receiver.MultiQueueReceiver.MultiQueueReceiver",
+      "path": "receiver.NormalReceiver.NormalReceiver",
       "params": {
       }
     },
@@ -78,15 +70,17 @@
     "path": "clientmanager.NormalClientManager.NormalClientManager"
   },
   "client": {
-    "path": "client.SemiClient.SemiClient",
+    "path": "client.NormalClient.NormalClient",
     "epochs": 2,
     "batch_size": 50,
+    "test_size": 0.1,
+    "test_batch_size": 16,
     "model": {
       "path": "model.CNN.CNN",
       "params": {}
     },
     "loss": "torch.nn.functional.cross_entropy",
-    "mu": 0.01,
+    "mu": 0,
     "optimizer": {
       "path": "torch.optim.SGD",
       "params": {

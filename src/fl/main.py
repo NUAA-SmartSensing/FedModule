@@ -26,7 +26,7 @@ def main():
     debug_mode  = False
     # 配置文件读取
     if len(sys.argv) < 2:
-        config_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../../config/experiment/FedAT-config-paper.json")
+        config_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../../config/experiment/FedAsync-config.json")
         debug_mode = True
     else:
         config_file = sys.argv[1]
