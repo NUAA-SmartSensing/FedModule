@@ -2,7 +2,7 @@
   "wandb": {
     "enabled": true,
     "project": "FedAT",
-    "name": "paper-setting"
+    "name": "FsM2cls"
   },
   "global": {
     "use_file_system": false,
