@@ -6,8 +6,8 @@
   },
   "global": {
     "use_file_system": false,
-    "multi_gpu": true,
-    "experiment": "FedAT/paper-setting",
+    "multi_gpu": false,
+    "experiment": "FedAT/FsM2cls",
     "stale": {
       "step": 5,
       "shuffle": true,
