@@ -5,6 +5,7 @@ import shutil
 import sys
 import threading
 
+import SharedArray
 import wandb
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -16,7 +17,8 @@ from utils import ModuleFindTool
 from utils.ConfigManager import *
 from exception import ClientSumError
 
-if __name__ == '__main__':
+
+def main():
     # 创建结果文件夹
     if not os.path.exists(os.path.join(os.path.dirname(os.path.abspath(__file__)), "../results")):
         os.mkdir(os.path.join(os.path.dirname(os.path.abspath(__file__)), "../results"))
@@ -46,8 +48,10 @@ if __name__ == '__main__':
     # 实验路径相关
     if not global_config["experiment"].endswith("/"):
         global_config["experiment"] = global_config["experiment"] + "/"
-    if not os.path.exists(os.path.join(os.path.dirname(os.path.abspath(__file__)), "../results/", global_config["experiment"])):
-        os.makedirs(os.path.join(os.path.dirname(os.path.abspath(__file__)), "../results/", global_config["experiment"]))
+    if not os.path.exists(
+            os.path.join(os.path.dirname(os.path.abspath(__file__)), "../results/", global_config["experiment"])):
+        os.makedirs(
+            os.path.join(os.path.dirname(os.path.abspath(__file__)), "../results/", global_config["experiment"]))
 
     # 客户端延迟文件生成
     stale = global_config['stale']
@@ -128,19 +132,49 @@ if __name__ == '__main__':
     if is_cover:
         try:
             global_config['stale'] = client_staleness_list
-            with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "../results/", global_config["experiment"], "config.json"), "w") as r:
+            with open(
+                    os.path.join(os.path.dirname(os.path.abspath(__file__)), "../results/", global_config["experiment"],
+                                 "config.json"), "w") as r:
                 json.dump(config, r, indent=4)
         except shutil.SameFileError:
             pass
 
         # 保存结果
-        saveAns(os.path.join(os.path.dirname(os.path.abspath(__file__)), "../results/", global_config["experiment"], "accuracy.txt"), list(accuracy_list))
-        saveAns(os.path.join(os.path.dirname(os.path.abspath(__file__)), "../results/", global_config["experiment"], "loss.txt"), list(loss_list))
-        saveAns(os.path.join(os.path.dirname(os.path.abspath(__file__)), "../results/", global_config["experiment"], "time.txt"), end_time - start_time)
-        result_to_markdown(os.path.join(os.path.dirname(os.path.abspath(__file__)), "../results/", global_config["experiment"], "实验阐述.md"), config)
+        saveAns(os.path.join(os.path.dirname(os.path.abspath(__file__)), "../results/", global_config["experiment"],
+                             "accuracy.txt"), list(accuracy_list))
+        saveAns(os.path.join(os.path.dirname(os.path.abspath(__file__)), "../results/", global_config["experiment"],
+                             "loss.txt"), list(loss_list))
+        saveAns(os.path.join(os.path.dirname(os.path.abspath(__file__)), "../results/", global_config["experiment"],
+                             "time.txt"), end_time - start_time)
+        result_to_markdown(
+            os.path.join(os.path.dirname(os.path.abspath(__file__)), "../results/", global_config["experiment"],
+                         "实验阐述.md"), config)
         if wandb_config['enabled']:
             saveAns(os.path.join(wandb.run.dir, "accuracy.txt"), list(accuracy_list))
             saveAns(os.path.join(wandb.run.dir, "loss.txt"), list(loss_list))
             saveAns(os.path.join(wandb.run.dir, "time.txt"), end_time - start_time)
             result_to_markdown(os.path.join(wandb.run.dir, "实验阐述.md"), config)
             wandb.finish()
+
+
+def cleanup():
+    print()
+    print("="*20)
+    print("开始缓存清理")
+    global_var = GlobalVarGetter().get()
+    if 'shared_mem' in global_var:
+        for i in global_var['shared_mem']:
+            try:
+                print(f"开始清理{i}")
+                SharedArray.delete(i)
+            finally:
+                pass
+    print("缓存清理完成")
+    print("="*20)
+
+
+if __name__ == '__main__':
+    try:
+        main()
+    finally:
+        cleanup()

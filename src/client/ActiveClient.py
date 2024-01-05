@@ -7,17 +7,14 @@ class ActiveClient(NormalClient.NormalClient):
     def __init__(self, c_id, stop_event, selected_event, delay, train_ds, index_list, config, dev):
         NormalClient.NormalClient.__init__(self, c_id, stop_event, selected_event, delay, train_ds, index_list, config, dev)
         self.acquire_model_delay = config['acquire_model_delay']
+        self.init = False
 
     def run(self):
         while not self.stop_event.is_set():
             # 初始化
-            if self.message_queue.get_from_downlink(self.client_id, 'received_weights'):
-                self.message_queue.put_into_downlink(self.client_id, 'received_weights', False)
-                self.model.load_state_dict(self.message_queue.get_from_downlink(self.client_id, 'weights_buffer'), strict=True)
-            if self.message_queue.get_from_downlink(self.client_id, 'received_time_stamp'):
-                self.message_queue.put_into_downlink(self.client_id, 'received_time_stamp', False)
-                self.time_stamp = self.message_queue.get_from_downlink(self.client_id, 'time_stamp_buffer')
-                self.schedule_t = self.message_queue.get_from_downlink(self.client_id, 'schedule_time_stamp_buffer')
+            if not self.init:
+                self.wait_notify()
+                self.init = True
 
             # 该client被选中，开始执行本地训练
             if self.event.is_set():

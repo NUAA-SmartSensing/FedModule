@@ -5,14 +5,19 @@ from updater.BaseUpdater import BaseUpdater
 
 
 class AsyncUpdater(BaseUpdater):
-    def __init__(self, server_thread_lock, stop_event, config):
+    def __init__(self, server_thread_lock, stop_event, config, mutex_sem, empty_sem, full_sem):
         BaseUpdater.__init__(self, server_thread_lock, stop_event, config)
+        self.mutex_sem = mutex_sem
+        self.empty_sem = empty_sem
+        self.full_sem = full_sem
         # 每次聚合数
         self.num_generator = NumGeneratorFactory(self.config['num_generator']).create_num_generator()
         self.nums = self.num_generator.init()
 
     def run(self):
         for epoch in range(self.T):
+            self.full_sem.acquire()
+            self.mutex_sem.acquire()
             while True:
                 # 接收一个client发回的模型参数和时间戳
                 if not self.queue_manager.empty():
@@ -46,6 +51,8 @@ class AsyncUpdater(BaseUpdater):
                     time.sleep(0.01)
 
             self.current_time.time_add()
+            self.mutex_sem.release()
+            self.empty_sem.release()
             time.sleep(0.01)
 
         print("Average delay =", (self.sum_delay / self.T))

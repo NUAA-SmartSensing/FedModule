@@ -87,6 +87,7 @@ FedAT
 FedLC
 FedDL
 M-Step AsyncFL
+FedAdam
 ```
 
 ### Docker
@@ -1533,6 +1534,13 @@ for key, var in client_weights.items():
             <img src="https://avatars.githubusercontent.com/u/73173984?v=4" width="100;" alt="jzj007"/>
             <br />
             <sub><b>Jzj007</b></sub>
+        </a>
+    </td>
+    <td align="center">
+        <a href="https://github.com/cauchyguo">
+            <img src="https://avatars.githubusercontent.com/u/41313807?v=4" width="100;" alt="cauchyguo"/>
+            <br />
+            <sub><b>Cauchy</b></sub>
         </a>
     </td></tr>
 </table>

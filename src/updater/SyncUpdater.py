@@ -23,12 +23,12 @@ class SyncUpdater(BaseUpdater):
             self.update_server_weights(epoch, update_list)
             self.run_server_test(epoch)
             self.server_thread_lock.release()
-            time.sleep(0.01)
 
             self.current_time.time_add()
             # 本轮结束
             self.mutex_sem.release()
             self.empty_sem.release()
+            time.sleep(0.01)
 
         # 终止所有client线程
         self.client_manager.stop_all_clients()

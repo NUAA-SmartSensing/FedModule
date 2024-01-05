@@ -5,7 +5,7 @@ import torch.cuda
 
 from utils import ModuleFindTool, Time
 from utils.GlobalVarGetter import GlobalVarGetter
-from utils.ProcessManager import ManagerWrapper, DataGetter
+from utils.ProcessManager import ManagerWrapper, DataGetter, MessageQueueFactory
 
 
 class BaseServer:
@@ -21,19 +21,35 @@ class BaseServer:
         self.global_var = GlobalVarGetter().get()
         self.global_var['server'] = self
 
-        # 全局模型
-        model_class = ModuleFindTool.find_class_by_path(self.server_config["model"]["path"])
-        self.server_network = model_class(**self.server_config["model"]["params"])
-        self.dev = 'cuda' if torch.cuda.is_available() else 'cpu'
-        self.server_network = self.server_network.to(self.dev)
-        self.global_var['server_network'] = self.server_network
-
         # 数据集
         dataset_class = ModuleFindTool.find_class_by_path(self.global_config["dataset"]["path"])
         self.dataset = dataset_class(self.global_config["client_num"], self.global_config["iid"],
                                      self.global_config["dataset"]["params"])
         self.global_var['dataset'] = self.dataset
         self.config['global']['iid'] = self.dataset.get_config()
+
+        # 全局模型
+        model_class = ModuleFindTool.find_class_by_path(self.server_config["model"]["path"])
+        for k, v in self.server_config["model"]["params"].items():
+            if isinstance(v, str):
+                self.server_config["model"]["params"][k] = eval(v)
+        self.server_network = model_class(**self.server_config["model"]["params"])
+        self.dev = 'cuda' if torch.cuda.is_available() else 'cpu'
+        self.server_network = self.server_network.to(self.dev)
+        self.global_var['server_network'] = self.server_network
+        # 对模型非更新参数进行检测
+        d = self.server_network.state_dict()
+        w = [v for v in self.server_network.parameters()]
+        i = 0
+        training_params = {}
+        for k in d:
+            if not d[k].equal(w[i]):
+                training_params[k] = False
+            else:
+                i += 1
+                training_params[k] = True
+        self.message_queue = MessageQueueFactory.create_message_queue()
+        self.message_queue.set_training_params(training_params)
 
         # 计时变量
         self.T = self.server_config["epochs"]
