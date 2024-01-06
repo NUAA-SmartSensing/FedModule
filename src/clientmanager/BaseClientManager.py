@@ -13,8 +13,8 @@ class BaseClientManager:
         self.stop_event = stop_event
         self.config = config
         self.global_var = GlobalVarGetter().get()
-        self.client_list = []
-        self.client_id_list = []
+        self.client_list = [] # client实例列表
+        self.client_id_list = [] # 每个client对应的client id
 
         self.multi_gpu = self.global_var["global_config"]["multi_gpu"]
         self.clients_num = self.global_var["global_config"]["client_num"]
@@ -31,7 +31,7 @@ class BaseClientManager:
         self.init_weights = copy.deepcopy(self.global_var["server_network"].state_dict())
 
         self.client_class = ModuleFindTool.find_class_by_path(self.global_var["client_config"]["path"])
-        self.selected_event_list = [EventFactory.create_Event() for _ in range(self.clients_num)] # 每个client被选中的记录？？？
+        self.selected_event_list = [EventFactory.create_Event() for _ in range(self.clients_num)]
 
     def start_all_clients(self):
         self.init_clients()
@@ -55,7 +55,9 @@ class BaseClientManager:
         mem_total = 0
         ratio_list = []
         res_client = self.clients_num
-        if mode == 0: # 多gpu下，更具剩余显存分配client到gpu device
+        dev_idx = dev_mem_list.index(max(dev_mem_list)) # 剩余内存最大的显卡
+        dev_str = f'cuda:' + str(dev_idx)
+        if mode == 0: # 多gpu下，根据剩余显存分配client到gpu device
             for i in dev_mem_list:
                 mem_total += i
             for i in range(len(dev_mem_list)-1):
@@ -67,13 +69,12 @@ class BaseClientManager:
             if mode == 0:
                 dev = ratio_list[i]
             elif mode == 1:
-                # 自动选择剩余显存最大的显卡
-                dev_idx = dev_mem_list.index(max(dev_mem_list))
-                dev = f'cuda:' + str(dev_idx)
+                # 单显卡模式下自动选择适合的显卡
+                dev = dev_str
             else:
                 dev = 'cpu'
             client_delay = self.client_staleness_list[i]
-            self.client_list.append(self.client_class(i, self.stop_event, self.selected_event_list[i], client_delay, data_reader.total_data, self.index_list[i], self.client_config, dev))
+            self.client_list.append(self.client_class(i, self.stop_event, self.selected_event_list[i], client_delay, data_reader.total_data, self.index_list[i], self.client_config, dev)) # 实例化
             self.client_id_list.append(i)
 
     def get_running_mode(self):
