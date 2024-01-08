@@ -51,23 +51,30 @@ class BaseClientManager:
     def init_clients(self):
         data_reader = DataReader(self.dataset)
         mode, dev_num, dev_total, dev_mem_list = self.get_running_mode()
-        print("available GPU MEMs:",dev_mem_list)
+        # print("available GPU MEMs:",dev_mem_list)
         # 初始化clients
         mem_total = 0
         ratio_list = []
         res_client = self.clients_num
-        if mode == 0: # 多gpu下，根据剩余显存分配client到gpu device
+        print("Training Mode: ",end='')
+        if mode == 0: 
+            # 多gpu下，根据剩余显存多少分配client到gpu device
+            print("Mlti-GPU-Mode \nGPU devices num:", dev_total)
             for i in dev_mem_list:
                 mem_total += i
             for i in range(len(dev_mem_list)-1):
                 c_num = int(dev_mem_list[i] / mem_total * self.clients_num) # 比例乘以总数
                 res_client = res_client - c_num
                 ratio_list = ratio_list + [f'cuda:{i}' for _ in range(c_num)]
-            ratio_list = ratio_list + [f'cuda:{len(dev_mem_list)-1}' for _ in range(res_client)] #剩余塞到最后一个显卡上
+            #剩余未分配的client塞到最后一个显卡上
+            ratio_list = ratio_list + [f'cuda:{len(dev_mem_list)-1}' for _ in range(res_client)] 
         elif mode == 1:
-            dev_idx = dev_mem_list.index(max(dev_mem_list)) # 剩余内存最大的显卡
+            # 选择剩余内存最大的显卡
+            dev_idx = dev_mem_list.index(max(dev_mem_list)) 
             dev_str = f'cuda:' + str(dev_idx)
-            print("单显卡模式下,选择的显卡为GPU", dev_idx)
+            print("Single-GPU-Mode \nUsing cuda:", dev_idx)
+        else:
+            print("CPU-Only")
         for i in range(self.clients_num):
             if mode == 0:
                 dev = ratio_list[i]

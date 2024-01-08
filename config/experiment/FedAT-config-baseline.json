@@ -1,12 +1,12 @@
 {
   "wandb": {
-    "enabled": true,
+    "enabled": false,
     "project": "FedAT",
     "name": "test"
   },
   "global": {
     "use_file_system": false,
-    "multi_gpu": true,
+    "multi_gpu": false,
     "experiment": "FedAT/test",
     "stale": {
       "step": 5,
