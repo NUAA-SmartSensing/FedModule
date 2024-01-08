@@ -5,6 +5,8 @@ import wandb
 from torch.utils.data import DataLoader
 
 from client.NormalClient import NormalClient
+from loss.LossFactory import LossFactory
+from utils import ModuleFindTool
 from utils.DataReader import FLDataset
 from utils.Tools import saveAns
 
@@ -12,13 +14,13 @@ from utils.Tools import saveAns
 class TestClient(NormalClient):
     def __init__(self, c_id, init_lock, stop_event, selected_event, delay, index_list, config, dev):
         NormalClient.__init__(self, c_id, init_lock, stop_event, selected_event, delay, index_list, config, dev)
+        self.fl_test_ds = None
+        self.test_dl = None
         self.global_config = None
         test_size = config['test_size']
         n1 = int(len(index_list) * test_size)
         n2 = len(index_list) - n1
-        test_index_list, train_index_list = torch.utils.data.random_split(index_list, [n1, n2])
-        self.train_dl = DataLoader(FLDataset(self.train_ds, list(train_index_list), self.transform), batch_size=self.batch_size, shuffle=True, drop_last=True)
-        self.test_dl = DataLoader(FLDataset(self.train_ds, list(test_index_list)), batch_size=self.config['test_batch_size'], shuffle=True, drop_last=True)
+        self.test_index_list, self.train_index_list = torch.utils.data.random_split(index_list, [n1, n2])
 
         # 提供给wandb使用
         self.step = 1
@@ -28,6 +30,7 @@ class TestClient(NormalClient):
 
     def run(self):
         self.global_config = self.message_queue.get_config("global_config")
+        self.init_client()
         while not self.stop_event.is_set():
             self.wait_notify()
 
@@ -71,3 +74,35 @@ class TestClient(NormalClient):
             self.step += 1
         self.loss_list.append(loss)
         self.accuracy_list.append(accuracy)
+
+    def init_client(self):
+        config = self.config
+        # transform
+        if "transform" in config:
+            transform_func = ModuleFindTool.find_class_by_path(config["transform"]["path"])
+            self.transform = transform_func(**config["transform"]["params"])
+        if "target_transform" in config:
+            target_transform_func = ModuleFindTool.find_class_by_path(config["target_transform"]["path"])
+            self.target_transform = target_transform_func(**config["target_transform"]["params"])
+
+        # 本地模型
+        model_class = ModuleFindTool.find_class_by_path(config["model"]["path"])
+        for k, v in config["model"]["params"].items():
+            if isinstance(v, str):
+                config["model"]["params"][k] = eval(v)
+        self.model = model_class(**config["model"]["params"])
+        self.model = self.model.to(self.dev)
+
+        self.train_ds = self.message_queue.get_train_dataset()
+        self.fl_train_ds = FLDataset(self.train_ds, list(self.index_list), self.transform, self.target_transform)
+        self.fl_test_ds = FLDataset(self.train_ds, list(self.test_index_list), self.transform, self.target_transform)
+
+        # 优化器
+        opti_class = ModuleFindTool.find_class_by_path(self.optimizer_config["path"])
+        self.opti = opti_class(self.model.parameters(), **self.optimizer_config["params"])
+
+        # loss函数
+        self.loss_func = LossFactory(config["loss"], self).create_loss()
+
+        self.train_dl = DataLoader(self.fl_train_ds, batch_size=self.batch_size, shuffle=True, drop_last=True)
+        self.test_dl = DataLoader(self.fl_test_ds, batch_size=self.config['test_batch_size'], shuffle=True, drop_last=True)
