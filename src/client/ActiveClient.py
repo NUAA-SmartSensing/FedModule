@@ -28,8 +28,10 @@ class ActiveClient(NormalClient.NormalClient):
                 time.sleep(self.acquire_model_delay)
                 while True:
                     latest_model, time_stamp = self.message_queue.get_latest_model()
-                    if latest_model is not None:
+                    if latest_model is not None and time_stamp != self.time_stamp:
                         break
+                    else:
+                        time.sleep(0.01)
                 latest_model, time_stamp = self.message_queue.get_latest_model()
                 self.model.load_state_dict(latest_model)
                 self.time_stamp = time_stamp

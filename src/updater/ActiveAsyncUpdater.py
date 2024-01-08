@@ -6,12 +6,14 @@ from utils.ProcessManager import MessageQueueFactory
 
 
 class ActiveAsyncUpdater(AsyncUpdater):
-    def __init__(self, server_thread_lock, stop_event, config):
-        super().__init__(server_thread_lock, stop_event, config)
+    def __init__(self, server_thread_lock, stop_event, config, mutex_sem, empty_sem, full_sem):
+        super().__init__(server_thread_lock, stop_event, config, mutex_sem, empty_sem, full_sem)
         self.message_queue = MessageQueueFactory.create_message_queue()
 
     def run(self):
         for epoch in range(self.T):
+            self.full_sem.acquire()
+            self.mutex_sem.acquire()
             while True:
                 # 接收一个client发回的模型参数和时间戳
                 if not self.queue_manager.empty():
@@ -44,6 +46,8 @@ class ActiveAsyncUpdater(AsyncUpdater):
                     time.sleep(0.01)
 
             self.current_time.time_add()
+            self.mutex_sem.release()
+            self.empty_sem.release()
             time.sleep(0.01)
 
         print("Average delay =", (self.sum_delay / self.T))
