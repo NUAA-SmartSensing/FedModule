@@ -15,9 +15,9 @@
             "justMyCode": true,
             // "stopOnEntry": true,
 
-            "env":{
-                "CUDA_VISIBLE_DEVICES":"",
-            }
+            // "env":{
+            //     "CUDA_VISIBLE_DEVICES":"",
+            // }
         }
     ]
 }

@@ -51,12 +51,11 @@ class BaseClientManager:
     def init_clients(self):
         data_reader = DataReader(self.dataset)
         mode, dev_num, dev_total, dev_mem_list = self.get_running_mode()
+        print("available GPU MEMs:",dev_mem_list)
         # 初始化clients
         mem_total = 0
         ratio_list = []
         res_client = self.clients_num
-        dev_idx = dev_mem_list.index(max(dev_mem_list)) # 剩余内存最大的显卡
-        dev_str = f'cuda:' + str(dev_idx)
         if mode == 0: # 多gpu下，根据剩余显存分配client到gpu device
             for i in dev_mem_list:
                 mem_total += i
@@ -65,12 +64,18 @@ class BaseClientManager:
                 res_client = res_client - c_num
                 ratio_list = ratio_list + [f'cuda:{i}' for _ in range(c_num)]
             ratio_list = ratio_list + [f'cuda:{len(dev_mem_list)-1}' for _ in range(res_client)] #剩余塞到最后一个显卡上
+        elif mode == 1:
+            dev_idx = dev_mem_list.index(max(dev_mem_list)) # 剩余内存最大的显卡
+            dev_str = f'cuda:' + str(dev_idx)
+            print("单显卡模式下,选择的显卡为GPU", dev_idx)
         for i in range(self.clients_num):
             if mode == 0:
                 dev = ratio_list[i]
             elif mode == 1:
                 # 单显卡模式下自动选择适合的显卡
                 dev = dev_str
+                # 也可手动选择
+                # dev = 'cuda'
             else:
                 dev = 'cpu'
             client_delay = self.client_staleness_list[i]
@@ -83,13 +88,13 @@ class BaseClientManager:
         dev_list = []
         # 0: 多gpu，1：单gpu，2：cpu
         if torch.cuda.is_available():
+            dev_num = 0
+            dev_total = torch.cuda.device_count()
+            for i in range(dev_total):
+                device = torch.device(f'cuda:{i}')
+                dev_list.append(torch.cuda.mem_get_info(device)[0]) # 每个显卡的剩余内存
             if self.multi_gpu:
                 mode = 0
-                dev_num = 0
-                dev_total = torch.cuda.device_count()
-                for i in range(dev_total):
-                    device = torch.device(f'cuda:{i}')
-                    dev_list.append(torch.cuda.get_device_properties(device).total_memory-torch.cuda.memory_allocated(device)) # 每个显卡的剩余内存
             else:
                 mode = 1
         else:

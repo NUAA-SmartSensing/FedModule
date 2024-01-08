@@ -14,3 +14,4 @@ config_semi_test.json
 !src/results/.gitkeep
 !src/data/.gitkeep
 wandb/*
+config/*

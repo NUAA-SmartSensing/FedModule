@@ -2,12 +2,12 @@
   "wandb": {
     "enabled": true,
     "project": "FedAT",
-    "name": "baseline"
+    "name": "test"
   },
   "global": {
     "use_file_system": false,
     "multi_gpu": true,
-    "experiment": "FedAT/baseline",
+    "experiment": "FedAT/test",
     "stale": {
       "step": 5,
       "shuffle": false,

@@ -31,8 +31,8 @@ class NormalClient(Client.Client):
         model_class = ModuleFindTool.find_class_by_path(config["model"]["path"])
         for k, v in config["model"]["params"].items():
             if isinstance(v, str):
-                config["model"]["params"][k] = eval(v)
-        self.model = model_class(**config["model"]["params"])
+                config["model"]["params"][k] = eval(v) # eval将字符串解析为python表达式
+        self.model = model_class(**config["model"]["params"]) # **运算法将字典转为key_0=key_value_0, key_1=key_value_1的形式，方便函数赋值
         self.model = self.model.to(self.dev)
 
         # 优化器
