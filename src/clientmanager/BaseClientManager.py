@@ -13,8 +13,8 @@ class BaseClientManager:
         self.stop_event = stop_event
         self.config = config
         self.global_var = GlobalVarGetter().get()
-        self.client_list = []
-        self.client_id_list = []
+        self.client_list = [] # client实例列表
+        self.client_id_list = [] # 每个client对应的client id
 
         self.multi_gpu = self.global_var["global_config"]["multi_gpu"]
         self.clients_num = self.global_var["global_config"]["client_num"]
@@ -25,7 +25,7 @@ class BaseClientManager:
         self.current_time = self.global_var["current_t"]
         self.schedule_t = self.global_var["schedule_t"]
         self.dataset = self.global_var["dataset"].get_train_dataset()
-        self.index_list = self.global_var["dataset"].get_index_list()
+        self.index_list = self.global_var["dataset"].get_index_list() # 每个client下的数据集index
         self.queue_manager = self.global_var["queue_manager"]
         self.print_lock = self.global_var["print_lock"]
         self.init_weights = copy.deepcopy(self.global_var["server_network"].state_dict())
@@ -51,27 +51,42 @@ class BaseClientManager:
     def init_clients(self):
         data_reader = DataReader(self.dataset)
         mode, dev_num, dev_total, dev_mem_list = self.get_running_mode()
+        # print("available GPU MEMs:",dev_mem_list)
         # 初始化clients
         mem_total = 0
         ratio_list = []
         res_client = self.clients_num
-        if mode == 0:
+        print("Training Mode: ",end='')
+        if mode == 0: 
+            # 多gpu下，根据剩余显存多少分配client到gpu device
+            print("Mlti-GPU-Mode \nGPU devices num:", dev_total)
             for i in dev_mem_list:
                 mem_total += i
             for i in range(len(dev_mem_list)-1):
-                c_num = int(dev_mem_list[i] / mem_total * self.clients_num)
+                c_num = int(dev_mem_list[i] / mem_total * self.clients_num) # 比例乘以总数
                 res_client = res_client - c_num
                 ratio_list = ratio_list + [f'cuda:{i}' for _ in range(c_num)]
-            ratio_list = ratio_list + [f'cuda:{len(dev_mem_list)-1}' for _ in range(res_client)]
+            #剩余未分配的client塞到最后一个显卡上
+            ratio_list = ratio_list + [f'cuda:{len(dev_mem_list)-1}' for _ in range(res_client)] 
+        elif mode == 1:
+            # 选择剩余内存最大的显卡
+            dev_idx = dev_mem_list.index(max(dev_mem_list)) 
+            dev_str = f'cuda:' + str(dev_idx)
+            print("Single-GPU-Mode \nUsing cuda:", dev_idx)
+        else:
+            print("CPU-Only")
         for i in range(self.clients_num):
             if mode == 0:
                 dev = ratio_list[i]
             elif mode == 1:
-                dev = 'cuda'
+                # 单显卡模式下自动选择适合的显卡
+                dev = dev_str
+                # 也可手动选择
+                # dev = 'cuda'
             else:
                 dev = 'cpu'
             client_delay = self.client_staleness_list[i]
-            self.client_list.append(self.client_class(i, self.stop_event, self.selected_event_list[i], client_delay, data_reader.total_data, self.index_list[i], self.client_config, dev))
+            self.client_list.append(self.client_class(i, self.stop_event, self.selected_event_list[i], client_delay, data_reader.total_data, self.index_list[i], self.client_config, dev)) # 实例化
             self.client_id_list.append(i)
 
     def get_running_mode(self):
@@ -80,13 +95,13 @@ class BaseClientManager:
         dev_list = []
         # 0: 多gpu，1：单gpu，2：cpu
         if torch.cuda.is_available():
+            dev_num = 0
+            dev_total = torch.cuda.device_count()
+            for i in range(dev_total):
+                device = torch.device(f'cuda:{i}')
+                dev_list.append(torch.cuda.mem_get_info(device)[0]) # 每个显卡的剩余内存
             if self.multi_gpu:
                 mode = 0
-                dev_num = 0
-                dev_total = torch.cuda.device_count()
-                for i in range(dev_total):
-                    device = torch.device(f'cuda:{i}')
-                    dev_list.append(torch.cuda.get_device_properties(device).total_memory-torch.cuda.memory_allocated(device))
             else:
                 mode = 1
         else:
