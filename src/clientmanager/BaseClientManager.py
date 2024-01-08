@@ -31,7 +31,7 @@ class BaseClientManager:
         # 启动clients
         self.global_var['client_list'] = self.client_list
         self.global_var['client_id_list'] = self.client_id_list
-        print("Start clients:")
+        print("Start clients")
         for client in self.client_list:
             client.start()
 
