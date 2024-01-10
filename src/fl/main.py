@@ -4,7 +4,9 @@ import os
 import shutil
 import sys
 import threading
+import time
 
+import torch
 import torch.multiprocessing as mp
 import wandb
 from torch.utils.data import DataLoader
@@ -19,6 +21,9 @@ from utils import ModuleFindTool
 from utils.ConfigManager import *
 from exception import ClientSumError
 
+def generate_random_seed():
+    seed = int(time.time()*1000) % 2147483647
+    return seed
 
 def _read_data(dataset):
     data = []
@@ -80,6 +85,19 @@ def main():
         config_file = sys.argv[1]
 
     config = getConfig(config_file)
+
+    # 随机数种子
+    if "seed" not in config["global"]:
+        seed = generate_random_seed()
+        config["global"]["seed"] = seed
+    else:
+        seed = config["global"]["seed"]
+    # 设置随机数种子
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed(seed)
+
     raw_config = copy.deepcopy(config)
     global_config = config['global']
     server_config = config['server']
