@@ -53,6 +53,13 @@ class TestClient(NormalClient):
                 self.event.wait()
         saveAns(f'../results/{self.global_config["experiment"]}/{self.client_id}_accuracy.txt', list(self.accuracy_list))
         saveAns(f'../results/{self.global_config["experiment"]}/{self.client_id}_loss.txt', list(self.loss_list))
+    
+    def upload(self, data_sum, weights):
+        update_dict = {"client_id": self.client_id, "weights": weights, "data_sum": data_sum,
+                       "time_stamp": self.time_stamp,
+                       "accuracy": self.accuracy_list[len(self.accuracy_list) - 1],
+                       "loss": self.loss_list[len(self.loss_list) - 1]}
+        self.message_queue.put_into_uplink(update_dict)
 
     def run_test(self):
         test_correct = 0
@@ -68,7 +75,9 @@ class TestClient(NormalClient):
         loss = test_loss / len(self.test_dl)
         print("Client", self.client_id, "trained, accuracy:", accuracy, 'loss', loss)
         if 'wandb' in self.config and self.config['wandb']:
-            wandb.log({f'{self.client_id}_accuracy': accuracy, f'{self.client_id}_loss': loss, f'time_stamp': self.time_stamp, f'local_epoch': self.step})
+            wandb.log(
+                {f'{self.client_id}_accuracy': accuracy, f'{self.client_id}_loss': loss, f'time_stamp': self.time_stamp,
+                 f'local_epoch': self.step})
             self.step += 1
         self.loss_list.append(loss)
         self.accuracy_list.append(accuracy)

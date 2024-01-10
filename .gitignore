@@ -11,3 +11,4 @@ config_sync_test.json
 config_semi_test.json
 !src/results/.gitkeep
 !src/data/.gitkeep
+wandb/*

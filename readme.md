@@ -1535,6 +1535,13 @@ for key, var in client_weights.items():
             <br />
             <sub><b>Jzj007</b></sub>
         </a>
+    </td>
+    <td align="center">
+        <a href="https://github.com/cauchyguo">
+            <img src="https://avatars.githubusercontent.com/u/41313807?v=4" width="100;" alt="cauchyguo"/>
+            <br />
+            <sub><b>Cauchy</b></sub>
+        </a>
     </td></tr>
 </table>
 <!-- readme: contributors -end -->

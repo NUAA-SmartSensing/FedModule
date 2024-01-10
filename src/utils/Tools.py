@@ -14,7 +14,7 @@ def generate_stale_list(step, shuffle, n):
         for j in range(n[i]):
             while True:
                 s = random.randint(bound, bound + step)
-                if s != 0:
+                if s != bound:
                     break
             stale_list.append(s)
         bound += step
