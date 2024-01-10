@@ -5,6 +5,7 @@ from sklearn.cluster import KMeans
 
 from update.AbstractUpdate import AbstractUpdate
 from utils.GlobalVarGetter import GlobalVarGetter
+from utils.Tools import to_cpu
 
 
 class FedDL(AbstractUpdate):
@@ -77,7 +78,7 @@ class FedDL(AbstractUpdate):
                             kld[i][i] = F.kl_div(update_list[id_update_idx_map[idx_id_map[i]]]["weights"][key].softmax(dim=-1).log(), update_list[id_update_idx_map[idx_id_map[i]]]["weights"][key].softmax(dim=-1),
                                                  reduction='batchmean')
                 # 聚类
-                new_clusters = self.clusterer.fit_predict(kld)
+                new_clusters = self.clusterer.fit_predict(to_cpu(kld))
                 # 更新
                 for k in range(self.config['n_clusters']):
                     for i in range(len(new_clusters)):
