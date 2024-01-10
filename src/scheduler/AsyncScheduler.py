@@ -21,7 +21,7 @@ class AsyncScheduler(BaseScheduler):
             current_time = self.current_t.get_time()
             schedule_time = self.schedule_t.get_time()
             # 每隔一段时间进行一次schedule
-            if current_time % self.schedule_interval == 1 and current_time != last_s_time:
+            if current_time % self.schedule_interval == 1 and current_time != last_s_time and current_time <= self.T:
                 print("| current_time |", current_time % self.schedule_interval, "= 1", current_time, "!=", last_s_time)
                 print("| queue.size |", self.queue_manager.size(), "<= ", self.schedule_delay)
                 # 如果server已收到且未使用的client更新数小于schedule delay，则进行schedule

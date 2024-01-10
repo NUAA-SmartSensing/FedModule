@@ -27,6 +27,8 @@ class ActiveClient(NormalClient.NormalClient):
                 # 获取服务器最新模型
                 time.sleep(self.acquire_model_delay)
                 while True:
+                    if self.stop_event.is_set():
+                        break
                     latest_model, time_stamp = self.message_queue.get_latest_model()
                     if latest_model is not None and time_stamp != self.time_stamp:
                         break

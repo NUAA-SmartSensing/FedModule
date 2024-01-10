@@ -14,7 +14,7 @@ class SemiClient(NormalClient):
             if self.group_id is not None:
                 break
             sleep(0.01)
-        NormalClient.NormalClient.run(self)
+        NormalClient.run(self)
 
     def upload(self, data_sum, weights):
         update_dict = {"client_id": self.client_id, "weights": weights, "data_sum": data_sum,

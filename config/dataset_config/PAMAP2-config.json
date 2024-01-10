@@ -6,9 +6,10 @@
   },
   "global": {
     "mode": "process",
+    "dataset_pre_load": true,
     "use_file_system": false,
     "multi_gpu": true,
-    "experiment": "HAR/123",
+    "experiment": "PAMAP2/123",
     "stale": false,
     "dataset": {
       "path": "dataset.PAMAP2.PAMAP2",
@@ -25,7 +26,7 @@
     "model": {
       "path": "model.HAR.cnn.CNN",
       "params": {
-        "train_shape": "self.dataset.train_dataset.data.shape",
+        "train_shape": "self.fl_train_ds.data[0].shape",
         "category": 12
       }
     },
@@ -71,7 +72,7 @@
     "model": {
       "path": "model.HAR.cnn.CNN",
       "params": {
-        "train_shape": "train_ds[0][0].shape",
+        "train_shape": "self.fl_train_ds.data[0].shape",
         "category": 12
       }
     },

@@ -7,8 +7,7 @@ from utils.ProcessManager import EventFactory
 
 
 class BaseClientManager:
-    def __init__(self, stop_event, all_config):
-        self.stop_event = stop_event
+    def __init__(self, all_config):
         self.all_config = all_config
         self.global_var = GlobalVarGetter.get()
         self.client_list = []
@@ -22,6 +21,7 @@ class BaseClientManager:
         self.client_config = all_config["client"]
 
         self.client_class = ModuleFindTool.find_class_by_path(all_config["client"]["path"])
+        self.stop_event_list = [EventFactory.create_Event() for _ in range(self.clients_num)]
         self.selected_event_list = [EventFactory.create_Event() for _ in range(self.clients_num)]
         self.global_var['selected_event_list'] = self.selected_event_list
         self.init_lock = mp.Lock()
@@ -34,12 +34,6 @@ class BaseClientManager:
         print("Start clients")
         for client in self.client_list:
             client.start()
-
-    def stop_all_clients(self):
-        # 终止所有client线程
-        self.stop_event.set()
-        for i in range(self.clients_num):
-            self.selected_event_list[i].set()
 
     def __init_clients(self):
         mode, dev_num, dev_total, dev_mem_list = self.get_running_mode()
@@ -63,7 +57,7 @@ class BaseClientManager:
             else:
                 dev = 'cpu'
             client_delay = self.client_staleness_list[i]
-            self.client_list.append(self.client_class(i, self.init_lock, self.stop_event, self.selected_event_list[i], client_delay, self.index_list[i], self.client_config, dev))
+            self.client_list.append(self.client_class(i, self.init_lock, self.stop_event_list[i], self.selected_event_list[i], client_delay, self.index_list[i], self.client_config, dev))
             self.client_id_list.append(i)
 
     def get_running_mode(self):
@@ -91,3 +85,16 @@ class BaseClientManager:
 
     def get_client_id_list(self):
         return self.client_id_list
+
+    def stop_all_clients(self):
+        # 终止所有client线程
+        for i in range(self.clients_num):
+            self.stop_client_by_id(i)
+
+    def stop_client_by_id(self, client_id):
+        self.stop_event_list[client_id].set()
+        self.selected_event_list[client_id].set()
+
+    def client_join(self):
+        for i in self.client_list:
+            i.join()

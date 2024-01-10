@@ -14,6 +14,7 @@ from utils.Tools import to_cpu
 class NormalClient(Client):
     def __init__(self, c_id, init_lock, stop_event, selected_event, delay, index_list, config, dev):
         Client.__init__(self, c_id, init_lock, stop_event, selected_event, delay, index_list, dev)
+        self.fl_train_ds = None
         self.opti = None
         self.loss_func = None
         self.train_dl = None
@@ -26,9 +27,11 @@ class NormalClient(Client):
     def run(self):
         self.init_client()
         while not self.stop_event.is_set():
-            self.wait_notify()
             # 该client被选中，开始执行本地训练
             if self.event.is_set():
+                self.event.clear()
+                self.message_queue.set_training_status(self.client_id, True)
+                self.wait_notify()
                 # 该client进行训练
                 data_sum, weights = self.train()
 
@@ -38,13 +41,11 @@ class NormalClient(Client):
 
                 # 返回其ID、模型参数和时间戳
                 self.upload(data_sum, weights)
-                self.event.clear()
 
                 self.message_queue.set_training_status(self.client_id, False)
             # 该client等待被选中
             else:
                 self.event.wait()
-                self.message_queue.set_training_status(self.client_id, True)
 
     def train(self):
         data_sum, weights = self.train_one_epoch()
@@ -103,15 +104,16 @@ class NormalClient(Client):
 
     def init_client(self):
         config = self.config
+        self.train_ds = self.message_queue.get_train_dataset()
+        self.fl_train_ds = FLDataset(self.train_ds, list(self.index_list), self.transform, self.target_transform)
+
         # transform
-        transform = None
-        target_transform = None
         if "transform" in config:
             transform_func = ModuleFindTool.find_class_by_path(config["transform"]["path"])
-            transform = transform_func(**config["transform"]["params"])
+            self.transform = transform_func(**config["transform"]["params"])
         if "target_transform" in config:
             target_transform_func = ModuleFindTool.find_class_by_path(config["target_transform"]["path"])
-            target_transform = target_transform_func(**config["target_transform"]["params"])
+            self.target_transform = target_transform_func(**config["target_transform"]["params"])
 
         # 本地模型
         model_class = ModuleFindTool.find_class_by_path(config["model"]["path"])
@@ -128,6 +130,4 @@ class NormalClient(Client):
         # loss函数
         self.loss_func = LossFactory(config["loss"], self).create_loss()
 
-        self.train_ds = self.message_queue.get_train_dataset()
-        self.train_dl = DataLoader(FLDataset(self.train_ds, self.index_list, transform, target_transform),
-                                   batch_size=self.batch_size, drop_last=True)
+        self.train_dl = DataLoader(self.fl_train_ds, batch_size=self.batch_size, shuffle=True, drop_last=True)

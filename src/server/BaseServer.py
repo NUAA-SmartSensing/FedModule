@@ -4,6 +4,7 @@ import torch.cuda
 from torch.multiprocessing import Event
 
 from utils import ModuleFindTool, Time
+from utils.DataReader import FLDataset
 from utils.GlobalVarGetter import GlobalVarGetter
 from utils.ProcessManager import DataGetter, MessageQueueFactory
 
@@ -21,6 +22,10 @@ class BaseServer:
         # 全局存储变量
         self.global_var = GlobalVarGetter.get()
         self.global_var['server'] = self
+
+        # 数据集
+        self.train_ds = self.message_queue.get_train_dataset()
+        self.fl_train_ds = FLDataset(self.train_ds, range(len(self.train_ds)))
 
         # 全局模型
         model_class = ModuleFindTool.find_class_by_path(self.server_config["model"]["path"])

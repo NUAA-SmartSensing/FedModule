@@ -26,6 +26,8 @@ class Client(Process if mode_is_process() else Thread):
         self.training_params = None
 
         self.train_ds = None
+        self.transform = None
+        self.target_transform = None
 
     @abstractmethod
     def run(self):

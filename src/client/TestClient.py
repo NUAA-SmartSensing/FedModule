@@ -32,10 +32,11 @@ class TestClient(NormalClient):
         self.global_config = self.message_queue.get_config("global_config")
         self.init_client()
         while not self.stop_event.is_set():
-            self.wait_notify()
-
             # 该client被选中，开始执行本地训练
             if self.event.is_set():
+                self.event.clear()
+                self.wait_notify()
+                self.message_queue.set_training_status(self.client_id, True)
                 # 该client进行训练
                 data_sum, weights = self.train()
 
@@ -46,13 +47,10 @@ class TestClient(NormalClient):
 
                 # 返回其ID、模型参数和时间戳
                 self.upload(data_sum, weights)
-                self.event.clear()
-
                 self.message_queue.set_training_status(self.client_id, False)
             # 该client等待被选中
             else:
                 self.event.wait()
-                self.message_queue.set_training_status(self.client_id, True)
         saveAns(f'../results/{self.global_config["experiment"]}/{self.client_id}_accuracy.txt', list(self.accuracy_list))
         saveAns(f'../results/{self.global_config["experiment"]}/{self.client_id}_loss.txt', list(self.loss_list))
 
@@ -77,6 +75,10 @@ class TestClient(NormalClient):
 
     def init_client(self):
         config = self.config
+        self.train_ds = self.message_queue.get_train_dataset()
+        self.fl_train_ds = FLDataset(self.train_ds, list(self.index_list), self.transform, self.target_transform)
+        self.fl_test_ds = FLDataset(self.train_ds, list(self.test_index_list), self.transform, self.target_transform)
+
         # transform
         if "transform" in config:
             transform_func = ModuleFindTool.find_class_by_path(config["transform"]["path"])
@@ -92,10 +94,6 @@ class TestClient(NormalClient):
                 config["model"]["params"][k] = eval(v)
         self.model = model_class(**config["model"]["params"])
         self.model = self.model.to(self.dev)
-
-        self.train_ds = self.message_queue.get_train_dataset()
-        self.fl_train_ds = FLDataset(self.train_ds, list(self.index_list), self.transform, self.target_transform)
-        self.fl_test_ds = FLDataset(self.train_ds, list(self.test_index_list), self.transform, self.target_transform)
 
         # 优化器
         opti_class = ModuleFindTool.find_class_by_path(self.optimizer_config["path"])

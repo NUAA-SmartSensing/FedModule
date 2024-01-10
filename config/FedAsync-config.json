@@ -5,6 +5,7 @@
     "name": "1"
   },
   "global": {
+    "dataset_pre_load": true,
     "use_file_system": false,
     "multi_gpu": true,
     "experiment": "FedAsync/1",

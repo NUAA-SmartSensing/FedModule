@@ -47,6 +47,27 @@ def send_dataset(train_dataset, test_dataset, message_queue, global_config):
         message_queue.set_test_dataset(test_dataset)
 
 
+def generate_client_stale_list(global_config):
+    stale = global_config['stale']
+    if isinstance(stale, list):
+        client_staleness_list = stale
+    elif isinstance(stale, bool):
+        client_staleness_list = []
+        for i in range(global_config["client_num"]):
+            client_staleness_list.append(0)
+    elif isinstance(stale, dict) and "path" in stale:
+        stale_generator = ModuleFindTool.find_class_by_path(stale["path"])()(stale["params"])
+        client_staleness_list = stale_generator.generate_staleness_list()
+    else:
+        total_sum = 0
+        for i in stale['list']:
+            total_sum += i
+        if total_sum != global_config['client_num']:
+            raise ClientSumError.ClientSumError()
+        client_staleness_list = generate_stale_list(stale['step'], stale['shuffle'], stale['list'])
+    return client_staleness_list
+
+
 def main():
     # 创建结果文件夹
     if not os.path.exists(os.path.join(os.path.dirname(os.path.abspath(__file__)), "../results")):
@@ -59,6 +80,7 @@ def main():
         config_file = sys.argv[1]
 
     config = getConfig(config_file)
+    raw_config = copy.deepcopy(config)
     global_config = config['global']
     server_config = config['server']
     client_config = config['client']
@@ -108,20 +130,7 @@ def main():
         torch.multiprocessing.set_sharing_strategy('file_system')
 
     # 客户端延迟文件生成
-    stale = global_config['stale']
-    if isinstance(stale, list):
-        client_staleness_list = stale
-    elif isinstance(stale, bool):
-        client_staleness_list = []
-        for i in range(global_config["client_num"]):
-            client_staleness_list.append(0)
-    else:
-        total_sum = 0
-        for i in stale['list']:
-            total_sum += i
-        if total_sum != global_config['client_num']:
-            raise ClientSumError.ClientSumError()
-        client_staleness_list = generate_stale_list(stale['step'], stale['shuffle'], stale['list'])
+    client_staleness_list = generate_client_stale_list(global_config)
     client_config["stale_list"] = client_staleness_list
     global_var['client_staleness_list'] = client_staleness_list
 
@@ -136,9 +145,8 @@ def main():
     global_var['client_index_list'] = index_list
 
     # 启动client_manager
-    stop_event = mp.Event()
     client_manager_class = ModuleFindTool.find_class_by_path(client_manager_config["path"])
-    client_manager = client_manager_class(stop_event, config)
+    client_manager = client_manager_class(config)
     client_manager.start_all_clients()
 
     # wandb启动配置植入update_config中
@@ -149,12 +157,13 @@ def main():
 
     accuracy_list, loss_list = server.get_accuracy_and_loss_list()
     config = server.get_config()
-    del server
 
     # 终止所有client线程
     client_manager.stop_all_clients()
-    print("Thread count =", threading.active_count())
-    print(*threading.enumerate(), sep="\n")
+    client_manager.client_join()
+
+    del server
+
 
     print("Time used:")
     end_time = datetime.datetime.now()
@@ -165,11 +174,11 @@ def main():
     # 保存配置文件
     if is_cover:
         try:
-            global_config['stale'] = client_staleness_list
+            raw_config['global']['stale'] = client_staleness_list
             with open(
                     os.path.join(os.path.dirname(os.path.abspath(__file__)), "../results/", global_config["experiment"],
                                  "config.json"), "w") as r:
-                json.dump(config, r, indent=4)
+                json.dump(raw_config, r, indent=4)
         except shutil.SameFileError:
             pass
 
@@ -189,9 +198,9 @@ def main():
             saveAns(os.path.join(wandb.run.dir, "time.txt"), end_time - start_time)
             result_to_markdown(os.path.join(wandb.run.dir, "实验阐述.md"), config)
             try:
-                global_config['stale'] = client_staleness_list
+                raw_config['global']['stale'] = client_staleness_list
                 with open(os.path.join(wandb.run.dir, "config.json"), "w") as r:
-                    json.dump(config, r, indent=4)
+                    json.dump(raw_config, r, indent=4)
             except shutil.SameFileError:
                 pass
 
