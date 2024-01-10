@@ -15,11 +15,11 @@ class Client(Process if len(GlobalVarGetter().get()) == 0 else Thread):
             Thread.__init__(self)
         self.model = None
         self.client_id = c_id
-        self.event = selected_event
+        self.event = selected_event # 每轮被选中事件
         self.event.clear()
-        self.stop_event = stop_event
-        self.delay = delay
-        self.train_ds = train_ds
+        self.stop_event = stop_event # 共享stop_event，终止学习
+        self.delay = delay # stale
+        self.train_ds = train_ds # 所有的数据 配合index_list使用
         self.dev = dev
 
         self.weights_buffer = collections.OrderedDict()
@@ -30,8 +30,8 @@ class Client(Process if len(GlobalVarGetter().get()) == 0 else Thread):
         self.params = {}
         self.event_is_set = False
         self.schedule_t = None
-        self.index_list = index_list
-        self.message_queue = MessageQueueFactory.create_message_queue()
+        self.index_list = index_list # 对应的数据样本标签
+        self.message_queue = MessageQueueFactory.create_message_queue() # 上下行传播传播模型参数
         self.training_params = self.message_queue.get_training_params()
 
     @abstractmethod

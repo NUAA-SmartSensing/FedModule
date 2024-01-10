@@ -1,17 +1,17 @@
 {
   "wandb": {
-    "enabled": false,
-    "project": "FedAT",
-    "name": "test"
+    "enabled": true,
+    "project": "FedATPlus",
+    "name": "baseline"
   },
   "global": {
     "use_file_system": false,
     "multi_gpu": false,
-    "experiment": "FedAT/test",
+    "experiment": "FedATPlus/baseline",
     "stale": {
-      "step": 5,
+      "step": 3,
       "shuffle": false,
-      "list": [20, 20, 20, 20, 20]
+      "list": [10, 10, 10, 10, 10]
     },
     "dataset": {
       "path": "dataset.FashionMNIST.FashionMNIST",
@@ -22,18 +22,18 @@
       "label": {
         "shuffle": true,
         "step": 2,
-        "list": [0, 100]
+        "list": [0, 50]
       },
       "data": {
       }
     },
-    "client_num": 100
+    "client_num": 50
   },
   "server": {
     "path": "server.SemiAsyncServer.SemiAsyncServer",
     "epochs": 50,
     "model": {
-      "path": "model.CNN.CNN",
+      "path": "model.CNN.FashionCNN",
       "params": {}
     },
     "scheduler": {
@@ -66,7 +66,7 @@
     "group_method": {
       "path": "group.DelayGroup.DelayGroupForAT",
       "params": {
-        "step": 5
+        "step": 3
       }
     }
   },
@@ -89,9 +89,9 @@
   "client": {
     "path": "client.SemiClient.SemiClient",
     "epochs": 2,
-    "batch_size": 50,
+    "batch_size": 64,
     "model": {
-      "path": "model.CNN.CNN",
+      "path": "model.CNN.FashionCNN",
       "params": {}
     },
     "loss": "torch.nn.functional.cross_entropy",

@@ -2,29 +2,29 @@
   "wandb": {
     "enabled": true,
     "project": "FedAT",
-    "name": "FMiidSGD"
+    "name": "FMiidCNNAT"
   },
   "global": {
     "use_file_system": false,
-    "multi_gpu": true,
-    "experiment": "FedAT/FMiidSGD",
+    "multi_gpu": false,
+    "experiment": "FedAT/FMiidCNNAT",
     "stale": {
-      "step": 5,
+      "step": 4,
       "shuffle": false,
-      "list": [20, 20, 20, 20, 20]
+      "list": [0, 30, 20]
     },
     "dataset": {
       "path": "dataset.FashionMNIST.FashionMNIST",
       "params": {}
     },
     "iid": true,
-    "client_num": 100
+    "client_num": 50
   },
   "server": {
     "path": "server.SemiAsyncServer.SemiAsyncServer",
     "epochs": 50,
     "model": {
-      "path": "model.CNN.CNN",
+      "path": "model.CNN.FashionCNN",
       "params": {}
     },
     "scheduler": {
@@ -57,7 +57,7 @@
     "group_method": {
       "path": "group.DelayGroup.DelayGroupForAT",
       "params": {
-        "step": 5
+        "step": 4
       }
     }
   },
@@ -79,16 +79,16 @@
   },
   "client": {
     "path": "client.SemiClient.SemiClient",
-    "epochs": 3,
-    "batch_size": 32,
+    "epochs": 2,
+    "batch_size": 128,
     "model": {
-      "path": "model.CNN.CNN",
+      "path": "model.CNN.FashionCNN",
       "params": {}
     },
     "loss": "torch.nn.functional.cross_entropy",
-    "mu": 0.4,
+    "mu": 0.01,
     "optimizer": {
-      "path": "torch.optim.SGD",
+      "path": "torch.optim.Adam",
       "params": {
         "lr": 0.01,
         "weight_decay": 0

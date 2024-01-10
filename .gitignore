@@ -15,3 +15,6 @@ config_semi_test.json
 !src/data/.gitkeep
 wandb/*
 config/*
+config/experiment/FedAT-config-paper.json
+config/experiment/FedAT-config-baseline.json
+config/experiment/FedAT-config-paper.json

@@ -12,6 +12,7 @@ from utils.DataReader import FLDataset
 class NormalClient(Client.Client):
     def __init__(self, c_id, stop_event, selected_event, delay, train_ds, index_list, config, dev):
         Client.Client.__init__(self, c_id, stop_event, selected_event, delay, train_ds, index_list, dev)
+        # stop_event共享,
         self.batch_size = config["batch_size"]
         self.epoch = config["epochs"]
         self.optimizer_config = config["optimizer"]
@@ -46,7 +47,7 @@ class NormalClient(Client.Client):
 
     def run(self):
         while not self.stop_event.is_set():
-            self.wait_notify()
+            self.wait_notify() # scheduler那边通知到位，模型参数和时间戳发给client了
 
             # 该client被选中，开始执行本地训练
             if self.event.is_set():
@@ -85,12 +86,14 @@ class NormalClient(Client.Client):
                 data, label = data.to(self.dev), label.to(self.dev)
                 # 模型上传入数据
                 preds = self.model(data)
+                # 将梯度归零，初始化梯度
+                self.opti.zero_grad()
                 # 计算损失函数
                 loss = self.loss_func(preds, label)
                 data_sum += label.size(0)
                 # 正则项
                 if self.mu != 0:
-                    proximal_term = 0.0
+                    proximal_term = 0.0 # 近端项
                     for w, w_t in zip(self.model.parameters(), global_model.parameters()):
                         proximal_term += (w - w_t).norm(2)
                     loss = loss + (self.mu / 2) * proximal_term
@@ -98,8 +101,7 @@ class NormalClient(Client.Client):
                 loss.backward()
                 # 计算梯度，并更新梯度
                 self.opti.step()
-                # 将梯度归零，初始化梯度
-                self.opti.zero_grad()
+
         # 返回当前Client基于自己的数据训练得到的新的模型参数
         weights = copy.deepcopy(self.model.state_dict())
         for k, v in weights.items():
@@ -108,6 +110,7 @@ class NormalClient(Client.Client):
 
     def wait_notify(self):
         if self.message_queue.get_from_downlink(self.client_id, 'received_weights'):
+            # received_weights应该是downlink字典下的一个字典，继承了client_id和bool_value的键值对
             self.message_queue.put_into_downlink(self.client_id, 'received_weights', False)
             weights_buffer = self.message_queue.get_from_downlink(self.client_id, 'weights_buffer')
             state_dict = self.model.state_dict()

@@ -6,6 +6,8 @@ from utils import ModuleFindTool
 from utils.DataReader import DataReader
 from utils.GlobalVarGetter import GlobalVarGetter
 from utils.ProcessManager import EventFactory
+# import pvnvml
+# pynvml.nvmlInit()
 
 
 class BaseClientManager:
@@ -40,7 +42,7 @@ class BaseClientManager:
         self.global_var['client_id_list'] = self.client_id_list
         print("Start clients:")
         for client in self.client_list:
-            client.start()
+            client.start() # 开始进程
 
     def stop_all_clients(self):
         # 终止所有client线程
@@ -100,6 +102,10 @@ class BaseClientManager:
             for i in range(dev_total):
                 device = torch.device(f'cuda:{i}')
                 dev_list.append(torch.cuda.mem_get_info(device)[0]) # 每个显卡的剩余内存
+                # handle = pynvml.nvmlDeviceGetHandleByIndex(i)
+                # mem_info = pynvml.nvmlDeviceGetMemoryInfo(handle)
+                # dev_list.append(mem_info.free // 1024 **2)
+            
             if self.multi_gpu:
                 mode = 0
             else:
