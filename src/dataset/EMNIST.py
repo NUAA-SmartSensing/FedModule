@@ -9,8 +9,6 @@ class EMNIST(BaseDataset):
         transformer = transforms.Compose([
             # 将图片转化为Tensor格式
             transforms.ToTensor(),
-            # 正则化(当模型出现过拟合的情况时，用来降低模型的复杂度)
-            transforms.Normalize((0.1307,), (0.3081,))
         ])
         self.params = params
         # 获取数据集

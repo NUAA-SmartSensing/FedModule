@@ -18,13 +18,6 @@ class AsyncServer(BaseServer.BaseServer):
         self.queue_manager = queue_manager_class(self.queue_manager_config)
         self.global_var['queue_manager'] = self.queue_manager
 
-        client_manager_class = ModuleFindTool.find_class_by_path(self.client_manager_config['path'])
-        self.client_manager = client_manager_class(self.stop_event, self.client_manager_config)
-        self.global_var['client_manager'] = self.client_manager
-
-        # client_manager初始化
-        self.client_manager.start_all_clients()
-
         scheduler_class = ModuleFindTool.find_class_by_path(self.server_config['scheduler']['path'])
         self.scheduler_thread = scheduler_class(self.server_thread_lock, self.server_config["scheduler"],
                                                 self.mutex_sem, self.empty_sem, self.full_sem)
@@ -38,7 +31,6 @@ class AsyncServer(BaseServer.BaseServer):
     def kill_main_class(self):
         del self.scheduler_thread
         del self.updater_thread
-        del self.client_manager
         del self.queue_manager
         self.mutex_sem.release()
         self.empty_sem.release()

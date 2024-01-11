@@ -6,9 +6,9 @@ from utils.GlobalVarGetter import GlobalVarGetter
 class BaseGroupManager:
     def __init__(self, config):
         self.config = config
-        self.global_var = GlobalVarGetter().get()
-        self.client_list = self.global_var['client_manager'].client_id_list
-        self.latency_list = self.global_var['client_manager'].client_staleness_list
+        self.global_var = GlobalVarGetter.get()
+        self.client_list = self.global_var['client_id_list']
+        self.latency_list = self.global_var['client_staleness_list']
         self.network_list = []
         self.group_client_num_list = []
         self.group_method = ModuleFindTool.find_class_by_path(self.config["group_method"]["path"])(self, self.config["group_method"]["params"])

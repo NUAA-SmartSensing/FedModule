@@ -1,78 +1,68 @@
-import copy
-
 import torch.cuda
+import torch.multiprocessing as mp
 
 from utils import ModuleFindTool
-from utils.DataReader import DataReader
 from utils.GlobalVarGetter import GlobalVarGetter
 from utils.ProcessManager import EventFactory
+
+CLIENT_STATUS = {'created': 0, 'active': 1, 'stopped': 2}
 # import pvnvml
 # pynvml.nvmlInit()
 
 
 class BaseClientManager:
-    def __init__(self, stop_event, config):
-        self.stop_event = stop_event
-        self.config = config
-        self.global_var = GlobalVarGetter().get()
-        self.client_list = [] # client实例列表
-        self.client_id_list = [] # 每个client对应的client id
+    def __init__(self, all_config):
+        self.all_config = all_config
+        self.global_var = GlobalVarGetter.get()
+        self.client_list = []  # client实例列表
+        self.client_id_list = []  # 每个client对应的client id
+        self.client_status = []  # 每个client的状态
 
-        self.multi_gpu = self.global_var["global_config"]["multi_gpu"]
-        self.clients_num = self.global_var["global_config"]["client_num"]
-        self.batch_size = self.global_var["client_config"]["batch_size"]
-        self.client_staleness_list = self.global_var["client_config"]["stale_list"]
-        self.epoch = self.global_var["client_config"]["epochs"]
-        self.client_config = self.global_var["client_config"]
-        self.current_time = self.global_var["current_t"]
-        self.schedule_t = self.global_var["schedule_t"]
-        self.dataset = self.global_var["dataset"].get_train_dataset()
-        self.index_list = self.global_var["dataset"].get_index_list() # 每个client下的数据集index
-        self.queue_manager = self.global_var["queue_manager"]
-        self.print_lock = self.global_var["print_lock"]
-        self.init_weights = copy.deepcopy(self.global_var["server_network"].state_dict())
+        self.multi_gpu = all_config["global"]["multi_gpu"]
+        self.clients_num = all_config["global"]["client_num"]
+        self.client_staleness_list = all_config["client"]["stale_list"]
+        self.index_list = all_config["client"]["index_list"]  # 每个client下的数据集index
+        self.epoch = all_config["client"]["epochs"]
+        self.client_config = all_config["client"]
 
-        self.client_class = ModuleFindTool.find_class_by_path(self.global_var["client_config"]["path"])
+        self.client_class = ModuleFindTool.find_class_by_path(all_config["client"]["path"])
+        self.stop_event_list = [EventFactory.create_Event() for _ in range(self.clients_num)]
         self.selected_event_list = [EventFactory.create_Event() for _ in range(self.clients_num)]
+        self.global_var['selected_event_list'] = self.selected_event_list
+        self.init_lock = mp.Lock()
 
     def start_all_clients(self):
-        self.init_clients()
+        self.__init_clients()
         # 启动clients
         self.global_var['client_list'] = self.client_list
         self.global_var['client_id_list'] = self.client_id_list
         print("Start clients:")
-        for client in self.client_list:
-            client.start() # 开始进程
+        for i in self.client_id_list:
+            self.client_list[i].start()
+            self.client_status[i] = CLIENT_STATUS['active']
 
-    def stop_all_clients(self):
-        # 终止所有client线程
-        self.stop_event.set()
-        for i in range(self.clients_num):
-            self.selected_event_list[i].set()
-
-    def init_clients(self):
-        data_reader = DataReader(self.dataset)
+    def __init_clients(self):
         mode, dev_num, dev_total, dev_mem_list = self.get_running_mode()
         # print("available GPU MEMs:",dev_mem_list)
         # 初始化clients
         mem_total = 0
         ratio_list = []
         res_client = self.clients_num
-        print("Training Mode: ",end='')
-        if mode == 0: 
+        print("Training Mode: ", end='')
+        if mode == 0:
             # 多gpu下，根据剩余显存多少分配client到gpu device
             print("Mlti-GPU-Mode \nGPU devices num:", dev_total)
             for i in dev_mem_list:
                 mem_total += i
-            for i in range(len(dev_mem_list)-1):
-                c_num = int(dev_mem_list[i] / mem_total * self.clients_num) # 比例乘以总数
+            for i in range(len(dev_mem_list) - 1):
+                c_num = int(dev_mem_list[i] / mem_total * self.clients_num)  # 比例乘以总数
                 res_client = res_client - c_num
                 ratio_list = ratio_list + [f'cuda:{i}' for _ in range(c_num)]
-            #剩余未分配的client塞到最后一个显卡上
-            ratio_list = ratio_list + [f'cuda:{len(dev_mem_list)-1}' for _ in range(res_client)] 
+            # 剩余未分配的client塞到最后一个显卡上
+            ratio_list = ratio_list + [f'cuda:{len(dev_mem_list) - 1}' for _ in range(res_client)]
         elif mode == 1:
             # 选择剩余内存最大的显卡
-            dev_idx = dev_mem_list.index(max(dev_mem_list)) 
+            dev_idx = dev_mem_list.index(max(dev_mem_list))
             dev_str = f'cuda:' + str(dev_idx)
             print("Single-GPU-Mode \nUsing cuda:", dev_idx)
         else:
@@ -88,7 +78,10 @@ class BaseClientManager:
             else:
                 dev = 'cpu'
             client_delay = self.client_staleness_list[i]
-            self.client_list.append(self.client_class(i, self.stop_event, self.selected_event_list[i], client_delay, data_reader.total_data, self.index_list[i], self.client_config, dev)) # 实例化
+            self.client_list.append(
+                self.client_class(i, self.init_lock, self.stop_event_list[i], self.selected_event_list[i], client_delay,
+                                  self.index_list[i], self.client_config, dev))  # 实例化
+            self.client_status.append(CLIENT_STATUS['created'])
             self.client_id_list.append(i)
 
     def get_running_mode(self):
@@ -101,7 +94,7 @@ class BaseClientManager:
             dev_total = torch.cuda.device_count()
             for i in range(dev_total):
                 device = torch.device(f'cuda:{i}')
-                dev_list.append(torch.cuda.mem_get_info(device)[0]) # 每个显卡的剩余内存
+                dev_list.append(torch.cuda.mem_get_info(device)[0])  # 每个显卡的剩余内存
                 # handle = pynvml.nvmlDeviceGetHandleByIndex(i)
                 # mem_info = pynvml.nvmlDeviceGetMemoryInfo(handle)
                 # dev_list.append(mem_info.free // 1024 **2)
@@ -120,3 +113,27 @@ class BaseClientManager:
 
     def get_client_id_list(self):
         return self.client_id_list
+
+    def stop_all_clients(self):
+        # 终止所有client线程
+        for i in range(self.clients_num):
+            self.stop_client_by_id(i)
+            self.client_status[i] = CLIENT_STATUS['stopped']
+
+    def stop_client_by_id(self, client_id):
+        self.stop_event_list[client_id].set()
+        self.selected_event_list[client_id].set()
+
+    def create_and_start_new_client(self, client_delay, dev):
+        client_id = len(self.client_list)
+        self.client_list.append(
+            self.client_class(client_id, self.init_lock, self.stop_event_list[client_id], self.selected_event_list[client_id], client_delay,
+                              self.index_list[client_id], self.client_config, dev))  # 实例化
+        self.client_id_list.append(client_id)
+        self.client_list[client_id].start()
+        self.client_status.append(CLIENT_STATUS['active'])
+        self.clients_num += 1
+
+    def client_join(self):
+        for i in self.client_list:
+            i.join()

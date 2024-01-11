@@ -5,7 +5,7 @@
     "name": "1"
   },
   "global": {
-    "mode": "process",
+    "dataset_pre_load": true,
     "use_file_system": false,
     "multi_gpu": true,
     "experiment": "FedAdam/1",
@@ -29,7 +29,7 @@
       "schedule": {
         "path": "schedule.RandomSchedule.RandomSchedule",
         "params": {
-          "c_ratio": 0.3
+          "c_ratio": 0.7
         }
       }
     },
@@ -44,7 +44,7 @@
       "optimizer": {
         "path": "torch.optim.Adam",
         "params": {
-          "lr": 0.01,
+          "lr": 0.03,
           "weight_decay": 0
         }
       }
@@ -76,14 +76,14 @@
     },
     "loss": "torch.nn.functional.cross_entropy",
     "transform": {
-      "path": "transforms.Transforms.TransformForCIFARFactory",
+      "path": "transforms.Transforms.TransformForCIFARFactory.createTransform",
       "params": {}
     },
     "mu": 0,
     "optimizer": {
       "path": "torch.optim.SGD",
       "params": {
-        "lr": 0.031,
+        "lr": 0.01,
         "weight_decay": 0
       }
     }

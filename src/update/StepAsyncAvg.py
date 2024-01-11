@@ -10,18 +10,13 @@ class StepAsyncAvg(AbstractUpdate):
         self.config = config
         self.num_cnt = {}
         self.sum_cnt = 0
-        self.global_var = GlobalVarGetter().get()
+        self.global_var = GlobalVarGetter.get()
 
     def update_server_weights(self, epoch, update_list):
         rho = self.config["rho"]
         self.sum_cnt += len(update_list)
         alpha = self.config["alpha"]
-        server_weights = copy.deepcopy(self.global_var['updater'].server_network.state_dict())
-
-        for i in range(len(update_list)):
-            if torch.cuda.is_available():
-                for key, var in update_list[i]["weights"].items():
-                    update_list[i]["weights"][key] = update_list[i]["weights"][key].cuda()
+        server_weights = self.global_var['updater'].server_network.state_dict()
 
         # 求每个客户端的上传频率q
         q = []
@@ -50,7 +45,6 @@ class StepAsyncAvg(AbstractUpdate):
         for i in range(len(update_list)):
             aggregation_factor[i] = aggregation_factor[i] / aggregation_sum
 
-
         updated_parameters = {}
         for key, var in update_list[0]["weights"].items():
             updated_parameters[key] = update_list[0]["weights"][key] * aggregation_factor[0]
@@ -60,8 +54,6 @@ class StepAsyncAvg(AbstractUpdate):
 
         # 异步更新
         for key, var in server_weights.items():
-            if torch.cuda.is_available():
-                updated_parameters[key] = updated_parameters[key].cuda()
             updated_parameters[key] = (alpha * updated_parameters[key] + (1 - alpha) * server_weights[key])
 
         return updated_parameters, updated_parameters

@@ -18,13 +18,6 @@ class SemiAsyncServer(BaseServer.BaseServer):
         self.queue_manager = queue_manager_class(self.queue_manager_config)
         self.global_var['queue_manager'] = self.queue_manager
 
-        client_manager_class = ModuleFindTool.find_class_by_path(self.client_manager_config['path'])
-        self.client_manager = client_manager_class(self.stop_event, self.client_manager_config)
-        self.global_var['client_manager'] = self.client_manager
-
-        # client_manager初始化
-        self.client_manager.start_all_clients()
-
         group_manager_class = ModuleFindTool.find_class_by_path(self.group_manager_config['path'])
         self.group_manager = group_manager_class(self.group_manager_config)
         self.global_var['group_manager'] = self.group_manager
@@ -43,7 +36,6 @@ class SemiAsyncServer(BaseServer.BaseServer):
     def kill_main_class(self):
         del self.scheduler_thread
         del self.updater_thread
-        del self.client_manager
         del self.queue_manager
         del self.group_manager
         self.mutex_sem.release()

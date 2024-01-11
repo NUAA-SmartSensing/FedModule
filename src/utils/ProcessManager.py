@@ -1,4 +1,6 @@
-import multiprocessing
+import copy
+
+import torch.multiprocessing as mp
 import threading
 from multiprocessing.managers import SyncManager
 from queue import Queue
@@ -17,10 +19,10 @@ class ManagerWrapper:
             ManagerWrapper.__register()
             ManagerWrapper._manager = SyncManager()
             ManagerWrapper._manager.start()
-            config = GlobalVarGetter().get()
+            global_var = GlobalVarGetter.get()
             keys = ['config', 'global_config', 'server_config', 'client_config',
                     'client_manager_config', 'queue_manager_config']
-            new_config = {k: config[k] for k in keys}
+            new_config = {k: global_var[k] for k in keys}
             ManagerWrapper._manager.MessageQueue().set_config(new_config)
         return ManagerWrapper._manager
 
@@ -44,7 +46,7 @@ class DataGetter(Thread):
         self.message_queue = None
 
     def run(self) -> None:
-        self.queue_manager = GlobalVarGetter().get()['queue_manager']
+        self.queue_manager = GlobalVarGetter.get()['queue_manager']
         self.message_queue = MessageQueueFactory.create_message_queue()
         while not self.is_end:
             while not self.message_queue.uplink_empty():
@@ -59,18 +61,20 @@ class DataGetter(Thread):
 
 # make sure this class is no about server or client
 class MessageQueue:
+    train_dataset = None
+    test_dataset = None
     uplink = {'update': Queue()}
     downlink = {'received_weights': {}, 'received_time_stamp': {}, 'time_stamp_buffer': {}, 'weights_buffer': {},
                 'schedule_time_stamp_buffer': {}, 'group_id': {}}
     training_status = {}
     training_params = {}
-    config = None
+    config = {}
     latest_model = None
     current_t = None
 
     @staticmethod
     def get_from_uplink(key='update'):
-        return MessageQueue.uplink[key].get()
+        return copy.deepcopy(MessageQueue.uplink[key].get())
 
     @staticmethod
     def put_into_uplink(item, key='update'):
@@ -81,7 +85,7 @@ class MessageQueue:
     @staticmethod
     def get_from_downlink(client_id, key):
         if client_id in MessageQueue.downlink[key]:
-            return MessageQueue.downlink[key][client_id]
+            return copy.deepcopy(MessageQueue.downlink[key][client_id])
         return None
 
     @staticmethod
@@ -127,6 +131,10 @@ class MessageQueue:
         MessageQueue.config = config
 
     @staticmethod
+    def set_config_by_key(k, v):
+        MessageQueue.config[k] = v
+
+    @staticmethod
     def get_config(key):
         return MessageQueue.config[key]
 
@@ -137,14 +145,39 @@ class MessageQueue:
 
     @staticmethod
     def get_latest_model():
-        return MessageQueue.latest_model, MessageQueue.current_t
+        return copy.deepcopy(MessageQueue.latest_model), MessageQueue.current_t
+
+    @staticmethod
+    def set_train_dataset(train_dataset):
+        MessageQueue.train_dataset = train_dataset
+
+    @staticmethod
+    def get_train_dataset():
+        return copy.deepcopy(MessageQueue.train_dataset)
+
+    @staticmethod
+    def set_test_dataset(test_dataset):
+        MessageQueue.test_dataset = test_dataset
+
+    @staticmethod
+    def get_test_dataset():
+        return copy.deepcopy(MessageQueue.test_dataset)
+
+
+def mode_is_process():
+    if len(GlobalVarGetter.get()) == 0:
+        return True
+    if "global_config" not in GlobalVarGetter.get():
+        return False
+    return 'mode' in GlobalVarGetter.get()['global_config'] and GlobalVarGetter.get()['global_config'][
+        'mode'] == 'process'
 
 
 class EventFactory:
     @staticmethod
     def create_Event():
-        if 'mode' in GlobalVarGetter().get()['global_config'] and GlobalVarGetter().get()['global_config']['mode'] == 'process':
-            return multiprocessing.Event()
+        if mode_is_process():
+            return mp.Event()
         else:
             return threading.Event()
 
@@ -152,7 +185,7 @@ class EventFactory:
 class MessageQueueFactory:
     @staticmethod
     def create_message_queue():
-        if 'mode' in GlobalVarGetter().get()['global_config'] and GlobalVarGetter().get()['global_config']['mode'] == 'process':
+        if mode_is_process():
             return ManagerWrapper.get_manager().MessageQueue()
         else:
             return MessageQueue()

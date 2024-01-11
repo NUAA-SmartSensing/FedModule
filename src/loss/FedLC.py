@@ -10,11 +10,8 @@ class FedLC(nn.Module):
     def __init__(self, config, client: Client):
         super().__init__()
         self.device = 'cuda:0' if torch.cuda.is_available() else 'cpu'
-        dataset = client.train_ds
-        if isinstance(dataset, list):
-            self.z = torch.from_numpy(np.bincount(dataset[1]))
-        else:
-            self.z = torch.from_numpy(np.bincount(dataset.tensors[1]))
+        dataset = client.fl_train_ds
+        self.z = torch.from_numpy(np.bincount(dataset.targets))
         self.tau = config['tau']
 
     def forward(self, x, y, reduction="mean"):

@@ -1,28 +1,27 @@
 {
   "wandb": {
     "enabled": false,
-    "project": "FedAvg",
-    "name": "1"
+    "project": "TWAFL",
+    "name": "TWAFL"
   },
   "global": {
+    "dataset_pre_load": true,
     "use_file_system": false,
     "multi_gpu": true,
-    "experiment": "FedAvg/1",
-    "stale": {
-      "step": 1,
-      "shuffle": true,
-      "list": [10, 10, 10, 5, 5, 5, 5]
-    },
+    "experiment": "TWAFL/3",
+    "stale": [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,10,10,10,10,10,10,10,10,10,10,30,30,30,30,30],
     "dataset": {
       "path": "dataset.CIFAR10.CIFAR10",
       "params": {}
     },
-    "iid": true,
-    "client_num": 50
+    "iid": {
+      "beta": 0.2
+    },
+    "client_num": 30
   },
   "server": {
     "path": "server.SyncServer.SyncServer",
-    "epochs": 20,
+    "epochs": 150,
     "model": {
       "path": "torchvision.models.resnet.resnet18",
       "params": {
@@ -34,7 +33,7 @@
       "schedule": {
         "path": "schedule.RandomSchedule.RandomSchedule",
         "params": {
-          "c_ratio": 0.3
+          "c_ratio": 0.7
         }
       }
     },
@@ -42,7 +41,7 @@
       "path": "updater.SyncUpdater.SyncUpdater",
       "loss": "torch.nn.functional.cross_entropy",
       "update": {
-        "path": "update.FedAvg.FedAvg",
+        "path": "update.TWAFL.TWAFL",
         "params": {
         }
       }
@@ -65,7 +64,7 @@
     "path": "clientmanager.NormalClientManager.NormalClientManager"
   },
   "client": {
-    "path": "client.NormalClient.NormalClient",
+    "path": "client.TWAFLClient.TWAFLClient",
     "epochs": 2,
     "batch_size": 128,
     "model": {
@@ -74,11 +73,11 @@
         "num_classes": 10
       }
     },
+    "loss": "torch.nn.functional.cross_entropy",
     "transform": {
-      "path": "transforms.Transforms.TransformForCIFARFactory.createTransform",
+      "path": "transforms.Transforms.TransformForCIFARFactory",
       "params": {}
     },
-    "loss": "torch.nn.functional.cross_entropy",
     "mu": 0,
     "optimizer": {
       "path": "torch.optim.SGD",

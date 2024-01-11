@@ -29,7 +29,3 @@ class SyncUpdater(BaseUpdater):
             self.mutex_sem.release()
             self.empty_sem.release()
             time.sleep(0.01)
-
-        # 终止所有client线程
-        self.client_manager.stop_all_clients()
-

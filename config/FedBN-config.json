@@ -1,51 +1,49 @@
 {
   "wandb": {
     "enabled": false,
-    "project": "FedPFSL",
-    "name": "1"
+    "project": "fedbn",
+    "name": "fedbn"
   },
   "global": {
+    "mode": "thread",
+    "dataset_pre_load": true,
     "use_file_system": false,
     "multi_gpu": true,
-    "experiment": "FedPFSL/α=1,β=2,kl_distill,non-iid",
-    "stale": {
-      "step": 1,
-      "shuffle": true,
-      "list": [4, 4, 4, 4, 4, 4, 6]
-    },
+    "experiment": "FedBN/1",
+    "stale": [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,10,10,10,10,10,10,10,10,10,10,30,30,30,30,30],
     "dataset": {
       "path": "dataset.CIFAR10.CIFAR10",
       "params": {}
     },
     "iid": {
-    "customize": false,
-    "beta": 0.5
+      "beta": 0.1
     },
     "client_num": 30
   },
   "server": {
     "path": "server.SyncServer.SyncServer",
-    "epochs": 20,
+    "epochs": 150,
     "model": {
-      "path": "model.CNN_pruning.CNN_pruning",
-      "params": {}
+      "path": "torchvision.models.resnet.resnet18",
+      "params": {
+        "num_classes": 10
+      }
     },
     "scheduler": {
-      "path": "scheduler.PreSyncScheduler.PreSyncScheduler",
+      "path": "scheduler.SyncScheduler.SyncScheduler",
       "schedule": {
         "path": "schedule.RandomSchedule.RandomSchedule",
         "params": {
-          "c_ratio": 0.2
+          "c_ratio": 0.7
         }
       }
     },
     "updater": {
-      "path": "updater.PersonalUpdater.PersonalUpdater",
+      "path": "updater.SyncUpdater.SyncUpdater",
       "loss": "torch.nn.functional.cross_entropy",
       "update": {
-        "path": "update.Fedpfsl.Fedpfsl",
+        "path": "update.FedAvg.FedAvg",
         "params": {
-          "n_clusters": 2
         }
       }
     }
@@ -58,7 +56,7 @@
       }
     },
     "checker": {
-      "path": "checker.AllChecker.AllChecker",
+      "path": "checker.SyncChecker.SyncChecker",
       "params": {
       }
     }
@@ -67,22 +65,20 @@
     "path": "clientmanager.NormalClientManager.NormalClientManager"
   },
   "client": {
-    "path": "client.PFSLClient.PFSLClient",
-    "epochs": 1,
-    "batch_size": 32,
-    "alpha": 1,
-    "beta": 2,
-    "test_size": 0.1,
-    "test_batch_size": 16,
+    "path": "client.BNClient.BNClient",
+    "epochs": 2,
+    "batch_size": 128,
     "model": {
-      "path": "model.CNN_pruning.CNN_pruning",
-      "params": {}
-    },
-    "teacher_model": {
-      "path": "model.CNN.CNN",
-      "params": {}
+      "path": "torchvision.models.resnet.resnet18",
+      "params": {
+        "num_classes": 10
+      }
     },
     "loss": "torch.nn.functional.cross_entropy",
+    "transform": {
+      "path": "transforms.Transforms.TransformForCIFARFactory",
+      "params": {}
+    },
     "mu": 0,
     "optimizer": {
       "path": "torch.optim.SGD",

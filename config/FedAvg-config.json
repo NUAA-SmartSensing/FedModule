@@ -5,6 +5,7 @@
     "name": "1"
   },
   "global": {
+    "dataset_pre_load": true,
     "use_file_system": false,
     "multi_gpu": true,
     "experiment": "FedAvg/1",
@@ -65,7 +66,7 @@
   "client": {
     "path": "client.NormalClient.NormalClient",
     "epochs": 2,
-    "batch_size": 50,
+    "batch_size": 64,
     "model": {
       "path": "model.CNN.CNN",
       "params": {}

@@ -5,6 +5,7 @@
     "name": "1"
   },
   "global": {
+    "dataset_pre_load": true,
     "use_file_system": false,
     "multi_gpu": true,
     "experiment": "FedProx/1",
@@ -65,13 +66,13 @@
   "client": {
     "path": "client.ProxClient.ProxClient",
     "epochs": 2,
-    "batch_size": 50,
+    "batch_size": 64,
     "model": {
       "path": "model.CNN.CNN",
       "params": {}
     },
     "loss": "torch.nn.functional.cross_entropy",
-    "mu": 0.01,
+    "mu": 0,
     "optimizer": {
       "path": "torch.optim.SGD",
       "params": {
@@ -81,7 +82,7 @@
     },
     "params": {
       "straggler": true,
-      "local_epoch": 8
+      "local_epoch": 5
     }
   }
 }

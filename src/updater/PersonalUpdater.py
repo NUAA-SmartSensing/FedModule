@@ -27,9 +27,6 @@ class PersonalUpdater(SyncUpdater):
             self.empty_sem.release()
             time.sleep(0.01)
 
-        # 终止所有client线程
-        self.client_manager.stop_all_clients()
-
     def run_personalization_test(self, epoch, update_list):
         accuracy = 0
         loss = 0
@@ -40,11 +37,9 @@ class PersonalUpdater(SyncUpdater):
         loss = loss / len(update_list)
         self.loss_list.append(loss)
         self.accuracy_list.append(accuracy)
-        self.print_lock.acquire()
         print('Epoch(t):', epoch, 'avg-accuracy:', accuracy, 'loss', loss)
         if self.config['enabled']:
             wandb.log({'accuracy': accuracy, 'loss': loss})
-        self.print_lock.release()
 
         return accuracy, loss
 

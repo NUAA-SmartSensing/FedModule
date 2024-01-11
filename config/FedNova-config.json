@@ -1,38 +1,39 @@
 {
   "wandb": {
     "enabled": false,
-    "project": "FedAvg",
-    "name": "1"
+    "project": "fednova",
+    "name": "fednova"
   },
   "global": {
+    "dataset_pre_load": true,
     "use_file_system": false,
     "multi_gpu": true,
-    "experiment": "FedAvg/1",
-    "stale": {
-      "step": 1,
-      "shuffle": true,
-      "list": [10, 10, 10, 5, 5, 5, 5]
-    },
+    "experiment": "FedNova/1",
+    "stale": [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,10,10,10,10,10,10,10,10,10,10,30,30,30,30,30],
     "dataset": {
-      "path": "dataset.FashionMNIST.FashionMNIST",
+      "path": "dataset.CIFAR10.CIFAR10",
       "params": {}
     },
-    "iid": true,
-    "client_num": 50
+    "iid": {
+      "beta": 0.5
+    },
+    "client_num": 30
   },
   "server": {
     "path": "server.SyncServer.SyncServer",
-    "epochs": 20,
+    "epochs": 150,
     "model": {
-      "path": "model.CNN.CNN",
-      "params": {}
+      "path": "torchvision.models.resnet.resnet18",
+      "params": {
+        "num_classes": 10
+      }
     },
     "scheduler": {
       "path": "scheduler.SyncScheduler.SyncScheduler",
       "schedule": {
         "path": "schedule.RandomSchedule.RandomSchedule",
         "params": {
-          "c_ratio": 0.3
+          "c_ratio": 0.7
         }
       }
     },
@@ -40,7 +41,7 @@
       "path": "updater.SyncUpdater.SyncUpdater",
       "loss": "torch.nn.functional.cross_entropy",
       "update": {
-        "path": "update.FedAvg.FedAvg",
+        "path": "update.FedNova.FedNova",
         "params": {
         }
       }
@@ -63,14 +64,20 @@
     "path": "clientmanager.NormalClientManager.NormalClientManager"
   },
   "client": {
-    "path": "client.NormalClient.NormalClient",
+    "path": "client.NovaClient.NovaClient",
     "epochs": 2,
-    "batch_size": 50,
+    "batch_size": 128,
     "model": {
-      "path": "model.CNN.CNN",
-      "params": {}
+      "path": "torchvision.models.resnet.resnet18",
+      "params": {
+        "num_classes": 10
+      }
     },
     "loss": "torch.nn.functional.cross_entropy",
+    "transform": {
+      "path": "transforms.Transforms.TransformForCIFARFactory",
+      "params": {}
+    },
     "mu": 0,
     "optimizer": {
       "path": "torch.optim.SGD",

@@ -5,7 +5,6 @@ src/results/*
 src/data/*
 *.pyc
 src/test/*
-src/utils/Plot.py
 src/fl/wandb/*
 wandb/*
 config_test.json

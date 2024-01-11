@@ -4,18 +4,14 @@ from client import NormalClient
 
 
 class ActiveClient(NormalClient.NormalClient):
-    def __init__(self, c_id, stop_event, selected_event, delay, train_ds, index_list, config, dev):
-        NormalClient.NormalClient.__init__(self, c_id, stop_event, selected_event, delay, train_ds, index_list, config, dev)
+    def __init__(self, c_id, init_lock, stop_event, selected_event, delay, index_list, config, dev):
+        NormalClient.NormalClient.__init__(self, c_id, init_lock, stop_event, selected_event, delay, index_list, config, dev)
         self.acquire_model_delay = config['acquire_model_delay']
-        self.init = False
 
     def run(self):
+        self.init_client()
+        self.wait_notify()
         while not self.stop_event.is_set():
-            # 初始化
-            if not self.init:
-                self.wait_notify()
-                self.init = True
-
             # 该client被选中，开始执行本地训练
             if self.event.is_set():
                 # 该client进行训练
@@ -31,9 +27,13 @@ class ActiveClient(NormalClient.NormalClient):
                 # 获取服务器最新模型
                 time.sleep(self.acquire_model_delay)
                 while True:
-                    latest_model, time_stamp = self.message_queue.get_latest_model()
-                    if latest_model is not None:
+                    if self.stop_event.is_set():
                         break
+                    latest_model, time_stamp = self.message_queue.get_latest_model()
+                    if latest_model is not None and time_stamp != self.time_stamp:
+                        break
+                    else:
+                        time.sleep(0.01)
                 latest_model, time_stamp = self.message_queue.get_latest_model()
                 self.model.load_state_dict(latest_model)
                 self.time_stamp = time_stamp

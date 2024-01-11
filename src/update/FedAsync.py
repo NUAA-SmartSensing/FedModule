@@ -9,7 +9,7 @@ from utils.GlobalVarGetter import GlobalVarGetter
 class FedAsync(AbstractUpdate):
     def __init__(self, config):
         self.config = config
-        self.global_var = GlobalVarGetter().get()
+        self.global_var = GlobalVarGetter.get()
 
     def update_server_weights(self, epoch, update_list):
         update_dict = update_list[0]
@@ -26,12 +26,7 @@ class FedAsync(AbstractUpdate):
 
         alpha = alpha * s * r
         updated_parameters = {}
-        server_weights = copy.deepcopy(self.global_var['updater'].server_network.state_dict())
-
-        for key, var in client_weights.items():
-            updated_parameters[key] = var.clone()
-            if torch.cuda.is_available():
-                updated_parameters[key] = updated_parameters[key].cuda()
+        server_weights = self.global_var['updater'].server_network.state_dict()
         for key, var in server_weights.items():
-            updated_parameters[key] = (alpha * updated_parameters[key] + (1 - alpha) * server_weights[key])
+            updated_parameters[key] = (alpha * client_weights[key] + (1 - alpha) * server_weights[key])
         return updated_parameters, updated_parameters

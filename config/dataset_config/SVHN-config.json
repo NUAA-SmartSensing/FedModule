@@ -5,20 +5,21 @@
     "name": "1"
   },
   "global": {
+    "dataset_pre_load": true,
     "use_file_system": false,
     "multi_gpu": true,
     "experiment": "FedAvg/1",
     "stale": {
       "step": 1,
       "shuffle": true,
-      "list": [10, 10, 10, 5, 5, 5, 5]
+      "list": [10, 10, 10]
     },
     "dataset": {
       "path": "dataset.SVHN.SVHN",
       "params": {}
     },
     "iid": true,
-    "client_num": 50
+    "client_num": 30
   },
   "server": {
     "path": "server.SyncServer.SyncServer",

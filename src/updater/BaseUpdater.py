@@ -1,8 +1,6 @@
-import copy
 import threading
 from abc import abstractmethod
 
-import numpy as np
 import torch.utils.data
 import wandb
 from torch.utils.data import DataLoader
@@ -10,9 +8,9 @@ from torch.utils.data import DataLoader
 from loss.LossFactory import LossFactory
 from update.UpdateCaller import UpdateCaller
 from utils import ModuleFindTool
-from utils.DataReader import DataReader, FLDataset
 from utils.GlobalVarGetter import GlobalVarGetter
 from utils.ProcessManager import MessageQueueFactory
+from utils.Tools import to_cpu, to_dev
 
 
 class BaseUpdater(threading.Thread):
@@ -21,20 +19,17 @@ class BaseUpdater(threading.Thread):
         self.server_thread_lock = server_thread_lock
         self.stop_event = stop_event
         self.config = config
-        self.global_var = GlobalVarGetter().get()
+        self.global_var = GlobalVarGetter.get()
 
         self.T = self.global_var['T']
         self.current_time = self.global_var['current_t']
         self.schedule_t = self.global_var['schedule_t']
         self.server_network = self.global_var['server_network']
-        self.client_manager = self.global_var['client_manager']
 
-        test_data = self.global_var['dataset'].get_test_dataset()
-        data_reader = DataReader(test_data)
-        self.test_data = FLDataset(data_reader.total_data, np.arange(len(data_reader.total_data[0])))
+        self.message_queue = MessageQueueFactory.create_message_queue()
+        self.test_data = self.message_queue.get_test_dataset()
 
         self.queue_manager = self.global_var['queue_manager']
-        self.print_lock = self.global_var['print_lock']
 
         self.event = threading.Event()
         self.event.clear()
@@ -56,7 +51,8 @@ class BaseUpdater(threading.Thread):
         self.optimizer = None
         # server_opt
         if "optimizer" in self.config:
-            self.optimizer = ModuleFindTool.find_class_by_path(self.config['optimizer']['path'])(self.server_network.parameters(), **self.config["optimizer"]["params"])
+            self.optimizer = ModuleFindTool.find_class_by_path(self.config['optimizer']['path'])(
+                self.server_network.parameters(), **self.config["optimizer"]["params"])
 
     @abstractmethod
     def run(self):
@@ -64,12 +60,9 @@ class BaseUpdater(threading.Thread):
 
     def update_server_weights(self, epoch, update_list):
         global_model, delivery_weights = self.update_caller.update_server_weights(epoch, update_list)
-        if torch.cuda.is_available():
-            for key, var in global_model.items():
-                global_model[key] = global_model[key].cuda()
         new_global_model = self.update_global_model(global_model)
         # process the PFL
-        if delivery_weights != global_model:
+        if delivery_weights is not None:
             self.set_delivery_weights(delivery_weights)
         else:
             self.set_delivery_weights(new_global_model)
@@ -79,31 +72,31 @@ class BaseUpdater(threading.Thread):
         test_correct = 0
         test_loss = 0
         dev = 'cuda' if torch.cuda.is_available() else 'cpu'
-        for data in dl:
-            inputs, labels = data
-            inputs, labels = inputs.to(dev), labels.to(dev)
-            outputs = self.server_network(inputs)
-            _, id = torch.max(outputs.data, 1)
-            test_loss += self.loss_func(outputs, labels).item()
-            test_correct += torch.sum(id == labels.data).cpu().numpy()
-        accuracy = test_correct / len(dl)
-        loss = test_loss / len(dl)
-        self.loss_list.append(loss)
-        self.accuracy_list.append(accuracy)
-        self.print_lock.acquire()
-        print('Epoch(t):', epoch, 'accuracy:', accuracy, 'loss', loss)
-        if self.config['enabled']:
-            wandb.log({'accuracy': accuracy, 'loss': loss})
-        self.print_lock.release()
+        with torch.no_grad():
+            for data in dl:
+                inputs, labels = data
+                inputs, labels = inputs.to(dev), labels.to(dev)
+                outputs = self.server_network(inputs)
+                _, id = torch.max(outputs.data, 1)
+                test_loss += self.loss_func(outputs, labels).detach().item()
+                test_correct += torch.sum(id == labels.data).cpu().numpy()
+            accuracy = test_correct / len(dl)
+            loss = test_loss / len(dl)
+            self.loss_list.append(loss)
+            self.accuracy_list.append(accuracy)
+            print('Epoch(t):', epoch, 'accuracy:', accuracy, 'loss', loss)
+            if self.config['enabled']:
+                wandb.log({'accuracy': accuracy, 'loss': loss})
         return accuracy, loss
 
     def get_accuracy_and_loss_list(self):
         return self.accuracy_list, self.loss_list
 
     def set_delivery_weights(self, weights):
-        self.global_var['scheduler'].server_weights = copy.deepcopy(weights)
+        self.global_var['scheduler'].server_weights = weights
 
     def update_global_model(self, new_model):
+        new_model = to_dev(new_model, 'cuda')
         if self.optimizer is not None:
             training_params = self.message_queue.get_training_params()
             global_model = self.server_network.state_dict()
@@ -116,4 +109,5 @@ class BaseUpdater(threading.Thread):
             self.optimizer.step()
         else:
             self.server_network.load_state_dict(new_model)
-        return self.server_network.state_dict()
+        weights = self.server_network.state_dict()
+        return to_cpu(weights)

@@ -64,3 +64,24 @@ def result_to_markdown(filename, config):
     md.write("数据集分布: " + "iid" if isinstance(config["global"]["iid"], bool) else "non-iid" + "\n")
     md.close()
 
+
+def to_cpu(data):
+    if isinstance(data, dict):
+        return {k: to_cpu(v) for k, v in data.items()}
+    elif isinstance(data, list):
+        return [to_cpu(v) for v in data]
+    elif isinstance(data, torch.Tensor):
+        return data.cpu().detach()
+    else:
+        return data
+
+
+def to_dev(data, dev):
+    if isinstance(data, dict):
+        return {k: to_dev(v, dev) for k, v in data.items()}
+    elif isinstance(data, list):
+        return [to_dev(v, dev) for v in data]
+    elif isinstance(data, torch.Tensor):
+        return data.to(dev)
+    else:
+        return data

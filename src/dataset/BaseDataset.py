@@ -2,6 +2,7 @@ import os
 
 import numpy as np
 
+from utils import ModuleFindTool
 from utils.IID import generate_iid_data, generate_non_iid_data
 
 
@@ -30,17 +31,7 @@ class BaseDataset:
         self.label_min = self.train_labels.min()
 
         self.train_data_size = self.train_data.shape[0]
-
-
-
-        if isinstance(self.iid_config, bool):
-            print("generating iid data...")
-            self.index_list = generate_iid_data(self, clients)
-        else:
-            print("generating non_iid data...")
-            self.index_list = generate_non_iid_data(self.iid_config, self, clients, self.label_min, self.label_max + 1,
-                                                    train_dataset)
-        print("data generation process completed")
+        self.generate_data(clients, train_dataset, test_dataset)
 
     def get_test_dataset(self):
         return self.test_dataset
@@ -53,3 +44,17 @@ class BaseDataset:
 
     def get_config(self):
         return self.iid_config
+
+    def generate_data(self, clients, train_dataset, test_dataset):
+        if isinstance(self.iid_config, bool):
+            print("generating iid data...")
+            self.index_list = generate_iid_data(self, clients)
+        elif isinstance(self.iid_config, dict) and "path" in self.iid_config:
+            print("generate customize data distribution")
+            data_distribution_generator = ModuleFindTool.find_class_by_path(self.iid_config["path"])()(self.iid_config["params"])
+            self.index_list = data_distribution_generator.generate_data(self.iid_config, self, train_dataset)
+        else:
+            print("generating non_iid data...")
+            self.index_list = generate_non_iid_data(self.iid_config, self, clients, self.label_min, self.label_max + 1,
+                                                    train_dataset)
+        print("data generation process completed")
