@@ -2,7 +2,7 @@
   "wandb": {
     "enabled": true,
     "project": "FedAsync",
-    "name": "test"
+    "name": "test2.0"
   },
   "global": {
     "use_file_system": false,

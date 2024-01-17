@@ -16,7 +16,7 @@ class Client(Process if mode_is_process() else Thread):
         self.event.clear()
         self.stop_event = stop_event # 共享stop_event，终止学习
         self.delay = delay # stale
-        self.train_ds = train_ds # 所有的数据 配合index_list使用
+        # self.train_ds = train_ds # 所有的数据 配合index_list使用
         self.dev = dev
         self.time_stamp = 0
         self.params = {}

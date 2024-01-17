@@ -1,20 +1,20 @@
 {
   "wandb": {
-    "enabled": false,
+    "enabled": true,
     "project": "FedAsync",
     "name": "1"
   },
   "global": {
     "dataset_pre_load": true,
     "use_file_system": false,
-    "multi_gpu": true,
+    "multi_gpu": false,
     "experiment": "FedAsync/1",
     "stale": [0,0,0,0,0,8,8,8,8,8,8,8,8,8,8,16,16,16,16,16],
     "dataset": {
       "path": "dataset.MNIST.MNIST",
       "params": {}
     },
-    "iid": false,
+    "iid": true,
     "client_num": 20
   },
   "server": {

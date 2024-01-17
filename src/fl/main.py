@@ -71,6 +71,7 @@ def generate_client_stale_list(global_config):
         if total_sum != global_config['client_num']:
             raise ClientSumError.ClientSumError()
         client_staleness_list = generate_stale_list(stale['step'], stale['shuffle'], stale['list'])
+    print("stale_list:",client_staleness_list)
     return client_staleness_list
 
 
