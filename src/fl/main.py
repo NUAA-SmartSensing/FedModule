@@ -83,7 +83,7 @@ def main():
     debug_mode  = False
     # 配置文件读取
     if len(sys.argv) < 2:
-        config_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../../config/debug/FedAT-config-debug.json")
+        config_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../../config/FedLeo/resnet18-baseline.json")
         debug_mode = True
     else:
         config_file = sys.argv[1]
@@ -109,6 +109,7 @@ def main():
     client_manager_config = config['client_manager']
     queue_manager_config = config['queue_manager']
     wandb_config = config['wandb']
+    
     GlobalVarGetter.set({'config': config, 'global_config': global_config,
                          'server_config': server_config,
                          'client_config': client_config,
