@@ -1,0 +1,81 @@
+{
+  "wandb": {
+    "enabled": true,
+    "project": "FedLeo",
+    "name": "FedAvg-baseline3"
+  },
+  "global": {
+    "dataset_pre_load": true,
+    "use_file_system": false,
+    "multi_gpu": true,
+    "experiment": "FedLeo/FedAvg-baseline3",
+    "stale": false,
+    "dataset": {
+      "path": "dataset.FashionMNIST.FashionMNIST",
+      "params": {}
+    },
+    "iid": true,
+    "client_num": 66
+  },
+  "server": {
+    "path": "server.SyncServer.SyncServer",
+    "epochs": 50,
+    "model": {
+      "path": "model.ResNet.FashionResNet18",
+      "params": {
+        "num_classes": 10
+      }
+    },
+    "scheduler": {
+      "path": "scheduler.SyncScheduler.SyncScheduler",
+      "schedule": {
+        "path": "schedule.RandomSchedule.RandomSchedule",
+        "params": {
+          "c_ratio": 0.3
+        }
+      }
+    },
+    "updater": {
+      "path": "updater.SyncUpdater.SyncUpdater",
+      "loss": "torch.nn.functional.cross_entropy",
+      "update": {
+        "path": "update.FedAvg.FedAvg",
+        "params": {}
+      }
+    }
+  },
+  "queue_manager": {
+    "path": "queuemanager.SingleQueueManager.SingleQueueManager",
+    "receiver": {
+      "path": "receiver.NormalReceiver.NormalReceiver",
+      "params": {}
+    },
+    "checker": {
+      "path": "checker.SyncChecker.SyncChecker",
+      "params": {}
+    }
+  },
+  "client_manager": {
+    "path": "clientmanager.NormalClientManager.NormalClientManager"
+  },
+  "client": {
+    "path": "client.NormalClient.NormalClient",
+    "epochs": 2,
+    "batch_size": 64,
+    "model": {
+      "path": "model.ResNet.FashionResNet18",
+      "params": {
+        "num_classes": 10
+      }
+    },
+    "loss": "torch.nn.functional.cross_entropy",
+    "mu": 0.01,
+    "optimizer": {
+      "path": "torch.optim.SGD",
+      "params": {
+        "lr": 0.01,
+        "weight_decay": 0
+      }
+    }
+  }
+}

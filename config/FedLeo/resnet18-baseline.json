@@ -1,0 +1,96 @@
+{
+    "wandb": {
+        "enabled": true,
+        "project": "FedLeo",
+        "name": "resnet18-baseline"
+    },
+    "global": {
+        "dataset_pre_load": true,
+        "use_file_system": false,
+        "multi_gpu": true,
+        "experiment": "FedLeo/resnet18-baseline1",
+        "stale": false,
+        "dataset": {
+            "path": "dataset.FashionMNIST.FashionMNIST",
+            "params": {}
+        },
+        "iid": false,
+        "client_num": 66
+    },
+    "server": {
+        "path": "server.SemiAsyncServer.SemiAsyncServer",
+        "epochs": 50,
+        "model": {
+            "path": "model.ResNet.FashionResNet18",
+            "params": {
+                "num_classes": 10
+            }
+        },
+        "scheduler": {
+            "path": "scheduler.SemiAsyncScheduler.SemiAsyncScheduler",
+            "schedule": {
+                "path": "schedule.FullSchedule.FullSchedule",
+                "params": {
+                    "scheduler_dataframe": "./src/access/walker_delta_access_info.csv"
+                }
+            }
+        },
+        "updater": {
+            "path": "updater.SemiAsyncUpdater.SemiAsyncUpdater",
+            "update": {
+                "path": "update.FedAT.FedAT",
+                "params": {}
+            },
+            "loss": "torch.nn.functional.cross_entropy",
+            "params": {},
+            "group": {
+                "path": "update.FedAvg.FedAvg",
+                "params": {}
+            }
+        }
+    },
+    "group_manager": {
+        "path": "groupmanager.NormalGroupManager.NormalGroupManager",
+        "group_method": {
+            "path": "group.OrbitGroup.OrbitGroup",
+            "params": {
+                "step": 5,
+                "group_info": "./src/access/walker_delta_orbit_info.csv"
+            }
+        }
+    },
+    "queue_manager": {
+        "path": "queuemanager.QueueListManager.QueueListManager",
+        "receiver": {
+            "path": "receiver.MultiQueueReceiver.MultiQueueReceiver",
+            "params": {}
+        },
+        "checker": {
+            "path": "checker.AllChecker.AllChecker",
+            "params": {}
+        }
+    },
+    "client_manager": {
+        "path": "clientmanager.NormalClientManager.NormalClientManager"
+    },
+    "client": {
+        "path": "client.SemiClient.SemiClient",
+        "epochs": 2,
+        "batch_size": 64,
+        "model": {
+            "path": "model.ResNet.FashionResNet18",
+            "params": {
+                "num_classes": 10
+            }
+        },
+        "loss": "torch.nn.functional.cross_entropy",
+        "mu": 0.01,
+        "optimizer": {
+            "path": "torch.optim.SGD",
+            "params": {
+                "lr": 0.01,
+                "weight_decay": 0
+            }
+        }
+    }
+}

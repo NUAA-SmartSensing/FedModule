@@ -8,6 +8,8 @@ src/test/*
 src/fl/wandb/*
 wandb/*
 config/*
+!config/FedLeo
+!config/baseline
 config_test.json
 config_sync_test.json
 config_semi_test.json
