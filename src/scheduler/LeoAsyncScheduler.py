@@ -2,9 +2,9 @@ import copy
 import time
 
 from scheduler import BaseScheduler
+import pandas as pd
 
-
-class SemiAsyncScheduler(BaseScheduler.BaseScheduler):
+class LeoAsyncScheduler(BaseScheduler.BaseScheduler):
     def __init__(self, server_thread_lock, config, mutex_sem, empty_sem, full_sem):
         BaseScheduler.BaseScheduler.__init__(self, server_thread_lock, config)
         self.mutex_sem = mutex_sem
@@ -16,6 +16,8 @@ class SemiAsyncScheduler(BaseScheduler.BaseScheduler):
     def run(self):
         last_s_time = -1
         group_num = -1
+        # sat和基站通信通信时间进行手动调度
+        access_group_info = pd.read_csv(self.config["scheduler_access"])
         while self.current_t.get_time() <= self.T:
             # 每隔一段时间进行一次schedule
             self.empty_sem.acquire()
@@ -71,7 +73,8 @@ class SemiAsyncScheduler(BaseScheduler.BaseScheduler):
                 # 等待所有客户端上传更新
                 # 选下一个轮epoch的group_id 即 group_num 有点意思
                 self.queue_manager.receive(self.group_manager.group_client_num_list) # 嵌套列表，告知每个组选了多少个，updater好方便聚合
-                group_num = self.queue_manager.group_ready_num
+                group_num = access_group_info['Orbit'].iloc[current_time]
+                # group_num = self.queue_manager.group_ready_num
                 # 通知updater聚合权重
                 self.mutex_sem.release()
                 self.full_sem.release()

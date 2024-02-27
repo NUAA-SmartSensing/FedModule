@@ -21,7 +21,7 @@ class BaseUpdater(threading.Thread):
         self.config = config
         self.global_var = GlobalVarGetter.get()
 
-        self.T = self.global_var['T']
+        self.T = self.global_var['T'] # epoch
         self.current_time = self.global_var['current_t']
         self.schedule_t = self.global_var['schedule_t']
         self.server_network = self.global_var['server_network']
@@ -45,7 +45,7 @@ class BaseUpdater(threading.Thread):
         # 聚合算法
         update_class = ModuleFindTool.find_class_by_path(self.config['update']['path'])
         self.update_method = update_class(self.config['update']['params'])
-        self.update_caller = UpdateCaller(self)
+        self.update_caller = UpdateCaller(self) # 组间聚合
 
         self.message_queue = MessageQueueFactory.create_message_queue()
         self.optimizer = None

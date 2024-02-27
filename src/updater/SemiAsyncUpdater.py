@@ -18,19 +18,20 @@ class SemiAsyncUpdater(BaseUpdater):
         self.accuracy_list = []
         self.loss_list = []
         group_update_class = ModuleFindTool.find_class_by_path(config["group"]["path"])
-        self.group_update = group_update_class(self.config["group"]["params"])
+        self.group_update = group_update_class(self.config["group"]["params"]) # group内的update方式，包括fedavg等
 
     def run(self):
-        for i in range(self.T):
+        for i in range(self.T): # epoch
             self.full_sem.acquire()
             self.mutex_sem.acquire()
             epoch = self.current_time.get_time()
-            update_list = []
+            update_list = [] # 获取从queue_manager下对应group下的clients的updaye
             # 接收所有的更新
-            while not self.queue_manager.empty(self.queue_manager.group_ready_num):
-                update_list.append(self.queue_manager.get(self.queue_manager.group_ready_num))
+            while not self.queue_manager.empty(self.queue_manager.group_ready_num): # 即组下都更新完,group_ready_num指本轮训练的group_id非数量
+                update_list.append(self.queue_manager.get(self.queue_manager.group_ready_num)) #待更新的group下的update
             self.group_manager.network_list[self.queue_manager.group_ready_num] = self.update_group_weights(epoch,
-                                                                                                            update_list)
+                                                                                                            update_list) # 组内使用FedAvg进行聚合，得到组内聚合模型
+            # 组内epoch+1
             self.group_manager.epoch_list[self.queue_manager.group_ready_num] = self.group_manager.epoch_list[
                                                                                     self.queue_manager.group_ready_num] + 1
 

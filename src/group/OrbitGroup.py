@@ -41,7 +41,7 @@ class OrbitGroup(AbstractGroup):
         group_list = [[] for i in range(orbit_num)]
         for i in range(len(client_list)):
             orbit_for_client_i = orbit_info['Orbit'].iloc[i]
-            group_list[orbit_for_client_i].append(client_list[i])
+            group_list[orbit_for_client_i].append(client_list[i]) # 嵌套列表
         return group_list, len(group_list)
 
     def check_update(self):

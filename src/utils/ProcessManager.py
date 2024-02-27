@@ -39,6 +39,7 @@ class ManagerWrapper:
 
 # this thread works in main process
 class DataGetter(Thread):
+    # 负责从消息队列获取客户端的更新
     def __init__(self):
         super().__init__()
         self.is_end = False
@@ -65,7 +66,7 @@ class MessageQueue:
     test_dataset = None
     uplink = {'update': Queue()}
     downlink = {'received_weights': {}, 'received_time_stamp': {}, 'time_stamp_buffer': {}, 'weights_buffer': {},
-                'schedule_time_stamp_buffer': {}, 'group_id': {}}
+                'schedule_time_stamp_buffer': {}, 'group_id': {}} # 每个key下面都有对应client的信息
     training_status = {}
     training_params = {}
     config = {}

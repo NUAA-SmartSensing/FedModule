@@ -8,7 +8,7 @@ from utils.Queue import Queue
 class QueueListManager(BaseQueueManager):
     def __init__(self, config):
         BaseQueueManager.__init__(self, config)
-        self.queue = [Queue() for _ in range(self.global_var["global_config"]["client_num"])]
+        self.queue = [Queue() for _ in range(self.global_var["global_config"]["client_num"])] # 每个client对应一个queue？非也，其实是组号，但是组号多少没法确定，取其上限client_num
         self.group_ready_num = 0
 
         # for clients
@@ -25,11 +25,12 @@ class QueueListManager(BaseQueueManager):
     def put(self, update, *args, **kwargs):
         self.lock.acquire()
         if self.checker_caller.check(update):
-            self.queue[update["group_id"]].put(update)
+            self.queue[update["group_id"]].put(update) # 每个group queue保存更新的信息及group_id
         self.lock.release()
 
     def receive(self, nums, *args, **kwargs):
-        self.group_ready_num = self.receiver_caller.receive(self.queue, nums, *args, **kwargs)
+        # nums 即一个装载该轮次多少个
+        self.group_ready_num = self.receiver_caller.receive(self.queue, nums, *args, **kwargs) # 返回第几组
 
     def check(self, update, *args, **kwargs):
         self.checker_caller.check(update, *args, **kwargs)
@@ -44,7 +45,7 @@ class QueueListManager(BaseQueueManager):
 
     def empty(self, *args, **kwargs):
         group_id, _, _ = self.__get_group_id(args, kwargs)
-        return self.queue[group_id].empty()
+        return self.queue[group_id].empty() # group queue为空
 
     def stop(self):
         total = 0

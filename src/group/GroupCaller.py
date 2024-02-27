@@ -2,6 +2,7 @@ from group.OneGroup import OneGroup
 
 
 class GroupCaller:
+    # 对groupmanger类型进行判断，可采用针对性的传参
     def __init__(self, group_manager):
         self.group_manager = group_manager
 

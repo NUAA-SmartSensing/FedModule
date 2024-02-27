@@ -2,13 +2,13 @@
     "wandb": {
         "enabled": true,
         "project": "FedLeo",
-        "name": "resnet18-baseline"
+        "name": "resnet18-LeoAsync"
     },
     "global": {
         "dataset_pre_load": true,
         "use_file_system": false,
         "multi_gpu": true,
-        "experiment": "FedLeo/resnet18-baseline1",
+        "experiment": "FedLeo/resnet18-LeoAsync",
         "stale": false,
         "dataset": {
             "path": "dataset.FashionMNIST.FashionMNIST",
@@ -27,13 +27,12 @@
             }
         },
         "scheduler": {
-            "path": "scheduler.SemiAsyncScheduler.SemiAsyncScheduler",
+            "path": "scheduler.LeoAsyncScheduler.LeoAsyncScheduler",
             "schedule": {
                 "path": "schedule.FullSchedule.FullSchedule",
-                "params": {
-                    "scheduler_dataframe": "./src/access/walker_delta_access_info.csv"
-                }
-            }
+                "params": {}
+            },
+            "scheduler_access": "./src/access/walker_delta_access_info.csv"
         },
         "updater": {
             "path": "updater.SemiAsyncUpdater.SemiAsyncUpdater",
