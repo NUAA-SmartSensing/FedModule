@@ -18,3 +18,4 @@ config_semi_test.json
 # config/experiment/FedAT-config-paper.json
 # config/experiment/FedAT-config-baseline.json
 # config/experiment/FedAT-config-paper.json
+config/FedLeo/cnn-baseline copy.json
