@@ -1,12 +1,13 @@
 {
   "wandb": {
-    "enabled": false,
+    "enabled": true,
     "project": "FedAvg",
     "name": "1"
   },
   "global": {
     "use_file_system": false,
-    "multi_gpu": true,
+    "dataset_pre_load": true,
+    "multi_gpu": false,
     "experiment": "FedAvg/1",
     "stale": {
       "step": 1,

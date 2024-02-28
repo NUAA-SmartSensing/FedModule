@@ -7,11 +7,11 @@
     "global": {
         "dataset_pre_load": true,
         "use_file_system": false,
-        "multi_gpu": true,
+        "multi_gpu": false,
         "experiment": "FedLeo/resnet18-LeoAsync",
         "stale": false,
         "dataset": {
-            "path": "dataset.FashionMNIST.FashionMNIST",
+            "path": "dataset.CIFAR10.CIFAR10",
             "params": {}
         },
         "iid": false,
@@ -21,7 +21,7 @@
         "path": "server.SemiAsyncServer.SemiAsyncServer",
         "epochs": 50,
         "model": {
-            "path": "model.ResNet.FashionResNet18",
+            "path": "torchvision.models.resnet.resnet18",
             "params": {
                 "num_classes": 10
             }
@@ -77,7 +77,7 @@
         "epochs": 2,
         "batch_size": 64,
         "model": {
-            "path": "model.ResNet.FashionResNet18",
+            "path": "torchvision.models.resnet.resnet18",
             "params": {
                 "num_classes": 10
             }
