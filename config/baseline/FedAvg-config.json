@@ -2,26 +2,26 @@
   "wandb": {
     "enabled": true,
     "project": "FedLeo",
-    "name": "FedAvg-baseline3"
+    "name": "FedAvg-baseline"
   },
   "global": {
     "dataset_pre_load": true,
     "use_file_system": false,
-    "multi_gpu": true,
-    "experiment": "FedLeo/FedAvg-baseline3",
+    "multi_gpu": false,
+    "experiment": "FedLeo/FedAvg-baseline",
     "stale": false,
     "dataset": {
-      "path": "dataset.FashionMNIST.FashionMNIST",
+      "path": "dataset.CIFAR10.CIFAR10",
       "params": {}
     },
-    "iid": true,
+    "iid": false,
     "client_num": 66
   },
   "server": {
     "path": "server.SyncServer.SyncServer",
-    "epochs": 50,
+    "epochs": 1000,
     "model": {
-      "path": "model.ResNet.FashionResNet18",
+      "path": "torchvision.models.resnet.resnet18",
       "params": {
         "num_classes": 10
       }
@@ -29,10 +29,8 @@
     "scheduler": {
       "path": "scheduler.SyncScheduler.SyncScheduler",
       "schedule": {
-        "path": "schedule.RandomSchedule.RandomSchedule",
-        "params": {
-          "c_ratio": 0.3
-        }
+        "path": "schedule.FullSchedule.FullSchedule",
+        "params": {}
       }
     },
     "updater": {
@@ -63,13 +61,13 @@
     "epochs": 2,
     "batch_size": 64,
     "model": {
-      "path": "model.ResNet.FashionResNet18",
+      "path": "torchvision.models.resnet.resnet18",
       "params": {
         "num_classes": 10
       }
     },
     "loss": "torch.nn.functional.cross_entropy",
-    "mu": 0.01,
+    "mu": 0,
     "optimizer": {
       "path": "torch.optim.SGD",
       "params": {

@@ -10,6 +10,7 @@ class FedAT(AbstractUpdate):
         self.global_var = GlobalVarGetter.get()
 
     def update_server_weights(self, epoch, update_list):
+        # 聚合所有层的模型
         group_num = self.global_var["group_manager"].group_num
         epoch_list = self.global_var["group_manager"].epoch_list
         updated_parameters = {}

@@ -2,13 +2,13 @@
     "wandb": {
         "enabled": true,
         "project": "FedLeo",
-        "name": "resnet18-LeoAsync-FedAsync"
+        "name": "resnet18-LeoFedAt"
     },
     "global": {
         "dataset_pre_load": true,
         "use_file_system": false,
         "multi_gpu": false,
-        "experiment": "FedLeo/resnet18-LeoAsync-FedAsync",
+        "experiment": "FedLeo/resnet18-LeoFedAt",
         "stale": false,
         "dataset": {
             "path": "dataset.CIFAR10.CIFAR10",
@@ -37,7 +37,7 @@
         "updater": {
             "path": "updater.SemiAsyncUpdater.SemiAsyncUpdater",
             "update": {
-                "path": "update.FedAsync.FedAsync",
+                "path": "update.FedAT.FedAT",
                 "params": {}
             },
             "loss": "torch.nn.functional.cross_entropy",
@@ -53,15 +53,14 @@
         "group_method": {
             "path": "group.OrbitGroup.OrbitGroup",
             "params": {
-                "step": 5,
                 "group_info": "./src/access/walker_delta_orbit_info.csv"
             }
         }
     },
     "queue_manager": {
-        "path": "queuemanager.QueueListManager.QueueListManager",
+        "path": "queuemanager.LeoQueueListManager.LeoQueueListManager",
         "receiver": {
-            "path": "receiver.MultiQueueReceiver.MultiQueueReceiver",
+            "path": "receiver.LeoMultiQueueReceiver.LeoMultiQueueReceiver",
             "params": {}
         },
         "checker": {
@@ -83,7 +82,7 @@
             }
         },
         "loss": "torch.nn.functional.cross_entropy",
-        "mu": 0.01,
+        "mu": 0,
         "optimizer": {
             "path": "torch.optim.SGD",
             "params": {

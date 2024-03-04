@@ -6,7 +6,7 @@ from updater.BaseUpdater import BaseUpdater
 from utils import ModuleFindTool
 
 
-class SemiAsyncUpdater(BaseUpdater):
+class LeoSemiAsyncUpdater(BaseUpdater):
     def __init__(self, server_thread_lock, stop_event, config, mutex_sem, empty_sem, full_sem):
         BaseUpdater.__init__(self, server_thread_lock, stop_event, config)
         self.mutex_sem = mutex_sem

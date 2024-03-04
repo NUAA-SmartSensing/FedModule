@@ -9,7 +9,7 @@ class BaseGroupManager:
         self.global_var = GlobalVarGetter.get()
         self.client_list = self.global_var['client_id_list']
         self.latency_list = self.global_var['client_staleness_list']
-        self.network_list = [] # 全局存储各组模型列表,以组为单位
+        self.network_list = [] # 全局存储各组模型列表,以组为单位（组内为聚合的组模型）
         self.group_client_num_list = []
         self.group_method = ModuleFindTool.find_class_by_path(self.config["group_method"]["path"])(self, self.config["group_method"]["params"])
         self.group_caller = GroupCaller(self)

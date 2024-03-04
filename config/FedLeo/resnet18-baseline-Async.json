@@ -37,8 +37,13 @@
         "updater": {
             "path": "updater.SemiAsyncUpdater.SemiAsyncUpdater",
             "update": {
-                "path": "update.FedAsync.FedAsync",
-                "params": {}
+                "path": "update.LeoAsync.LeoAsync",
+                "params": {
+                    "a": 10,
+                    "b": 8,
+                    "alpha": 0.9,
+                    "r": 1
+                }
             },
             "loss": "torch.nn.functional.cross_entropy",
             "params": {},
