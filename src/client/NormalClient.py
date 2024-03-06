@@ -9,7 +9,7 @@ from loss.LossFactory import LossFactory
 from utils import ModuleFindTool
 from utils.DataReader import FLDataset
 from utils.Tools import to_cpu
-
+from torch.optim.lr_scheduler import LambdaLR
 
 class NormalClient(Client):
     def __init__(self, c_id, init_lock, stop_event, selected_event, delay, index_list, config, dev):
@@ -21,8 +21,12 @@ class NormalClient(Client):
         self.batch_size = config["batch_size"]
         self.epoch = config["epochs"]
         self.optimizer_config = config["optimizer"]
+        self.lr_scheduler_config = config["lr_scheduler"]
         self.mu = config["mu"]
         self.config = config
+
+
+        
 
     def run(self):
         self.init_client()
@@ -81,6 +85,8 @@ class NormalClient(Client):
                 loss.backward()
                 # 计算梯度，并更新梯度
                 self.opti.step()
+                
+        self.lr_scheduler.step(epoch=self.time_stamp)
 
         # 返回当前Client基于自己的数据训练得到的新的模型参数
         weights = self.model.state_dict()
@@ -101,7 +107,7 @@ class NormalClient(Client):
             self.model.load_state_dict(state_dict)
         if self.message_queue.get_from_downlink(self.client_id, 'received_time_stamp'):
             self.message_queue.put_into_downlink(self.client_id, 'received_time_stamp', False)
-            self.time_stamp = self.message_queue.get_from_downlink(self.client_id, 'time_stamp_buffer')
+            self.time_stamp = self.message_queue.get_from_downlink(self.client_id, 'time_stamp_buffer') # shcedule_time要更小
             self.schedule_t = self.message_queue.get_from_downlink(self.client_id, 'schedule_time_stamp_buffer')
 
     def init_client(self):
@@ -128,6 +134,13 @@ class NormalClient(Client):
         # 优化器
         opti_class = ModuleFindTool.find_class_by_path(self.optimizer_config["path"])
         self.opti = opti_class(self.model.parameters(), **self.optimizer_config["params"])
+
+        # learning rate decay
+        lr_scheduler_class = ModuleFindTool.find_class_by_path(self.lr_scheduler_config["path"])
+        self.lr_scheduler = lr_scheduler_class(self.opti,**self.lr_scheduler_config["params"])
+
+    
+
 
         # loss函数
         self.loss_func = LossFactory(config["loss"], self).create_loss()

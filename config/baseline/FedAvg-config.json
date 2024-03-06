@@ -2,13 +2,13 @@
   "wandb": {
     "enabled": true,
     "project": "FedLeo",
-    "name": "FedAvg-baseline-jr0.5-lr0.05"
+    "name": "FedAvg-baseline-lr_scheduler"
   },
   "global": {
     "dataset_pre_load": true,
     "use_file_system": false,
     "multi_gpu": false,
-    "experiment": "FedLeo/FedAvg-baseline-jr0.5-lr0.05",
+    "experiment": "FedLeo/FedAvg-baseline-lr_scheduler",
     "stale": false,
     "dataset": {
       "path": "dataset.CIFAR10.CIFAR10",
@@ -19,7 +19,7 @@
   },
   "server": {
     "path": "server.SyncServer.SyncServer",
-    "epochs": 1000,
+    "epochs": 1500,
     "model": {
       "path": "torchvision.models.resnet.resnet18",
       "params": {
@@ -31,7 +31,7 @@
       "schedule": {
         "path": "schedule.RandomSchedule.RandomSchedule",
         "params": {
-          "c_ratio": 0.31
+          "c_ratio": 0.17
         }
       }
     },
@@ -60,8 +60,8 @@
   },
   "client": {
     "path": "client.NormalClient.NormalClient",
-    "epochs": 2,
-    "batch_size": 64,
+    "epochs": 5,
+    "batch_size": 50,
     "model": {
       "path": "torchvision.models.resnet.resnet18",
       "params": {
@@ -69,14 +69,18 @@
       }
     },
     "loss": "torch.nn.functional.cross_entropy",
-    "mu": 0,
+    "mu": 0.001,
     "optimizer": {
       "path": "torch.optim.SGD",
       "params": {
-        "lr": 0.005,
-        "weight_decay": 0.01,
-        "learning_rate_decay": true,
-        "learning_rate_decay_gamma": 0.998
+        "lr": 0.1,
+        "weight_decay": 0.01
+      }
+    },
+    "lr_scheduler": {
+      "path": "torch.optim.lr_scheduler.ExponentialLR",
+      "params": {
+        "gamma": 0.998
       }
     }
   }
