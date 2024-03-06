@@ -1,0 +1,325 @@
+nohup: ignoring input
+wandb: Currently logged in as: cauchyguo (leofl). Use `wandb login --relogin` to force relogin
+wandb: wandb version 0.16.3 is available!  To upgrade, please run:
+wandb:  $ pip install wandb --upgrade
+wandb: Tracking run with wandb version 0.12.20
+wandb: Run data is saved locally in /home/ypguo/async-FL/wandb/run-20240305_004640-2rrqakwl
+wandb: Run `wandb offline` to turn off syncing.
+wandb: Syncing run FedAvg-baseline-11
+wandb: ⭐️ View project at https://wandb.ai/leofl/FedLeo
+wandb: 🚀 View run at https://wandb.ai/leofl/FedLeo/runs/2rrqakwl
+wandb: Network error (TransientError), entering retry loop.
+stale_Mode: OFF
+Files already downloaded and verified
+Files already downloaded and verified
+generating iid data...
+data generation process completed
+Training Mode: Single-GPU-Mode 
+Using cuda: 2
+Start clients:
+Start server:
+| current_epoch | 1
+Begin client select
+Current clients: 66 , select: 11
+
+SchedulerThread select( 11 clients):
+59 | 22 | 63 | 38 | 53 | 57 | 60 | 64 | 24 | 48 | 27 | 
+-----------------------------------------------------------------Schedule complete
+Client 53 trained
+Client 27 trained
+Client 64 trained
+Client 48 trained
+Client 57 trained
+Client 38 trained
+Client 63 trained
+Client 22 trained
+Client 60 trained
+Client 59 trained
+Client 24 trained
+Epoch(t): 0 accuracy: 20.03 loss 2.182914867401123
+| current_epoch | 2
+Begin client select
+Current clients: 66 , select: 11
+
+SchedulerThread select( 11 clients):
+5 | 36 | 46 | 60 | 50 | 61 | 65 | 40 | 33 | 25 | 42 | 
+-----------------------------------------------------------------Schedule complete
+Client 60 trained
+Client 5 trained
+Client 36 trained
+Client 46 trained
+Client 25 trained
+Client 42 trained
+Client 33 trained
+Client 61 trained
+Client 40 trained
+Client 50 trained
+Client 65 trained
+Epoch(t): 1 accuracy: 26.82 loss 1.9957516944408418
+| current_epoch | 3
+Begin client select
+Current clients: 66 , select: 11
+
+SchedulerThread select( 11 clients):
+14 | 24 | 37 | 54 | 20 | 22 | 64 | 29 | 27 | 49 | 12 | 
+-----------------------------------------------------------------Schedule complete
+Client 24 trained
+Client 22 trained
+Client 64 trained
+Client 27 trained
+Client 14 trained
+Client 37 trained
+Client 12 trained
+Client 54 trained
+Client 49 trained
+Client 29 trained
+Client 20 trained
+Epoch(t): 2 accuracy: 32.3 loss 1.8627061700820924
+| current_epoch | 4
+Begin client select
+Current clients: 66 , select: 11
+
+SchedulerThread select( 11 clients):
+36 | 57 | 51 | 26 | 44 | 8 | 60 | 56 | 21 | 27 | 32 | 
+-----------------------------------------------------------------Schedule complete
+Client 27 trained
+Client 60 trained
+Client 36 trained
+Client 57 trained
+Client 32 trained
+Client 8 trained
+Client 44 trained
+Client 56 trained
+Client 26 trained
+Client 21 trained
+Client 51 trained
+Epoch(t): 3 accuracy: 36.53 loss 1.759922126531601
+| current_epoch | 5
+Begin client select
+Current clients: 66 , select: 11
+
+SchedulerThread select( 11 clients):
+57 | 65 | 44 | 0 | 39 | 36 | 54 | 58 | 29 | 13 | 63 | 
+-----------------------------------------------------------------Schedule complete
+Client 57 trained
+Client 36 trained
+Client 65 trained
+Client 44 trained
+Client 54 trained
+Client 63 trained
+Client 29 trained
+Client 39 trained
+Client 0 trained
+Client 13 trained
+Client 58 trained
+Epoch(t): 4 accuracy: 38.58 loss 1.6894229471683502
+| current_epoch | 6
+Begin client select
+Current clients: 66 , select: 11
+
+SchedulerThread select( 11 clients):
+6 | 20 | 3 | 2 | 19 | 38 | 46 | 53 | 8 | 15 | 35 | 
+-----------------------------------------------------------------Schedule complete
+Client 20 trained
+Client 38 trained
+Client 46 trained
+Client 8 trained
+Client 53 trained
+Client 6 trained
+Client 19 trained
+Client 35 trained
+Client 2 trained
+Client 3 trained
+Client 15 trained
+Epoch(t): 5 accuracy: 39.88 loss 1.6450104629993438
+| current_epoch | 7
+Begin client select
+Current clients: 66 , select: 11
+
+SchedulerThread select( 11 clients):
+64 | 17 | 32 | 25 | 12 | 57 | 14 | 3 | 48 | 40 | 15 | 
+-----------------------------------------------------------------Schedule complete
+Client 57 trained
+Client 64 trained
+Client 25 trained
+Client 32 trained
+Client 17 trained
+Client 40 trained
+Client 12 trained
+Client 48 trained
+Client 14 trained
+Client 3 trained
+Client 15 trained
+Epoch(t): 6 accuracy: 41.82 loss 1.5972436940670014
+| current_epoch | 8
+Begin client select
+Current clients: 66 , select: 11
+
+SchedulerThread select( 11 clients):
+62 | 51 | 49 | 43 | 57 | 11 | 40 | 23 | 9 | 38 | 34 | 
+-----------------------------------------------------------------Schedule complete
+Client 57 trained
+Client 40 trained
+Client 38 trained
+Client 49 trained
+Client 51 trained
+Client 43 trained
+Client 62 trained
+Client 11 trained
+Client 23 trained
+Client 34 trained
+Client 9 trained
+Epoch(t): 7 accuracy: 42.71 loss 1.5583781397342682
+| current_epoch | 9
+Begin client select
+Current clients: 66 , select: 11
+
+SchedulerThread select( 11 clients):
+13 | 57 | 61 | 2 | 0 | 53 | 44 | 30 | 37 | 63 | 35 | 
+-----------------------------------------------------------------Schedule complete
+Client 57 trained
+Client 44 trained
+Client 63 trained
+Client 53 trained
+Client 13 trained
+Client 61 trained
+Client 0 trained
+Client 37 trained
+Client 35 trained
+Client 2 trained
+Client 30 trained
+Epoch(t): 8 accuracy: 43.8 loss 1.5408465051651001
+| current_epoch | 10
+Begin client select
+Current clients: 66 , select: 11
+
+SchedulerThread select( 11 clients):
+54 | 55 | 9 | 61 | 43 | 10 | 40 | 19 | 22 | 17 | 62 | 
+-----------------------------------------------------------------Schedule complete
+Client 40 trained
+Client 54 trained
+Client 61 trained
+Client 22 trained
+Client 9 trained
+Client 55 trained
+Client 62 trained
+Client 43 trained
+Client 17 trained
+Client 19 trained
+Client 10 trained
+Epoch(t): 9 accuracy: 44.38 loss 1.5180252122879028
+| current_epoch | 11
+Begin client select
+Current clients: 66 , select: 11
+
+SchedulerThread select( 11 clients):
+35 | 9 | 34 | 53 | 55 | 45 | 47 | 60 | 56 | 32 | 10 | 
+-----------------------------------------------------------------Schedule complete
+Client 53 trained
+Client 60 trained
+Client 9 trained
+Client 35 trained
+Client 32 trained
+Client 34 trained
+Client 10 trained
+Client 56 trained
+Client 55 trained
+Client 47 trained
+Client 45 trained
+Epoch(t): 10 accuracy: 45.07 loss 1.4995413279533387
+| current_epoch | 12
+Begin client select
+Current clients: 66 , select: 11
+
+SchedulerThread select( 11 clients):
+20 | 10 | 29 | 22 | 23 | 18 | 31 | 14 | 58 | 17 | 55 | 
+-----------------------------------------------------------------Schedule complete
+Client 22 trained
+Client 20 trained
+Client 10 trained
+Client 29 trained
+Client 17 trained
+Client 14 trained
+Client 55 trained
+Client 23 trained
+Client 58 trained
+Client 18 trained
+Client 31 trained
+Epoch(t): 11 accuracy: 45.95 loss 1.4826220595836639
+| current_epoch | 13
+Begin client select
+Current clients: 66 , select: 11
+
+SchedulerThread select( 11 clients):
+34 | 30 | 0 | 62 | 52 | 13 | 33 | 15 | 43 | 39 | 19 | 
+-----------------------------------------------------------------Schedule complete
+Client 34 trained
+Client 0 trained
+Client 62 trained
+Client 13 trained
+Client 15 trained
+Client 19 trained
+Client 43 trained
+Client 30 trained
+Client 33 trained
+Client 39 trained
+Client 52 trained
+Epoch(t): 12 accuracy: 46.68 loss 1.4678924369812012
+| current_epoch | 14
+Begin client select
+Current clients: 66 , select: 11
+
+SchedulerThread select( 11 clients):
+35 | 47 | 37 | 56 | 39 | 5 | 10 | 31 | 54 | 2 | 18 | 
+-----------------------------------------------------------------Schedule complete
+Client 35 trained
+Client 54 trained
+Client 10 trained
+Client 56 trained
+Client 37 trained
+Client 39 trained
+Client 2 trained
+Client 47 trained
+Client 31 trained
+Client 18 trained
+Client 5 trained
+Epoch(t): 13 accuracy: 47.57 loss 1.4523501527309417
+| current_epoch | 15
+Begin client select
+Current clients: 66 , select: 11
+
+SchedulerThread select( 11 clients):
+12 | 59 | 17 | 63 | 7 | 11 | 19 | 48 | 32 | 30 | 13 | 
+-----------------------------------------------------------------Schedule complete
+Client 17 trained
+Client 63 trained
+Client 32 trained
+Client 13 trained
+Client 19 trained
+Client 12 trained
+Client 48 trained
+Client 30 trained
+Client 59 trained
+Client 11 trained
+Client 7 trained
+Epoch(t): 14 accuracy: 48.1 loss 1.4391321861743926
+| current_epoch | 16
+Begin client select
+Current clients: 66 , select: 11
+
+SchedulerThread select( 11 clients):
+31 | 28 | 26 | 16 | 2 | 23 | 54 | 14 | 3 | 48 | 10 | 
+-----------------------------------------------------------------Schedule complete
+Client 10 trained
+Client 54 trained
+Client 2 trained
+Client 14 trained
+Client 48 trained
+Client 31 trained
+Client 23 trained
+Client 3 trained
+Client 26 trained
+Client 28 trained
+Client 16 trained
+Epoch(t): 15 accuracy: 47.91 loss /home/ypguo/.conda/envs/leofl/lib/python3.8/multiprocessing/resource_tracker.py:216: UserWarning: resource_tracker: There appear to be 16 leaked semaphore objects to clean up at shutdown
+  warnings.warn('resource_tracker: There appear to be %d '

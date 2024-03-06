@@ -1,0 +1,58 @@
+wandb: Currently logged in as: cauchyguo (leofl). Use `wandb login --relogin` to force relogin
+wandb: wandb version 0.16.3 is available!  To upgrade, please run:
+wandb:  $ pip install wandb --upgrade
+wandb: Tracking run with wandb version 0.12.20
+wandb: Run data is saved locally in /home/ypguo/async-FL/wandb/run-20240305_005027-2bnbghsp
+wandb: Run `wandb offline` to turn off syncing.
+wandb: Syncing run FedAvg-baseline-11
+wandb: ⭐️ View project at https://wandb.ai/leofl/FedLeo
+wandb: 🚀 View run at https://wandb.ai/leofl/FedLeo/runs/2bnbghsp
+Exception in thread Thread-79:
+Traceback (most recent call last):
+  File "/home/ypguo/.conda/envs/leofl/lib/python3.8/threading.py", line 932, in _bootstrap_inner
+Traceback (most recent call last):
+  File "/home/ypguo/.conda/envs/leofl/lib/python3.8/multiprocessing/queues.py", line 239, in _feed
+  File "/home/ypguo/.conda/envs/leofl/lib/python3.8/multiprocessing/reduction.py", line 51, in dumps
+  File "/home/ypguo/.conda/envs/leofl/lib/python3.8/site-packages/torch/multiprocessing/reductions.py", line 348, in reduce_storage
+  File "/home/ypguo/.conda/envs/leofl/lib/python3.8/multiprocessing/reduction.py", line 198, in DupFd
+  File "/home/ypguo/.conda/envs/leofl/lib/python3.8/multiprocessing/resource_sharer.py", line 48, in __init__
+OSError: [Errno 24] Too many open files
+    self.run()
+  File "/home/ypguo/async-FL/src/updater/SyncUpdater.py", line 20, in run
+    update_list.append(self.queue_manager.get())
+  File "/home/ypguo/async-FL/src/queuemanager/AbstractQueueManager.py", line 9, in wrapper
+    return func(*args, **kwargs)
+  File "/home/ypguo/async-FL/src/queuemanager/SingleQueueManager.py", line 39, in get
+    return self.queue.get()
+  File "/home/ypguo/async-FL/src/utils/Queue.py", line 59, in get
+    return super(Queue, self).get(*args, **kwargs)
+  File "/home/ypguo/.conda/envs/leofl/lib/python3.8/multiprocessing/queues.py", line 116, in get
+Traceback (most recent call last):
+  File "/home/ypguo/.conda/envs/leofl/lib/python3.8/multiprocessing/resource_sharer.py", line 149, in _serve
+    send(conn, destination_pid)
+  File "/home/ypguo/.conda/envs/leofl/lib/python3.8/multiprocessing/resource_sharer.py", line 50, in send
+    reduction.send_handle(conn, new_fd, pid)
+  File "/home/ypguo/.conda/envs/leofl/lib/python3.8/multiprocessing/reduction.py", line 184, in send_handle
+  File "/home/ypguo/.conda/envs/leofl/lib/python3.8/multiprocessing/reduction.py", line 149, in sendfds
+BrokenPipeError: [Errno 32] Broken pipe
+Traceback (most recent call last):
+  File "/home/ypguo/.conda/envs/leofl/lib/python3.8/multiprocessing/queues.py", line 239, in _feed
+  File "/home/ypguo/.conda/envs/leofl/lib/python3.8/multiprocessing/reduction.py", line 51, in dumps
+  File "/home/ypguo/.conda/envs/leofl/lib/python3.8/site-packages/torch/multiprocessing/reductions.py", line 348, in reduce_storage
+  File "/home/ypguo/.conda/envs/leofl/lib/python3.8/multiprocessing/reduction.py", line 198, in DupFd
+  File "/home/ypguo/.conda/envs/leofl/lib/python3.8/multiprocessing/resource_sharer.py", line 48, in __init__
+    new_fd = os.dup(fd)
+OSError: [Errno 24] Too many open files
+    return _ForkingPickler.loads(res)
+  File "/home/ypguo/.conda/envs/leofl/lib/python3.8/site-packages/torch/multiprocessing/reductions.py", line 295, in rebuild_storage_fd
+    fd = df.detach()
+  File "/home/ypguo/.conda/envs/leofl/lib/python3.8/multiprocessing/resource_sharer.py", line 58, in detach
+    return reduction.recv_handle(conn)
+  File "/home/ypguo/.conda/envs/leofl/lib/python3.8/multiprocessing/reduction.py", line 188, in recv_handle
+    with socket.fromfd(conn.fileno(), socket.AF_UNIX, socket.SOCK_STREAM) as s:
+  File "/home/ypguo/.conda/envs/leofl/lib/python3.8/socket.py", line 543, in fromfd
+    nfd = dup(fd)
+OSError: [Errno 24] Too many open files
+wandb: Network error (TransientError), entering retry loop.
+/home/ypguo/.conda/envs/leofl/lib/python3.8/multiprocessing/resource_tracker.py:216: UserWarning: resource_tracker: There appear to be 16 leaked semaphore objects to clean up at shutdown
+  warnings.warn('resource_tracker: There appear to be %d '

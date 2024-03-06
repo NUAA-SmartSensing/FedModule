@@ -1,46 +1,52 @@
 {
   "wandb": {
     "enabled": true,
-    "project": "FedLeo",
-    "name": "FedAvg-baseline-jr0.5-lr0.05"
+    "project": "FedAsync",
+    "name": "1"
   },
   "global": {
     "dataset_pre_load": true,
     "use_file_system": false,
     "multi_gpu": false,
-    "experiment": "FedLeo/FedAvg-baseline-jr0.5-lr0.05",
+    "experiment": "FedAsync/1",
     "stale": false,
     "dataset": {
-      "path": "dataset.CIFAR10.CIFAR10",
+      "path": "dataset.MNIST.MNIST",
       "params": {}
     },
-    "iid": false,
-    "client_num": 66
+    "iid": true,
+    "client_num": 20
   },
   "server": {
-    "path": "server.SyncServer.SyncServer",
-    "epochs": 1000,
+    "path": "server.AsyncServer.AsyncServer",
+    "epochs": 300,
     "model": {
-      "path": "torchvision.models.resnet.resnet18",
-      "params": {
-        "num_classes": 10
-      }
+      "path": "model.LeNet5.LeNet5",
+      "params": {}
     },
     "scheduler": {
-      "path": "scheduler.SyncScheduler.SyncScheduler",
+      "path": "scheduler.LeoAsyncScheduler.LeoAsyncScheduler",
+      "schedule_interval": 8,
+      "schedule_delay": 20,
       "schedule": {
         "path": "schedule.RandomSchedule.RandomSchedule",
         "params": {
-          "c_ratio": 0.31
+          "c_ratio": 0.4
         }
       }
     },
     "updater": {
-      "path": "updater.SyncUpdater.SyncUpdater",
+      "path": "updater.AsyncUpdater.AsyncUpdater",
+      "num_generator": 1,
       "loss": "torch.nn.functional.cross_entropy",
       "update": {
-        "path": "update.FedAvg.FedAvg",
-        "params": {}
+        "path": "update.FedAsync.FedAsync",
+        "params": {
+          "a": 10,
+          "b": 8,
+          "alpha": 0.9,
+          "r": 1
+        }
       }
     }
   },
@@ -51,7 +57,7 @@
       "params": {}
     },
     "checker": {
-      "path": "checker.SyncChecker.SyncChecker",
+      "path": "checker.AllChecker.AllChecker",
       "params": {}
     }
   },
@@ -60,23 +66,21 @@
   },
   "client": {
     "path": "client.NormalClient.NormalClient",
-    "epochs": 2,
-    "batch_size": 64,
+    "epochs": 5,
+    "batch_size": 32,
+    "test_size": 0.1,
+    "test_batch_size": 16,
     "model": {
-      "path": "torchvision.models.resnet.resnet18",
-      "params": {
-        "num_classes": 10
-      }
+      "path": "model.LeNet5.LeNet5",
+      "params": {}
     },
     "loss": "torch.nn.functional.cross_entropy",
     "mu": 0,
     "optimizer": {
       "path": "torch.optim.SGD",
       "params": {
-        "lr": 0.005,
-        "weight_decay": 0.01,
-        "learning_rate_decay": true,
-        "learning_rate_decay_gamma": 0.998
+        "lr": 0.01,
+        "weight_decay": 0
       }
     }
   }

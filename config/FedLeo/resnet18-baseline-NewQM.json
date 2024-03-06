@@ -27,7 +27,7 @@
             }
         },
         "scheduler": {
-            "path": "scheduler.LeoAsyncScheduler.LeoAsyncScheduler",
+            "path": "scheduler.LeoSemiAsyncScheduler.LeoSemiAsyncScheduler",
             "schedule": {
                 "path": "schedule.FullSchedule.FullSchedule",
                 "params": {}
