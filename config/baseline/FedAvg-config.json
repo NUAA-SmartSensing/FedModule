@@ -2,13 +2,13 @@
   "wandb": {
     "enabled": true,
     "project": "FedLeo",
-    "name": "FedAvg-baseline-lr_scheduler"
+    "name": "FedAvg-baseline-bs32"
   },
   "global": {
     "dataset_pre_load": true,
     "use_file_system": false,
     "multi_gpu": false,
-    "experiment": "FedLeo/FedAvg-baseline-lr_scheduler",
+    "experiment": "FedLeo/FedAvg-baseline-bs32",
     "stale": false,
     "dataset": {
       "path": "dataset.CIFAR10.CIFAR10",
@@ -61,7 +61,7 @@
   "client": {
     "path": "client.NormalClient.NormalClient",
     "epochs": 5,
-    "batch_size": 50,
+    "batch_size": 32,
     "model": {
       "path": "torchvision.models.resnet.resnet18",
       "params": {
@@ -80,7 +80,7 @@
     "lr_scheduler": {
       "path": "torch.optim.lr_scheduler.ExponentialLR",
       "params": {
-        "gamma": 0.998
+        "gamma": 0.995
       }
     }
   }
