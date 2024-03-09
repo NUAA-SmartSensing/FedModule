@@ -14,7 +14,7 @@
       "path": "dataset.CIFAR10.CIFAR10",
       "params": {}
     },
-    "iid": false,
+    "iid": true,
     "client_num": 66
   },
   "server": {
@@ -74,7 +74,7 @@
       "path": "torch.optim.SGD",
       "params": {
         "lr": 0.1,
-        "weight_decay": 0.01
+        "weight_decay": 0.001
       }
     },
     "lr_scheduler": {

@@ -22,6 +22,7 @@ from utils import ModuleFindTool
 from utils.ConfigManager import *
 from exception import ClientSumError
 
+
 def generate_random_seed():
     seed = int(time.time()*1000) % 2147483647
     return seed
