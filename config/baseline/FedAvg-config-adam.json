@@ -2,13 +2,18 @@
   "wandb": {
     "enabled": true,
     "project": "FedLeo",
-    "name": "FedAvg-baseline-bs32"
+    "name": "FedAvg-baseline-adam-bs32"
   },
   "global": {
     "dataset_pre_load": true,
     "use_file_system": false,
-    "multi_gpu": true,
-    "experiment": "FedLeo/FedAvg-baseline-bs32",
+    "multi_gpu": [
+      0,
+      1,
+      1,
+      1
+    ],
+    "experiment": "FedLeo/FedAvg-baseline-adam-bs32",
     "stale": false,
     "dataset": {
       "path": "dataset.CIFAR10.CIFAR10",
@@ -71,9 +76,9 @@
     "loss": "torch.nn.functional.cross_entropy",
     "mu": 0.001,
     "optimizer": {
-      "path": "torch.optim.SGD",
+      "path": "torch.optim.adam",
       "params": {
-        "lr": 0.1,
+        "lr": 0.001,
         "weight_decay": 0.01
       }
     },

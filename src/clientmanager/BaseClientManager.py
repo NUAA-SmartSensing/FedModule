@@ -51,7 +51,7 @@ class BaseClientManager:
         print("Training Mode: ", end='')
         if mode == 0:
             # 多gpu下，根据剩余显存多少分配client到gpu device
-            print("Mlti-GPU-Mode \nGPU devices num:", dev_total)
+            print("Mlti-GPU-Mode \nGPU devices num:", sum(1 for x in dev_mem_list if x > 0))
             for i in dev_mem_list:
                 mem_total += i
             for i in range(len(dev_mem_list) - 1):
@@ -99,10 +99,15 @@ class BaseClientManager:
                 # mem_info = pynvml.nvmlDeviceGetMemoryInfo(handle)
                 # dev_list.append(mem_info.free // 1024 **2)
             
-            if self.multi_gpu:
+            if isinstance(self.multi_gpu,list):
                 mode = 0
-            else:
-                mode = 1
+                for i in range(len(dev_total)):
+                    dev_list[i] *= self.multi_gpu[i]
+            elif isinstance(self.multi_gpu,bool):
+                if self.multi_gpu:
+                    mode = 0
+                else:
+                    mode = 1
         else:
             mode = 2
         return mode, dev_num, dev_total, dev_list
