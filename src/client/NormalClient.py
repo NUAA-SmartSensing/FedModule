@@ -10,6 +10,8 @@ from utils import ModuleFindTool
 from utils.DataReader import FLDataset
 from utils.Tools import to_cpu
 from torch.optim.lr_scheduler import LambdaLR
+import warnings
+warnings.filterwarnings("ignore")
 
 class NormalClient(Client):
     def __init__(self, c_id, init_lock, stop_event, selected_event, delay, index_list, config, dev):
@@ -86,7 +88,8 @@ class NormalClient(Client):
                 # 计算梯度，并更新梯度
                 self.opti.step()
                 
-        self.lr_scheduler.step(epoch=self.time_stamp)
+        if self.optimizer_config["path"] == 'torch.optim.SGD':       
+            self.lr_scheduler.step(epoch=self.time_stamp)
 
         # 返回当前Client基于自己的数据训练得到的新的模型参数
         weights = self.model.state_dict()
@@ -136,8 +139,9 @@ class NormalClient(Client):
         self.opti = opti_class(self.model.parameters(), **self.optimizer_config["params"])
 
         # learning rate decay
-        lr_scheduler_class = ModuleFindTool.find_class_by_path(self.lr_scheduler_config["path"])
-        self.lr_scheduler = lr_scheduler_class(self.opti,**self.lr_scheduler_config["params"])
+        if self.optimizer_config["path"] == 'torch.optim.SGD':
+            lr_scheduler_class = ModuleFindTool.find_class_by_path(self.lr_scheduler_config["path"])
+            self.lr_scheduler = lr_scheduler_class(self.opti,**self.lr_scheduler_config["params"])
 
     
 
