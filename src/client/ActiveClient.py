@@ -1,11 +1,11 @@
 import time
 
-from client import NormalClient
+from client.NormalClient import NormalClient
 
 
-class ActiveClient(NormalClient.NormalClient):
-    def __init__(self, c_id, init_lock, stop_event, selected_event, delay, index_list, config, dev):
-        NormalClient.NormalClient.__init__(self, c_id, init_lock, stop_event, selected_event, delay, index_list, config, dev)
+class ActiveClient(NormalClient):
+    def __init__(self, c_id, stop_event, selected_event, delay, index_list, config, dev):
+        NormalClient.__init__(self, c_id, stop_event, selected_event, delay, index_list, config, dev)
         self.acquire_model_delay = config['acquire_model_delay']
 
     def run(self):

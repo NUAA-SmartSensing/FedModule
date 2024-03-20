@@ -4,8 +4,8 @@ from client.TestClient import TestClient
 
 
 class DLClient(TestClient):
-    def __init__(self, c_id, init_lock, stop_event, selected_event, delay, index_list, config, dev):
-        TestClient.__init__(self, c_id, init_lock, stop_event, selected_event, delay, index_list, config, dev)
+    def __init__(self, c_id, stop_event, selected_event, delay, index_list, config, dev):
+        TestClient.__init__(self, c_id, stop_event, selected_event, delay, index_list, config, dev)
         self.init = False
 
     def wait_notify(self):

@@ -1,10 +1,10 @@
 import copy
 import time
-
 import torch
 from torch.utils.data import DataLoader
 
 from client.Client import Client
+from client.mixin.Gradient import GradientMixin
 from loss.LossFactory import LossFactory
 from utils import ModuleFindTool
 from utils.DataReader import FLDataset
@@ -12,8 +12,8 @@ from utils.Tools import to_cpu
 
 
 class NormalClient(Client):
-    def __init__(self, c_id, init_lock, stop_event, selected_event, delay, index_list, config, dev):
-        Client.__init__(self, c_id, init_lock, stop_event, selected_event, delay, index_list, dev)
+    def __init__(self, c_id, stop_event, selected_event, delay, index_list, config, dev):
+        Client.__init__(self, c_id, stop_event, selected_event, delay, index_list, dev)
         self.fl_train_ds = None
         self.opti = None
         self.loss_func = None
@@ -32,20 +32,22 @@ class NormalClient(Client):
                 self.event.clear()
                 self.message_queue.set_training_status(self.client_id, True)
                 self.wait_notify()
-                # 该client进行训练
-                data_sum, weights = self.train()
-
-                # client传回server的信息具有延迟
-                print("Client", self.client_id, "trained")
-                time.sleep(self.delay)
-
-                # 返回其ID、模型参数和时间戳
-                self.upload(data_sum, weights)
-
+                self.local_task()
                 self.message_queue.set_training_status(self.client_id, False)
             # 该client等待被选中
             else:
                 self.event.wait()
+
+    def local_task(self):
+        # 该client进行训练
+        data_sum, weights = self.train()
+
+        # client传回server的信息具有延迟
+        print("Client", self.client_id, "trained")
+        time.sleep(self.delay)
+
+        # 返回其ID、模型参数和时间戳
+        self.upload(data_sum, weights)
 
     def train(self):
         data_sum, weights = self.train_one_epoch()
@@ -105,22 +107,11 @@ class NormalClient(Client):
     def init_client(self):
         config = self.config
         self.train_ds = self.message_queue.get_train_dataset()
+
+        self.transform, self.target_transform = self._get_transform(config)
         self.fl_train_ds = FLDataset(self.train_ds, list(self.index_list), self.transform, self.target_transform)
 
-        # transform
-        if "transform" in config:
-            transform_func = ModuleFindTool.find_class_by_path(config["transform"]["path"])
-            self.transform = transform_func(**config["transform"]["params"])
-        if "target_transform" in config:
-            target_transform_func = ModuleFindTool.find_class_by_path(config["target_transform"]["path"])
-            self.target_transform = target_transform_func(**config["target_transform"]["params"])
-
-        # 本地模型
-        model_class = ModuleFindTool.find_class_by_path(config["model"]["path"])
-        for k, v in config["model"]["params"].items():
-            if isinstance(v, str):
-                config["model"]["params"][k] = eval(v)
-        self.model = model_class(**config["model"]["params"])
+        self.model = self._get_model(config)
         self.model = self.model.to(self.dev)
 
         # 优化器
@@ -131,3 +122,38 @@ class NormalClient(Client):
         self.loss_func = LossFactory(config["loss"], self).create_loss()
 
         self.train_dl = DataLoader(self.fl_train_ds, batch_size=self.batch_size, shuffle=True, drop_last=True)
+
+    @staticmethod
+    def _get_transform(config):
+        transform, target_transform = None, None
+        if "transform" in config:
+            transform_func = ModuleFindTool.find_class_by_path(config["transform"]["path"])
+            transform = transform_func(**config["transform"]["params"])
+        if "target_transform" in config:
+            target_transform_func = ModuleFindTool.find_class_by_path(config["target_transform"]["path"])
+            target_transform = target_transform_func(**config["target_transform"]["params"])
+        return transform, target_transform
+
+    @staticmethod
+    def _get_model(config):
+        # 本地模型
+        model_class = ModuleFindTool.find_class_by_path(config["model"]["path"])
+        for k, v in config["model"]["params"].items():
+            if isinstance(v, str):
+                config["model"]["params"][k] = eval(v)
+        return model_class(**config["model"]["params"])
+
+
+class NormalClientWithGrad(NormalClient, GradientMixin):
+    def __init__(self, c_id, stop_event, selected_event, delay, index_list, config, dev):
+        NormalClient.__init__(self, c_id, stop_event, selected_event, delay, index_list, config, dev)
+        GradientMixin.__init__(self)
+
+    def train(self):
+        self._save_global_model(self.model.state_dict())
+        return super().train()
+
+    def upload(self, data_sum, weights):
+        update_dict = {"client_id": self.client_id, "data_sum": data_sum,
+                       "time_stamp": self.time_stamp, "weights": self._to_gradient()}
+        self.message_queue.put_into_uplink(update_dict)

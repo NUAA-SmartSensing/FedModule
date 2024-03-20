@@ -1,16 +1,13 @@
 from abc import abstractmethod
-from threading import Thread
 
-from torch.multiprocessing import Process
-
-from utils.ProcessManager import MessageQueueFactory, mode_is_process
+from core.Runtime import running_mode
+from utils.ProcessManager import MessageQueueFactory
 
 
-class Client(Process if mode_is_process() else Thread):
-    def __init__(self, c_id, init_lock, stop_event, selected_event, delay, index_list, dev):
+class Client(running_mode()):
+    def __init__(self, c_id, stop_event, selected_event, delay, index_list, dev):
         super().__init__()
         self.model = None
-        self.init_lock = init_lock
         self.client_id = c_id
         self.event = selected_event
         self.event.clear()
