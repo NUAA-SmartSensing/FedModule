@@ -1,4 +1,6 @@
+import json
 import random
+import shutil
 
 import numpy as np
 import torch
@@ -52,6 +54,14 @@ def saveAns(filename, result):
     save.close()
 
 
+def saveJson(filename, result, indent=4):
+    try:
+        with open(filename, 'w', encoding='utf8') as fp:
+            json.dump(result, fp, indent=indent)
+    except shutil.SameFileError:
+        pass
+
+
 def result_to_markdown(filename, config):
     md = open(filename, "w")
     md.write("实验数据集: " + config["global"]["dataset"]["path"] + "\n")
@@ -65,11 +75,19 @@ def result_to_markdown(filename, config):
     md.close()
 
 
+def getJson(filename):
+    with open(filename, 'r', encoding='utf8') as fp:
+        config = json.load(fp)
+    return config
+
+
 def to_cpu(data):
     if isinstance(data, dict):
         return {k: to_cpu(v) for k, v in data.items()}
     elif isinstance(data, list):
         return [to_cpu(v) for v in data]
+    elif isinstance(data, tuple):
+        return tuple(to_cpu(v) for v in data)
     elif isinstance(data, torch.Tensor):
         return data.cpu().detach()
     else:
@@ -77,10 +95,14 @@ def to_cpu(data):
 
 
 def to_dev(data, dev):
+    if not torch.cuda.is_available():
+        return data
     if isinstance(data, dict):
         return {k: to_dev(v, dev) for k, v in data.items()}
     elif isinstance(data, list):
         return [to_dev(v, dev) for v in data]
+    elif isinstance(data, tuple):
+        return tuple(to_dev(v, dev) for v in data)
     elif isinstance(data, torch.Tensor):
         return data.to(dev)
     else:

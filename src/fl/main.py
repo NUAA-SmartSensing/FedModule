@@ -3,10 +3,8 @@ import datetime
 import os
 import shutil
 import sys
-import threading
 import time
 
-import torch
 import torch.multiprocessing as mp
 import wandb
 from torch.utils.data import DataLoader
@@ -18,12 +16,12 @@ from utils.GlobalVarGetter import GlobalVarGetter
 from utils.ProcessManager import MessageQueueFactory
 from utils.Tools import *
 from utils import ModuleFindTool
-from utils.ConfigManager import *
-from exception import ClientSumError
+
 
 def generate_random_seed():
-    seed = int(time.time()*1000) % 2147483647
+    seed = int(time.time() * 1000) % 2147483647
     return seed
+
 
 def _read_data(dataset):
     data = []
@@ -50,6 +48,7 @@ def send_dataset(train_dataset, test_dataset, message_queue, global_config):
     else:
         message_queue.set_train_dataset(train_dataset)
         message_queue.set_test_dataset(test_dataset)
+    return train_dataset, test_dataset
 
 
 def generate_client_stale_list(global_config):
@@ -64,13 +63,21 @@ def generate_client_stale_list(global_config):
         stale_generator = ModuleFindTool.find_class_by_path(stale["path"])()(stale["params"])
         client_staleness_list = stale_generator.generate_staleness_list()
     else:
-        total_sum = 0
-        for i in stale['list']:
-            total_sum += i
-        if total_sum != global_config['client_num']:
-            raise ClientSumError.ClientSumError()
+        total_sum = sum(stale['list'])
+        if total_sum < global_config['client_num']:
+            raise Exception("The sum of the client number in stale list must not less than the client number.")
         client_staleness_list = generate_stale_list(stale['step'], stale['shuffle'], stale['list'])
     return client_staleness_list
+
+
+def get_client_data_distri(index_lists, targets):
+    client_num = len(index_lists)
+    label_counts = [{i: 0 for i in range(10)} for j in range(client_num)]
+    for i, index_list in enumerate(index_lists):
+        for index in index_list:
+            label_counts[i][int(targets[index])] += 1
+        print(f'({i}, {len(index_list)}, {label_counts[i]})')
+    return label_counts
 
 
 def main():
@@ -84,7 +91,7 @@ def main():
     else:
         config_file = sys.argv[1]
 
-    config = getConfig(config_file)
+    config = getJson(config_file)
 
     # 随机数种子
     if "seed" not in config["global"]:
@@ -149,7 +156,7 @@ def main():
 
     # 客户端延迟文件生成
     client_staleness_list = generate_client_stale_list(global_config)
-    client_config["stale_list"] = client_staleness_list
+    client_manager_config["stale_list"] = client_staleness_list
     global_var['client_staleness_list'] = client_staleness_list
 
     # 生成dataset
@@ -157,15 +164,18 @@ def main():
     dataset = dataset_class(global_config["client_num"], global_config["iid"], global_config["dataset"]["params"])
     train_dataset = dataset.get_train_dataset()
     test_dataset = dataset.get_test_dataset()
-    send_dataset(train_dataset, test_dataset, message_queue, global_config)
+    train_dataset, test_dataset = send_dataset(train_dataset, test_dataset, message_queue, global_config)
     index_list = dataset.get_index_list()
-    client_config["index_list"] = index_list
+    client_manager_config["index_list"] = index_list
     global_var['client_index_list'] = index_list
 
     # 启动client_manager
     client_manager_class = ModuleFindTool.find_class_by_path(client_manager_config["path"])
     client_manager = client_manager_class(config)
     client_manager.start_all_clients()
+
+    # 获取数据集分布
+    label_counts = get_client_data_distri(index_list, train_dataset.targets)
 
     # wandb启动配置植入update_config中
     server_config['updater']['enabled'] = wandb_config['enabled']
@@ -182,7 +192,6 @@ def main():
 
     del server
 
-
     print("Time used:")
     end_time = datetime.datetime.now()
     print(end_time - start_time)
@@ -191,14 +200,9 @@ def main():
 
     # 保存配置文件
     if is_cover:
-        try:
-            raw_config['global']['stale'] = client_staleness_list
-            with open(
-                    os.path.join(os.path.dirname(os.path.abspath(__file__)), "../results/", global_config["experiment"],
-                                 "config.json"), "w") as r:
-                json.dump(raw_config, r, indent=4)
-        except shutil.SameFileError:
-            pass
+        raw_config['global']['stale'] = client_staleness_list
+        saveJson(os.path.join(os.path.dirname(os.path.abspath(__file__)), "../results/", global_config["experiment"],
+                 "config.json"), raw_config)
 
         # 保存结果
         saveAns(os.path.join(os.path.dirname(os.path.abspath(__file__)), "../results/", global_config["experiment"],
@@ -207,6 +211,8 @@ def main():
                              "loss.txt"), list(loss_list))
         saveAns(os.path.join(os.path.dirname(os.path.abspath(__file__)), "../results/", global_config["experiment"],
                              "time.txt"), end_time - start_time)
+        saveJson(os.path.join(os.path.dirname(os.path.abspath(__file__)), "../results/", global_config["experiment"],
+                              "data_distribution.json"), label_counts)
         result_to_markdown(
             os.path.join(os.path.dirname(os.path.abspath(__file__)), "../results/", global_config["experiment"],
                          "实验阐述.md"), config)
@@ -214,13 +220,9 @@ def main():
             saveAns(os.path.join(wandb.run.dir, "accuracy.txt"), list(accuracy_list))
             saveAns(os.path.join(wandb.run.dir, "loss.txt"), list(loss_list))
             saveAns(os.path.join(wandb.run.dir, "time.txt"), end_time - start_time)
+            saveJson(os.path.join(wandb.run.dir, "data_distribution.json"), label_counts)
+            saveJson(os.path.join(wandb.run.dir, "config.json"), raw_config)
             result_to_markdown(os.path.join(wandb.run.dir, "实验阐述.md"), config)
-            try:
-                raw_config['global']['stale'] = client_staleness_list
-                with open(os.path.join(wandb.run.dir, "config.json"), "w") as r:
-                    json.dump(raw_config, r, indent=4)
-            except shutil.SameFileError:
-                pass
 
 
 def cleanup():

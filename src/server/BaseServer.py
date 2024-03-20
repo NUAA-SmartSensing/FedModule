@@ -39,16 +39,18 @@ class BaseServer:
 
         # 对模型非更新参数进行检测
         d = self.server_network.state_dict()
-        w = [v for v in self.server_network.parameters()]
+        w = list(self.server_network.parameters())
         i = 0
         training_params = {}
         for k in d:
-            if not d[k].equal(w[i]):
+            try:
+                if isinstance(w[i], type(d[k])) and d[k].equal(w[i]):
+                    i += 1
+                    training_params[k] = True
+                else:
+                    training_params[k] = False
+            except:
                 training_params[k] = False
-            else:
-                i += 1
-                training_params[k] = True
-
         self.message_queue.set_training_params(training_params)
 
         # 计时变量

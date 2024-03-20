@@ -12,5 +12,6 @@ class UpdateCaller:
         if torch.cuda.is_available():
             update_list = to_dev(update_list, 'cuda')
         # 确保返参进入CPU
-        a, b = self.updater.update_method.update_server_weights(epoch, update_list)
-        return to_cpu(a), to_cpu(b)
+        result = self.updater.update_method.update_server_weights(epoch, update_list)
+        return to_cpu(result)
+
