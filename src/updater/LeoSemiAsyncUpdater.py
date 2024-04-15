@@ -25,7 +25,7 @@ class LeoSemiAsyncUpdater(BaseUpdater):
             self.full_sem.acquire()
             self.mutex_sem.acquire()
             epoch = self.current_time.get_time()
-            update_list = [] # 获取从queue_manager下对应group下的clients的updaye
+            update_list = [] # 获取从queue_manager下对应group下的clients的update
             # 接收所有的更新
             while not self.queue_manager.empty(self.queue_manager.group_ready_num): # 即组下都更新完,group_ready_num指本轮训练的group_id非数量
                 update_list.append(self.queue_manager.get(self.queue_manager.group_ready_num)) #待更新的group下的update
@@ -37,6 +37,7 @@ class LeoSemiAsyncUpdater(BaseUpdater):
 
             self.server_thread_lock.acquire()
             self.update_server_weights(epoch, self.group_manager.network_list) # 传的是聚合后的模型 network_list[],包含每个组的加过
+            print('Updated Model to Server: Group ', self.queue_manager.group_ready_num)
             self.run_server_test(epoch)
             self.server_thread_lock.release()
             time.sleep(0.01)
