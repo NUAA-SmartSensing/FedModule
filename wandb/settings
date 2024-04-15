@@ -1,0 +1,5 @@
+[default]
+entity = leofl
+project = leosync
+base_url = https://api.wandb.ai
+
