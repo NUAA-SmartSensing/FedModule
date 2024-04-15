@@ -7,12 +7,7 @@
     "global": {
         "dataset_pre_load": true,
         "use_file_system": false,
-        "multi_gpu": [
-            1,
-            1,
-            0,
-            1
-        ],
+        "multi_gpu": false,
         "experiment": "LeoSync/Delta-LeoFedAt-baseline",
         "stale": false,
         "dataset": {

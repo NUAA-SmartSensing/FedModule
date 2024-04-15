@@ -37,6 +37,7 @@ class SemiAsyncUpdater(BaseUpdater):
 
             self.server_thread_lock.acquire()
             self.update_server_weights(epoch, self.group_manager.network_list) # 传的是聚合后的模型 network_list[],包含每个组的加过
+            print('Updated Model to Server: Group ', self.queue_manager.group_ready_num)
             self.run_server_test(epoch)
             self.server_thread_lock.release()
             time.sleep(0.01)
