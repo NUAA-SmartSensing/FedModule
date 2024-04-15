@@ -2,20 +2,25 @@
     "wandb": {
         "enabled": true,
         "project": "FedLeo",
-        "name": "resnet18-LeoFedAt-lr_scheduler_niid"
+        "name": "resnet18-LeoFedAt-lr_scheduler_niid5"
     },
     "global": {
         "dataset_pre_load": true,
         "use_file_system": false,
-        "multi_gpu": false,
-        "experiment": "FedLeo/resnet18-LeoFedAt-lr_scheduler_niid",
+        "multi_gpu": [
+            0,
+            1,
+            1,
+            1
+        ],
+        "experiment": "FedLeo/resnet18-LeoFedAt-lr_scheduler_niid5",
         "stale": false,
         "dataset": {
             "path": "dataset.CIFAR10.CIFAR10",
             "params": {}
         },
         "iid": {
-            "beta": 0.6
+            "beta": 5
         },
         "client_num": 66
     },
@@ -76,7 +81,7 @@
     "client": {
         "path": "client.SemiClient.SemiClient",
         "epochs": 5,
-        "batch_size": 50,
+        "batch_size": 32,
         "model": {
             "path": "torchvision.models.resnet.resnet18",
             "params": {
@@ -84,7 +89,7 @@
             }
         },
         "loss": "torch.nn.functional.cross_entropy",
-        "mu": 0.01,
+        "mu": 0.001,
         "optimizer": {
             "path": "torch.optim.SGD",
             "params": {

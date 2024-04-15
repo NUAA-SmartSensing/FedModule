@@ -27,6 +27,7 @@ class LeoAsyncScheduler(BaseScheduler):
                 # 如果server已收到且未使用的client更新数小于schedule delay，则进行schedule。如果过多就不继续触发client进行新一轮的训练，等待updater完成调度后再schedule。
                 if self.queue_manager.size() <= self.schedule_delay:
                     last_s_time = current_time
+                    # Leo背景下，就不存在主动选了，而是指定相应的客户端
                     print("Begin client select")
                     selected_clients = self.client_select()
                     print("\nSchedulerThread select(", len(selected_clients), "clients):")

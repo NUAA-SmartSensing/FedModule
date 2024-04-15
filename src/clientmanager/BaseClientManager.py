@@ -101,7 +101,7 @@ class BaseClientManager:
             
             if isinstance(self.multi_gpu,list):
                 mode = 0
-                for i in range(len(dev_total)):
+                for i in range(dev_total):
                     dev_list[i] *= self.multi_gpu[i]
             elif isinstance(self.multi_gpu,bool):
                 if self.multi_gpu:

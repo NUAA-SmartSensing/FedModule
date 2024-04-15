@@ -12,7 +12,10 @@ class LeoSemiAsyncScheduler(BaseScheduler.BaseScheduler):
         self.full_sem = full_sem
         self.updater = self.global_var['updater']
         self.group_manager = self.global_var['group_manager']
-        self.global_var['access_group_info'] = pd.read_csv(self.config["scheduler_access"])
+        if self.config["scheduler_access"].split('.')[-1] == 'csv':
+            self.global_var['access_group_info'] = pd.read_csv(self.config["scheduler_access"])
+        else:
+            self.global_var['access_group_info'] = pd.read_excel(self.config["scheduler_access"])
 
     def run(self):
         last_s_time = -1

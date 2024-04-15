@@ -4,6 +4,7 @@ from numgenerator.NumGeneratorFactory import NumGeneratorFactory
 from updater.BaseUpdater import BaseUpdater
 
 
+
 class AsyncUpdater(BaseUpdater):
     def __init__(self, server_thread_lock, stop_event, config, mutex_sem, empty_sem, full_sem):
         BaseUpdater.__init__(self, server_thread_lock, stop_event, config)

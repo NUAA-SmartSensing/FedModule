@@ -1,0 +1,92 @@
+{
+  "wandb": {
+    "enabled": true,
+    "project": "FedLeo",
+    "name": "FedAvg-baseline-adam-bs32"
+  },
+  "global": {
+    "dataset_pre_load": true,
+    "use_file_system": false,
+    "multi_gpu": [
+      0,
+      1,
+      1,
+      1
+    ],
+    "experiment": "FedLeo/FedAvg-baseline-adam-bs32",
+    "stale": false,
+    "dataset": {
+      "path": "dataset.CIFAR10.CIFAR10",
+      "params": {}
+    },
+    "iid": false,
+    "client_num": 66
+  },
+  "server": {
+    "path": "server.SyncServer.SyncServer",
+    "epochs": 1500,
+    "model": {
+      "path": "torchvision.models.resnet.resnet18",
+      "params": {
+        "num_classes": 10
+      }
+    },
+    "scheduler": {
+      "path": "scheduler.SyncScheduler.SyncScheduler",
+      "schedule": {
+        "path": "schedule.RandomSchedule.RandomSchedule",
+        "params": {
+          "c_ratio": 0.17
+        }
+      }
+    },
+    "updater": {
+      "path": "updater.SyncUpdater.SyncUpdater",
+      "loss": "torch.nn.functional.cross_entropy",
+      "update": {
+        "path": "update.FedAvg.FedAvg",
+        "params": {}
+      }
+    }
+  },
+  "queue_manager": {
+    "path": "queuemanager.SingleQueueManager.SingleQueueManager",
+    "receiver": {
+      "path": "receiver.NormalReceiver.NormalReceiver",
+      "params": {}
+    },
+    "checker": {
+      "path": "checker.SyncChecker.SyncChecker",
+      "params": {}
+    }
+  },
+  "client_manager": {
+    "path": "clientmanager.NormalClientManager.NormalClientManager"
+  },
+  "client": {
+    "path": "client.NormalClient.NormalClient",
+    "epochs": 5,
+    "batch_size": 50,
+    "model": {
+      "path": "torchvision.models.resnet.resnet18",
+      "params": {
+        "num_classes": 10
+      }
+    },
+    "loss": "torch.nn.functional.cross_entropy",
+    "mu": 0.001,
+    "optimizer": {
+      "path": "torch.optim.SGD",
+      "params": {
+        "lr": 0.1,
+        "weight_decay": 0.01
+      }
+    },
+    "lr_scheduler": {
+      "path": "torch.optim.lr_scheduler.ExponentialLR",
+      "params": {
+        "gamma": 0.995
+      }
+    }
+  }
+}
