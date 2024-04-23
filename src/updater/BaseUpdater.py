@@ -84,9 +84,9 @@ class BaseUpdater(threading.Thread):
             loss = test_loss / len(dl)
             self.loss_list.append(loss)
             self.accuracy_list.append(accuracy)
-            print('Epoch(t):', epoch, 'accuracy:', accuracy, 'loss', loss)
+            print('Epoch(t):', epoch,'end_idx:', self.global_var['end_idx'], 'accuracy:', accuracy, 'loss', loss)
             if self.config['enabled']:
-                wandb.log({'accuracy': accuracy, 'loss': loss})
+                wandb.log({'accuracy': accuracy, 'loss': loss, 'idx': self.global_var['end_idx']})
         return accuracy, loss
 
     def get_accuracy_and_loss_list(self):

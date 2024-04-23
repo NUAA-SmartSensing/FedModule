@@ -10,8 +10,8 @@
     "multi_gpu": [
       0,
       1,
-      0,
-      1
+      1,
+      0
     ],
     "experiment": "LeoSync/FedAvg-baseline",
     "stale": false,
@@ -85,7 +85,7 @@
     "lr_scheduler": {
       "path": "torch.optim.lr_scheduler.ExponentialLR",
       "params": {
-        "gamma": 0.998
+        "gamma": 0.995
       }
     }
   }
