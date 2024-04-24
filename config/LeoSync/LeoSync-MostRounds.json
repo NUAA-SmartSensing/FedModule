@@ -2,7 +2,7 @@
 	"wandb": {
 		"enabled": true,
 		"project": "LeoSync",
-		"name": "FedAvg-MostRounds"
+		"name": "FedAvg-MostRounds-iid0.1"
 	},
 	"global": {
 		"dataset_pre_load": true,
@@ -10,16 +10,18 @@
 		"multi_gpu": [
 			1,
 			1,
-			1,
-			1
+			0,
+			0
 		],
-		"experiment": "LeoSync/FedAvg-MostRounds",
+		"experiment": "LeoSync/FedAvg-MostRounds-iid0.1",
 		"stale": false,
 		"dataset": {
 			"path": "dataset.CIFAR10.CIFAR10",
 			"params": {}
 		},
-		"iid": true,
+		"iid": {
+			"beta": 0.1
+		},
 		"client_num": 100
 	},
 	"server": {

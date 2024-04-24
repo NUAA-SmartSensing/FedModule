@@ -2,24 +2,26 @@
 	"wandb": {
 		"enabled": true,
 		"project": "LeoSync",
-		"name": "FedAvg-FIFO"
+		"name": "FedAvg-FIFO-iid0.1"
 	},
 	"global": {
 		"dataset_pre_load": true,
 		"use_file_system": false,
 		"multi_gpu": [
 			0,
-			1,
+			0,
 			1,
 			1
 		],
-		"experiment": "LeoSync/FedAvg-FIFO",
+		"experiment": "LeoSync/FedAvg-FIFO-iid0.1",
 		"stale": false,
 		"dataset": {
 			"path": "dataset.CIFAR10.CIFAR10",
 			"params": {}
 		},
-		"iid": true,
+		"iid": {
+			"beta": 0.1
+		},
 		"client_num": 100
 	},
 	"server": {
