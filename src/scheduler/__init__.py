@@ -4,3 +4,4 @@ from scheduler import SyncScheduler
 from scheduler import LeoSemiAsyncScheduler
 from scheduler import LeoAsyncScheduler
 from scheduler import LeoSyncScheduler
+from scheduler import LeoGroupSyncScheduler

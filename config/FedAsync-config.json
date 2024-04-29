@@ -26,8 +26,8 @@
     },
     "scheduler": {
       "path": "scheduler.AsyncScheduler.AsyncScheduler",
-      "schedule_interval": 8,
-      "schedule_delay": 20,
+      "schedule_interval": 1,
+      "schedule_delay": 1,
       "schedule": {
         "path": "schedule.RandomSchedule.RandomSchedule",
         "params": {

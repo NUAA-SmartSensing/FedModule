@@ -18,11 +18,12 @@ class LeoSyncServer(BaseServer.BaseServer):
         self.queue_manager = queue_manager_class(self.queue_manager_config)
         self.global_var['queue_manager'] = self.queue_manager
 
-        #创建group_manager
-        self.group_manager_config = config['group_manager']
-        group_manager_class = ModuleFindTool.find_class_by_path(self.group_manager_config['path'])
-        self.group_manager = group_manager_class(self.group_manager_config)
-        self.global_var['group_manager'] = self.group_manager
+        if 'group_manager' in config.keys():
+            #创建group_manager
+            self.group_manager_config = config['group_manager']
+            group_manager_class = ModuleFindTool.find_class_by_path(self.group_manager_config['path'])
+            self.group_manager = group_manager_class(self.group_manager_config)
+            self.global_var['group_manager'] = self.group_manager
 
         scheduler_class = ModuleFindTool.find_class_by_path(self.server_config['scheduler']['path'])
         self.scheduler_thread = scheduler_class(self.server_thread_lock, self.server_config["scheduler"],

@@ -42,8 +42,8 @@ class BaseScheduler(threading.Thread):
 
     def send_weights(self, client_id, current_time, schedule_time):
         self.message_queue.put_into_downlink(client_id, 'weights_buffer', to_cpu(self.server_weights)) # 将updated的模型传给指定的client
-        self.message_queue.put_into_downlink(client_id, 'time_stamp_buffer', current_time)
-        self.message_queue.put_into_downlink(client_id, 'schedule_time_stamp_buffer', schedule_time)
+        self.message_queue.put_into_downlink(client_id, 'time_stamp_buffer', current_time) # 将当前时间戳传给指定的client
+        self.message_queue.put_into_downlink(client_id, 'schedule_time_stamp_buffer', schedule_time) # 将schedule时间戳传给指定的client
         self.message_queue.put_into_downlink(client_id, 'received_weights', True)
         self.message_queue.put_into_downlink(client_id, 'received_time_stamp', True)
 

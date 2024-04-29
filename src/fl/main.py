@@ -179,6 +179,7 @@ def main():
 
     # wandb启动配置植入update_config中
     server_config['updater']['enabled'] = wandb_config['enabled']
+    server_config['updater']['use_step'] = global_config['use_step']
     server_class = ModuleFindTool.find_class_by_path(server_config["path"])
     server = server_class(config)
     server.run()

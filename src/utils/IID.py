@@ -31,12 +31,43 @@ def generate_iid_data(dataset, clients):
 
 
 def generate_non_iid_data(iid_config, dataset, clients, left, right, datasets):
+
+
     if "customize" in iid_config.keys() and iid_config["customize"]:
         label_config = iid_config['label']
         data_config = iid_config['data']
         return customize_distribution(label_config, data_config, dataset, clients, left, right, datasets)
+    elif 'group_similarity' in iid_config.keys() and iid_config['group_similarity']:
+        return group_similarity_distribution(iid_config, dataset, clients, left, right)
     else:
         return dirichlet_distribution(iid_config, dataset, clients, left, right)
+    
+def group_similarity_distribution(iid_config, dataset, clients, left, right):
+    label_lists = []
+    label_num_list = iid_config['label']
+    label_total = 0
+    for label_num in label_num_list:
+        label_total = label_total + label_num
+    epoch = int(label_total // (right - left)) + 1
+    label_all_list = []
+    for i in range(epoch):
+        label_all_list = label_all_list + Random.shuffle_random(left, right)
+    pos = 0
+    for label_num in label_num_list:
+        label_lists.append(label_all_list[pos: pos + label_num])
+        pos += label_num
+    client_idx = []
+    for i in range(clients):
+        client_idx.append([])
+    for i in range(len(label_lists)):
+        index_list = []
+        for j in range(len(label_lists[i])):
+            ids = np.flatnonzero(dataset.train_labels == label_lists[i][j])
+            index_list.append(ids)
+        index_list = np.hstack(index_list)
+        client_idx[i % clients] += index_list.tolist()
+    return client_idx
+
 
 
 def customize_distribution(label_config, data_config, dataset, clients, left, right, datasets):

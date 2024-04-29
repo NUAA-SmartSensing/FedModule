@@ -13,6 +13,7 @@
 			0,
 			0
 		],
+		"use_step": true,
 		"experiment": "LeoSync/FedAvg-MostRounds-iid0.1",
 		"stale": false,
 		"dataset": {
@@ -34,7 +35,7 @@
 			}
 		},
 		"scheduler": {
-			"path": "scheduler.LeoSyncScheduler.LeoSyncScheduler",
+			"path": "scheduler.LeoGroupSyncScheduler.LeoGroupSyncScheduler",
 			"schedule_algo": {
 				"path": "algorithm.LeoSync.MostRoundsLeoSync",
 				"params": {}
@@ -45,7 +46,7 @@
 					"c_ratio": 0.5
 				}
 			},
-			"scheduler_access": "./src/access/WalkerDelta/walker_delta_sats_min_seq_31days.csv"
+			"scheduler_access": "./src/access/WalkerDelta/walker_delta_sats_H4_12_min_seq_31days.csv"
 		},
 		"updater": {
 			"path": "updater.SyncUpdater.SyncUpdater",

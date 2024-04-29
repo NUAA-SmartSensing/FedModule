@@ -18,8 +18,12 @@ class LeoSyncScheduler(BaseScheduler):
 
         #具体的选择算法
         schedule_algo_class = ModuleFindTool.find_class_by_path(config["schedule_algo"]["path"])
-        self.schedule_algo = schedule_algo_class(config, self.global_var['access_group_info'])
+        self.schedule_algo = schedule_algo_class(config, self.global_var['access_group_info'],**config["schedule_algo"]["params"])
         # self.schedule_caller = ScheduleCaller(self)
+
+        self.global_var['T'], *a = self.schedule_algo.get_status()
+        self.T = self.global_var['T']
+
 
     def run(self):
         last_s_time = -1
@@ -35,10 +39,10 @@ class LeoSyncScheduler(BaseScheduler):
                 print("| current_epoch |", current_time)
                 print("Begin client select")
                 last_s_time = current_time
-                # selected group_id && client_id 
-                group_ids,self.global_var['end_idx'] = self.schedule_algo.next(self.current_t.get_time())
-                print("Selected group: ", group_ids)
-                selected_client = self.client_select(group_ids)
+                # selected client_id 
+                sats,self.global_var['end_idx'] = self.schedule_algo.next(self.current_t.get_time())
+                # print("Selected sats: ", group_ids)
+                selected_client = self.client_select(sats)
                 print("\nSchedulerThread select(", len(selected_client), "clients):")
                 for client_id in selected_client:
                     print(client_id, end=" | ")
@@ -54,9 +58,7 @@ class LeoSyncScheduler(BaseScheduler):
                 self.full_sem.release()
                 time.sleep(0.01)
 
-    def client_select(self, *args, **kwargs):
-        selected_clients = []
-        for group in args[0]:
-            client_list = self.group_manager.get_group_list()[group]
-            selected_clients.extend(self.schedule_caller.schedule(client_list))
+    def client_select(self, sats):
+        # client_list = self.global_var['client_id_list']
+        selected_clients = self.schedule_caller.schedule(sats)
         return selected_clients

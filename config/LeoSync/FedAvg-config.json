@@ -2,18 +2,19 @@
   "wandb": {
     "enabled": true,
     "project": "LeoSync",
-    "name": "FedAvg-baseline"
+    "name": "FedAvg-baseline-100"
   },
   "global": {
     "dataset_pre_load": true,
     "use_file_system": false,
     "multi_gpu": [
+      1,
+      1,
       0,
-      1,
-      1,
       0
     ],
-    "experiment": "LeoSync/FedAvg-baseline",
+    "use_step": false,
+    "experiment": "LeoSync/FedAvg-baseline-100",
     "stale": false,
     "dataset": {
       "path": "dataset.CIFAR10.CIFAR10",
