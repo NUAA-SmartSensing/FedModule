@@ -9,7 +9,7 @@ class TestClient(NormalClient, TestableMixin):
 
     def run(self):
         super().run()
-        experiment = self.message_queue.get_config("global_config")['experiment']
+        experiment = self.global_var["global_config"]['experiment']
         self.save_test_record(self.client_id, experiment)
 
     def train(self):

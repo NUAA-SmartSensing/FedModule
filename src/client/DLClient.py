@@ -8,7 +8,7 @@ class DLClient(TestClient):
         TestClient.__init__(self, c_id, stop_event, selected_event, delay, index_list, config, dev)
         self.init = False
 
-    def wait_notify(self):
+    def receive_notify(self):
         if self.message_queue.get_from_downlink(self.client_id, 'received_weights'):
             self.message_queue.put_into_downlink(self.client_id, 'received_weights', False)
             self.weights_buffer = self.message_queue.get_from_downlink(self.client_id, 'weights_buffer')

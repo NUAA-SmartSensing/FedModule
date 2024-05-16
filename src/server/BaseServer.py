@@ -6,7 +6,7 @@ from torch.multiprocessing import Event
 from utils import ModuleFindTool, Time
 from utils.DataReader import FLDataset
 from utils.GlobalVarGetter import GlobalVarGetter
-from utils.ProcessManager import DataGetter, MessageQueueFactory
+from core.MessageQueue import DataGetter, MessageQueueFactory
 
 
 class BaseServer:

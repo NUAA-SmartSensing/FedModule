@@ -2,7 +2,7 @@ from client.NormalClient import NormalClient
 
 
 class BNClient(NormalClient):
-    def wait_notify(self):
+    def receive_notify(self):
         if self.message_queue.get_from_downlink(self.client_id, 'received_weights'):
             if self.training_params is None:
                 self.training_params = self.message_queue.get_training_params()

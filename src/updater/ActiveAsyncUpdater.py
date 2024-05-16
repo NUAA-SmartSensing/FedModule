@@ -2,7 +2,7 @@ import copy
 import time
 
 from updater.AsyncUpdater import AsyncUpdater
-from utils.ProcessManager import MessageQueueFactory
+from core.MessageQueue import MessageQueueFactory
 
 
 class ActiveAsyncUpdater(AsyncUpdater):

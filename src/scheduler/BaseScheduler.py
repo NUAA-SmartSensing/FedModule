@@ -5,7 +5,7 @@ from abc import abstractmethod
 from schedule.ScheduleCaller import ScheduleCaller
 from utils import ModuleFindTool
 from utils.GlobalVarGetter import GlobalVarGetter
-from utils.ProcessManager import MessageQueueFactory
+from core.MessageQueue import MessageQueueFactory
 from utils.Tools import to_cpu
 
 

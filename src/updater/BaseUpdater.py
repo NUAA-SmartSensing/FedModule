@@ -9,7 +9,7 @@ from loss.LossFactory import LossFactory
 from update.UpdateCaller import UpdateCaller
 from utils import ModuleFindTool
 from utils.GlobalVarGetter import GlobalVarGetter
-from utils.ProcessManager import MessageQueueFactory
+from core.MessageQueue import MessageQueueFactory
 from utils.Tools import to_cpu, to_dev
 
 

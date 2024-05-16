@@ -1,4 +1,5 @@
 from receiver.NoneReceiver import NoneReceiver
+from receiver.TimeSliceReceiverWrapper import TimeSliceReceiverWrapper
 
 
 class ReceiverCaller:
@@ -9,4 +10,4 @@ class ReceiverCaller:
         if isinstance(self.queue_manager.receiver, NoneReceiver):
             return self.queue_manager.receiver.receive()
         else:
-            return self.queue_manager.receiver.receive(queue, nums)
+            return self.queue_manager.receiver.receive(queue, nums, *args, **kwargs)

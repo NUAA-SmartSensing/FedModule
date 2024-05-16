@@ -1,7 +1,6 @@
 import copy
 import datetime
 import os
-import shutil
 import sys
 import time
 
@@ -9,11 +8,13 @@ import torch.multiprocessing as mp
 import wandb
 from torch.utils.data import DataLoader
 
+from core.Runtime import running_mode
+
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from utils.DataReader import CustomDataset
 from utils.GlobalVarGetter import GlobalVarGetter
-from utils.ProcessManager import MessageQueueFactory
+from core.MessageQueue import MessageQueueFactory
 from utils.Tools import *
 from utils import ModuleFindTool
 
@@ -118,7 +119,7 @@ def main():
                          'client_manager_config': client_manager_config,
                          'queue_manager_config': queue_manager_config})
     global_var = GlobalVarGetter.get()
-    message_queue = MessageQueueFactory.create_message_queue()
+    message_queue = MessageQueueFactory.create_message_queue(True)
     message_queue.set_config(global_var)
 
     # 实验路径相关
@@ -170,6 +171,8 @@ def main():
     global_var['client_index_list'] = index_list
 
     # 启动client_manager
+    # get the running mode of client
+    running_mode(config)
     client_manager_class = ModuleFindTool.find_class_by_path(client_manager_config["path"])
     client_manager = client_manager_class(config)
     client_manager.start_all_clients()
@@ -236,7 +239,7 @@ def cleanup():
 
 if __name__ == '__main__':
     try:
-        mp.set_start_method('forkserver')
+        mp.set_start_method('spawn', force=True)
         main()
     finally:
         cleanup()

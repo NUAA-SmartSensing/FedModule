@@ -1,9 +1,11 @@
 import time
 
+from receiver.AbstractReceiver import AbstractReceiver
 
-class MultiQueueReceiver:
+
+class MultiQueueReceiver(AbstractReceiver):
     def __init__(self, config):
-        self.config = config
+        super().__init__(config)
 
     def receive(self, queue, nums):
         # 第i组/层全都上传完成

@@ -2,7 +2,7 @@ from clientmanager.BaseClientManager import BaseClientManager
 from core.Runtime import CLIENT_STATUS
 from utils import ModuleFindTool
 from utils.GlobalVarGetter import GlobalVarGetter
-from utils.ProcessManager import EventFactory
+from core.MessageQueue import EventFactory
 
 
 class NormalClientManager(BaseClientManager):
@@ -55,11 +55,12 @@ class NormalClientManager(BaseClientManager):
         # 终止所有client线程
         for i in range(self.clients_num):
             self.stop_client_by_id(i)
-            self.client_status[i] = CLIENT_STATUS['stopped']
+            self.client_status[i] = CLIENT_STATUS['exited']
 
     def stop_client_by_id(self, client_id):
         self.stop_event_list[client_id].set()
         self.selected_event_list[client_id].set()
+        self.client_status[client_id] = CLIENT_STATUS['exited']
 
     def create_and_start_new_client(self, client_delay, dev='cpu'):
         client_id = len(self.client_list)

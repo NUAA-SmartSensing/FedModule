@@ -1,6 +1,9 @@
-class NoneReceiver:
-    def __init__(self, config):
-        self.config = config
+from receiver.AbstractReceiver import AbstractReceiver
 
-    def receive(self, queue):
+
+class NoneReceiver(AbstractReceiver):
+    def __init__(self, config):
+        super().__init__(config)
+
+    def receive(self):
         pass

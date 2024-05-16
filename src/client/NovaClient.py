@@ -4,8 +4,8 @@ from client.NormalClient import NormalClient
 
 
 class NovaClient(NormalClient):
-    def __init__(self, c_id, stop_event, selected_event, delay, train_ds, index_list, config, dev):
-        NormalClient.__init__(self, c_id, stop_event, selected_event, delay, train_ds, index_list, config, dev)
+    def __init__(self, c_id, stop_event, selected_event, delay, index_list, config, dev):
+        NormalClient.__init__(self, c_id, stop_event, selected_event, delay, index_list, config, dev)
         self.tau = 0
 
     def train_one_epoch(self):

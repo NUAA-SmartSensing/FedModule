@@ -1,10 +1,10 @@
 import copy
 import time
+
 import torch
 from torch.utils.data import DataLoader
 
 from client.Client import Client
-from client.mixin.Gradient import GradientMixin
 from loss.LossFactory import LossFactory
 from utils import ModuleFindTool
 from utils.DataReader import FLDataset
@@ -12,6 +12,31 @@ from utils.Tools import to_cpu
 
 
 class NormalClient(Client):
+    r"""
+    This class inherits from Client and implements a basic Client.
+
+    Attributes:
+    fl_train_ds: FLDataset
+        Local training dataset
+    opti: Object
+        Optimizer
+    loss_func: Object
+        Loss function
+    train_dl: torch.utils.data.DataLoader
+        Training data loader
+    batch_size: int
+        Batch size
+    epoch: int
+        Epoch number
+    optimizer_config: dict
+        Optimizer configuration
+    mu: float
+        Regularization coefficient
+    config: dict
+        Configuration
+    dev: str
+        Device
+    """
     def __init__(self, c_id, stop_event, selected_event, delay, index_list, config, dev):
         Client.__init__(self, c_id, stop_event, selected_event, delay, index_list, dev)
         self.fl_train_ds = None
@@ -25,26 +50,39 @@ class NormalClient(Client):
         self.config = config
 
     def run(self):
+        """
+        The primary running function of Client is used for clients with a base class of process,
+        which executes before being woken up by the server.
+        """
         self.init_client()
         while not self.stop_event.is_set():
             # 该client被选中，开始执行本地训练
             if self.event.is_set():
                 self.event.clear()
-                self.message_queue.set_training_status(self.client_id, True)
-                self.wait_notify()
-                self.local_task()
-                self.message_queue.set_training_status(self.client_id, False)
+                self.local_run()
             # 该client等待被选中
             else:
                 self.event.wait()
 
+    def local_run(self):
+        """
+        The run function of Client runs the main body, suitable for use as a target parameter of process.
+        """
+        self.message_queue.set_training_status(self.client_id, True)
+        self.receive_notify()
+        self.local_task()
+        self.message_queue.set_training_status(self.client_id, False)
+
     def local_task(self):
+        """
+        The local task of Client, namely, the detailed process of training a model.
+        """
         # 该client进行训练
         data_sum, weights = self.train()
 
         # client传回server的信息具有延迟
         print("Client", self.client_id, "trained")
-        time.sleep(self.delay)
+        self.delay_simulate(self.delay)
 
         # 返回其ID、模型参数和时间戳
         self.upload(data_sum, weights)
@@ -54,11 +92,17 @@ class NormalClient(Client):
         return data_sum, to_cpu(weights)
 
     def upload(self, data_sum, weights):
+        """
+        The detailed parameters uploaded to the server by Client.
+        """
         update_dict = {"client_id": self.client_id, "weights": weights, "data_sum": data_sum,
                        "time_stamp": self.time_stamp}
         self.message_queue.put_into_uplink(update_dict)
 
     def train_one_epoch(self):
+        """
+        The training function of Client, used for model training.
+        """
         if self.mu != 0:
             global_model = copy.deepcopy(self.model)
         # 设置迭代次数
@@ -88,7 +132,11 @@ class NormalClient(Client):
         torch.cuda.empty_cache()
         return data_sum, weights
 
-    def wait_notify(self):
+    def receive_notify(self):
+        """
+        Receive server notifications,
+        including whether model parameters are received and timestamp information, etc.
+        """
         if self.message_queue.get_from_downlink(self.client_id, 'received_weights'):
             if self.training_params is None:
                 self.training_params = self.message_queue.get_training_params()
@@ -123,6 +171,16 @@ class NormalClient(Client):
 
         self.train_dl = DataLoader(self.fl_train_ds, batch_size=self.batch_size, shuffle=True, drop_last=True)
 
+    def delay_simulate(self, secs):
+        """
+        Simulate network and computation delays.
+
+        Parameters:
+            secs: int
+                Delay time
+        """
+        time.sleep(secs)
+
     @staticmethod
     def _get_transform(config):
         transform, target_transform = None, None
@@ -144,16 +202,77 @@ class NormalClient(Client):
         return model_class(**config["model"]["params"])
 
 
-class NormalClientWithGrad(NormalClient, GradientMixin):
-    def __init__(self, c_id, stop_event, selected_event, delay, index_list, config, dev):
-        NormalClient.__init__(self, c_id, stop_event, selected_event, delay, index_list, config, dev)
-        GradientMixin.__init__(self)
+class NormalClientWithDelta(NormalClient):
+    """
+    This class inherits from NormalClient and implements the functionality of uploading
+    the difference between model parameters before and after training, i.e.,
+    uploads $delta = w_i^t - w^t$, where $w_i^t$ is the model parameter updated by the client locally,
+    and $w^t$ is the model parameter before local iteration.
+    """
+    def train_one_epoch(self):
+        """
+        The training function of Client, used for model training.
 
-    def train(self):
-        self._save_global_model(self.model.state_dict())
-        return super().train()
+        Returns:
+            data_sum: int
+                Total number of local training data
+            weights: dict
+                Local training-derived model parameter differences $weights = w_i^t - w^t$
+        """
+        global_model = copy.deepcopy(self.model.state_dict())
+        data_sum, weights = super().train_one_epoch()
+        for k in weights:
+            weights[k] = weights[k] - global_model[k]
+        torch.cuda.empty_cache()
+        return data_sum, weights
 
-    def upload(self, data_sum, weights):
-        update_dict = {"client_id": self.client_id, "data_sum": data_sum,
-                       "time_stamp": self.time_stamp, "weights": self._to_gradient()}
-        self.message_queue.put_into_uplink(update_dict)
+
+class NormalClientWithGrad(NormalClient):
+    """
+    This class inherits from NormalClient and implements the cumulative gradient upload after training.
+    """
+    def init_client(self):
+        super().init_client()
+        del self.opti
+
+    def train_one_epoch(self):
+        """
+        The train function of the client, used for training models.
+
+        Returns:
+            data_sum: int
+                Total number of local training data
+            accumulated_grads: list
+                Accumulated gradients
+        """
+        if self.mu != 0:
+            global_model = copy.deepcopy(self.model)
+        # 设置迭代次数
+        data_sum = 0
+        accumulated_grads = []  # 初始化累积梯度列表
+
+        # 遍历训练数据
+        for data, label in self.train_dl:
+            data, label = data.to(self.dev), label.to(self.dev)
+            # 模型上传入数据
+            preds = self.model(data)
+            # 计算损失函数
+            loss = self.loss_func(preds, label)
+            data_sum += label.size(0)
+            # 正则项
+            if self.mu != 0:
+                proximal_term = 0.0
+                for w, w_t in zip(self.model.parameters(), global_model.parameters()):
+                    proximal_term += (w - w_t).norm(2)
+                loss = loss + (self.mu / 2) * proximal_term
+            # 反向传播,但不执行优化步骤
+            loss.backward()
+            # 累积梯度
+            accumulated_grads = [None if acc_grad is None else acc_grad + param.grad
+                                 for acc_grad, param in zip(accumulated_grads, self.model.parameters())]
+
+            # 将梯度归零,为下一次迭代做准备
+            self.model.zero_grad()
+        # 将累积的梯度返回
+        torch.cuda.empty_cache()
+        return data_sum, accumulated_grads

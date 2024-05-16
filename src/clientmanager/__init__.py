@@ -1,1 +1,2 @@
 from clientmanager import NormalClientManager
+from clientmanager import TimeSliceClientManager

@@ -1,15 +1,12 @@
 import time
 
-from scheduler.BaseScheduler import BaseScheduler
+from scheduler.SyncScheduler import SyncScheduler
 
 
 # this scheduler schedules clients according to the number of aggregations
-class AsyncScheduler(BaseScheduler):
+class AsyncScheduler(SyncScheduler):
     def __init__(self, server_thread_lock, config, mutex_sem, empty_sem, full_sem):
-        BaseScheduler.__init__(self, server_thread_lock, config)
-        self.mutex_sem = mutex_sem
-        self.empty_sem = empty_sem
-        self.full_sem = full_sem
+        super().__init__(server_thread_lock, config, mutex_sem, empty_sem, full_sem)
         self.schedule_interval = config["schedule_interval"]
         self.schedule_delay = config["schedule_delay"]
 
@@ -27,16 +24,7 @@ class AsyncScheduler(BaseScheduler):
                 # 如果server已收到且未使用的client更新数小于schedule delay，则进行schedule
                 if self.queue_manager.size() <= self.schedule_delay:
                     last_s_time = current_time
-                    print("Begin client select")
-                    selected_clients = self.client_select()
-                    print("\nSchedulerThread select(", len(selected_clients), "clients):")
-                    for client_id in selected_clients:
-                        print(client_id, end=" | ")
-                        # 将server的模型参数和时间戳发给client
-                        self.send_weights(client_id, current_time, schedule_time)
-                        # 启动一次client线程
-                        self.selected_event_list[client_id].set()
-                    print("\n-----------------------------------------------------------------Schedule complete")
+                    self.schedule(current_time, schedule_time)
                     self.schedule_t.time_add()
                 else:
                     print("\n-----------------------------------------------------------------No Schedule")
@@ -61,16 +49,7 @@ class AsyncSchedulerWithUpdate(AsyncScheduler):
                 # 如果server已收到且未使用的client更新数小于schedule delay，则进行schedule
                 if self.queue_manager.size() <= self.schedule_delay:
                     last_s_time = current_time
-                    print("Begin client select")
-                    selected_clients = self.client_select()
-                    print("\nSchedulerThread select(", len(selected_clients), "clients):")
-                    for client_id in selected_clients:
-                        print(client_id, end=" | ")
-                        # 将server的模型参数和时间戳发给client
-                        self.send_weights(client_id, current_time, schedule_time)
-                        # 启动一次client线程
-                        self.selected_event_list[client_id].set()
-                    print("\n-----------------------------------------------------------------Schedule complete")
+                    self.schedule(current_time, schedule_time)
                     self.schedule_t.time_add()
                 else:
                     print("\n-----------------------------------------------------------------No Schedule")

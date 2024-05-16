@@ -1,9 +1,11 @@
 import time
 
+from receiver.AbstractReceiver import AbstractReceiver
 
-class NormalReceiver:
+
+class NormalReceiver(AbstractReceiver):
     def __init__(self, config):
-        self.config = config
+        super().__init__(config)
 
     # to support any queue_manger
     def receive(self, queue, nums):

@@ -1,3 +1,5 @@
+import os
+import sys
 from abc import abstractmethod
 from multiprocessing import Process
 from threading import Thread
@@ -5,7 +7,7 @@ from threading import Thread
 from utils import ModuleFindTool
 from utils.GlobalVarGetter import GlobalVarGetter
 
-CLIENT_STATUS = {'created': 0, 'active': 1, 'stopped': 2}
+CLIENT_STATUS = {'created': 0, 'running': 1, 'stale': 2, 'exited': 3, 'active': 4}
 
 
 class Mode:
@@ -25,30 +27,41 @@ class Mode:
         pass
 
 
-def running_mode():
+def running_mode(config):
     """
     running_mode is a function that returns the running mode of the client.
 
     Returns:
         The running mode of the client.
     """
-    if "mode" not in GlobalVarGetter.get()['global_config']:
-        print("Running Mode: Thread")
+    # this condition is used to a new python environment, i.e., process
+    if not config:
+        print("Running Mode: None")
+        return Process
+    if "mode" not in config['global']:
+        print("Running Mode: Default(Thread)")
         return Thread
-    config = GlobalVarGetter.get()['global_config']['mode']
-    if isinstance(config, dict):
-        print(f"Running Mode: {config['path']}")
-        mode = ModuleFindTool.find_class_by_path(config['path'])(config['params'])
-        mode.run()
-        return mode.get_manage_mode()
-    elif isinstance(config, str):
-        if config == 'thread':
+    mode_config = config['global']['mode']
+    if isinstance(mode_config, dict):
+        mode = ModuleFindTool.find_class_by_path(mode_config['path'])
+        print(f"Running Mode: {mode_config['path']}")
+        return mode
+    elif isinstance(mode_config, str):
+        if mode_config == 'thread':
             print("Running Mode: Thread")
             return Thread
-        elif config == 'process':
+        elif mode_config == 'process':
             print("Running Mode: Process")
             return Process
         else:
             raise ValueError('if mode isinstance str, mode must be "thread" or "process"')
     else:
         raise ValueError('mode config must be a dict or a str')
+
+
+def running_mode_for_client():
+    config = GlobalVarGetter.get()['config']
+    sys.stdout = open(os.devnull, 'w')
+    mode = running_mode(config)
+    sys.stdout = sys.__stdout__
+    return mode

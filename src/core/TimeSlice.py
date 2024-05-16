@@ -6,13 +6,14 @@ import sys
 import time
 from abc import abstractmethod
 from collections import ChainMap
-from multiprocessing import Process
+from multiprocessing import Process, Event
+from multiprocessing.process import BaseProcess
 from types import MappingProxyType as readonlydict
 
-from core.Runtime import Mode, CLIENT_STATUS
+from core.MessageQueue import MessageQueueFactory
+from core.Runtime import Mode, CLIENT_STATUS, running_mode_for_client
 from utils import ModuleFindTool
 from utils.GlobalVarGetter import GlobalVarGetter
-from utils.ProcessManager import MessageQueueFactory
 
 
 class TimeSlice(Mode):
@@ -137,7 +138,8 @@ class ModuleUseCollector(ast.NodeVisitor):
             imported_name = self.scopes.get(node.id)
             if imported_name is None:
                 return
-            self.used_at.append((imported_name, node.id, node.lineno, ".".join(self.functionsCall), self.current_klass))
+            if "delay_simulate" in self.functionsCall:
+                self.used_at.append((imported_name, node.id, node.lineno, ".".join(self.functionsCall), self.current_klass))
 
     def visit_Attribute(self, node):
         if not self.status and isinstance(node.value, ast.Name):
@@ -145,8 +147,9 @@ class ModuleUseCollector(ast.NodeVisitor):
             if imported_name is None:
                 return
             elif node.attr == self.attr:
-                self.used_at.append(
-                    (imported_name, node.attr, node.lineno, ".".join(self.functionsCall), self.current_klass))
+                if "delay_simulate" in self.functionsCall:
+                    self.used_at.append(
+                        (imported_name, node.attr, node.lineno, ".".join(self.functionsCall), self.current_klass))
 
 
 class MethodUseCollector(ast.NodeVisitor):
@@ -203,7 +206,6 @@ class MethodUseCollector(ast.NodeVisitor):
         self.current_klass = node.name
         self.generic_visit(node)
         self.current_klass = None
-        self.methodCall = []
         self.is_self = False
         self.is_subclass = False
         self.methodCall = []
@@ -232,7 +234,10 @@ class MethodUseCollector(ast.NodeVisitor):
                 #               attr='call',
                 #               ctx=Load())
                 self.used_at.add((node.lineno, ".".join(self.methodCall), self.current_klass))
-
+        # change 'self.event.wait()' in run() to 'yield from self.event.wait()'
+        if self.methodCall[-1] == 'run' and isinstance(node.value, ast.Attribute) and node.attr == 'wait':
+            if isinstance(node.value.value, ast.Name) and node.value.value.id == 'self' and node.value.attr == 'event':
+                self.used_at.add((node.lineno, "", self.current_klass))
 
 def modify_and_import(module_name, package, modification_func, *args, **kwargs):
     spec = importlib.util.find_spec(module_name, package)
@@ -246,7 +251,7 @@ def modify_and_import(module_name, package, modification_func, *args, **kwargs):
 
 
 def replace(source, *args, **kwargs):
-    # we cant resolve sentence like "a = call()" or "return call()"
+    # we can't resolve sentence like "a = call()" or "return call()"
     # such sentence is not complicated with yield or yield from
     modified_line = args[0]
     source = source.split("\n")
@@ -263,72 +268,99 @@ def replace(source, *args, **kwargs):
     return "\n".join(source)
 
 
+def run_decorator(func):
+    yield from func()
+
+
 class TimeSliceRunner(Process):
     """
     [experimental]
     RunnerProcess is the process of the timeslice runner.
     """
 
-    def __init__(self, init_client_event, create_client_event, join_event, stop_event_list, selected_event_list,
+    def __init__(self, init_client_event, create_client_event, join_event, stop_event_list, stop_event, selected_event_list, server_finished_event, server_start_event,
                  config):
         super().__init__()
         # we need client manager delegate the power to create clients to it.
+        self.global_var = None
         self.client_staleness_list = None
         self.index_list = None
         self.client_num = None
         self.client_class = None
         self.client_status = None
-        self.message_queue = None
+        self.message_queue = MessageQueueFactory.create_message_queue()
         self.client_list = []
         self.init_client_event = init_client_event
         self.create_client_event = create_client_event
         self.join_event = join_event
+        self.server_start_event = server_start_event
+        self.server_finished_event = server_finished_event
         self.stop_event_list = stop_event_list
-        self.selected_event_list = selected_event_list
+        self.stop_event = stop_event
+        self.selected_event_list = [SelectedEvent(e) for e in selected_event_list]
         self.config = config
-
-    @staticmethod
-    def func_decorator(func):
-        def wrapper(*args, **kwargs):
-            def yield_wrapper(inner_func, *args, **kwargs):
-                yield from func(*args, **kwargs)
-
-            for name in dir(func):
-                attr = getattr(func, name)
-                if callable(attr):
-                    setattr(func, name, yield_wrapper(attr, *args, **kwargs))
-
-        return wrapper
+        self.server_delay = config['client_manager']['server_delay'] if 'server_delay' in config['client_manager'] else 0
+        self.client_delay = config['client_manager']['client_delay'] if 'client_delay' in config['client_manager'] else 0
 
     def run(self):
-        # process should init itself before running
+        # process should initlize itself before running
         self.init()
         # create clients and start clients
-        if self.init_client_event.is_set():
-            self.create_and_start_all_clients()
+        while True:
+            if self.init_client_event.is_set():
+                self.create_and_start_all_clients()
+                break
 
         # run clients
         self.client_simulate()
-
+        # end of the process
         self.join_event.set()
 
     def client_simulate(self):
-        runner = [client.run() for client in self.client_list]
-        timeline = [0 for _ in self.client_list]
-        with open(os.path.join("../results/", GlobalVarGetter.get()["global"]["experiment"], "client_status.txt")) as file:
-            file.write(str(timeline))
-            while not self.stop_event_list.is_set():
+        runner = [client.run for client in self.client_list]
+
+        timeline = {i: 0 for i in range(self.client_num)}
+        # -1 is the server
+        timeline[-1] = 0
+
+        with open(os.path.join("../results/", self.global_var["global_config"]["experiment"], "client_status.txt"), 'w') as file:
+            for i in range(self.client_num):
+                file.write("{:<8}".format("client"+str(i)) + " ")
+            file.write("{:<8}".format("server") + "\n")
+            # wait for the first scheduling
+            self.server_finished_event.wait()
+            self.server_finished_event.clear()
+            self.server_start_event.set()
+            while not self.stop_event.is_set():
+                # first check if we need to create a new client
+                if self.create_client_event.is_set():
+                    self.create_client()
+                    self.create_client_event.clear()
+                # Then check each client if it should be active
                 for i, client in enumerate(self.client_list):
-                    if self.selected_event_list[i].is_set():
-                        if timeline[i] == 0:
-                            sec = 0
-                            try:
-                                sec = next(runner[i])
-                            except StopIteration:
-                                self.client_status[i] = CLIENT_STATUS["stopped"]
-                            timeline[i] += sec
-                        else:
-                            timeline[i] -= 1
+                    if (self.selected_event_list[i].is_set()) or (self.client_status[i] == CLIENT_STATUS["active"] and timeline[i] == 0):
+                        try:
+                            self.client_status[i] = CLIENT_STATUS["active"]
+                            sec = next(runner[i])
+                            if sec == -1:
+                                self.client_status[i] = CLIENT_STATUS["stale"]
+                                sec = 0
+                            sec += self.client_delay
+                            timeline[i] += sec # ！！！！！！这里要加参数
+                        except StopIteration:
+                            self.client_status[i] = CLIENT_STATUS["exited"]
+                            print(f"client {i} exited")
+                            timeline[i] = -1
+                    elif timeline[i] > 0:
+                        timeline[i] = timeline[i] - 1 if timeline[i] - 1 > 0 else 0
+                timeline[-1] = timeline[-1] - 1 if timeline[-1] - 1 > 0 else 0
+                # the server finishes its calculation
+                if timeline[-1] == 0 and not self.server_start_event.is_set():
+                    self.server_start_event.set()
+                if self.server_finished_event.is_set():
+                    timeline[-1] += self.server_delay
+                    self.server_finished_event.clear()
+                file.write(str(self.client_status) + "\n")
 
     def create_and_start_all_clients(self):
         for i in range(self.client_num):
@@ -337,9 +369,10 @@ class TimeSliceRunner(Process):
                                   self.client_staleness_list[i],
                                   self.index_list[i], self.config['client_config'], self.config['client_dev'][i])
             )
-        self.client_status = [CLIENT_STATUS["active"] for _ in range(len(self.config["client_num"]))]
+        self.client_status = {i: CLIENT_STATUS["stale"] for i in range(self.config["client_num"])}
+        self.client_status[-1] = CLIENT_STATUS['stale']
         for client in self.client_list:
-            client.run = self.func_decorator(client.run)
+            client.run = run_decorator(client.run)
 
     def create_client(self):
         client_delay = self.message_queue.get_from_downlink(-1, "client_delay")
@@ -347,17 +380,18 @@ class TimeSliceRunner(Process):
         client = self.client_class(len(self.client_list), self.stop_event_list[len(self.client_list)],
                                    self.selected_event_list[len(self.client_list)], client_delay,
                                    self.index_list[len(self.client_list)], self.config['client_config'], dev)
-        client.run = self.func_decorator(client.run)
+        client.run = run_decorator(client.run)
         self.client_list.append(client)
-        self.client_status.append(CLIENT_STATUS["active"])
+        self.client_status.append(CLIENT_STATUS["stale"])
+        self.client_num += 1
 
     def init(self):
-        self.message_queue = MessageQueueFactory.create_message_queue()
+        self.global_var = self.message_queue.get_config()
+        GlobalVarGetter.set(self.global_var)
         self.client_class = ModuleFindTool.find_class_by_path(self.config["client_config"]["path"])
         self.client_num = self.config["client_num"]
         self.index_list = self.config["index_list"]
         self.client_staleness_list = self.config["client_staleness_list"]
-
         # core part of the client manager
         # client always call sleep in some certain function
         print("-----------------Start changing clients to timeslice mode.-----------------")
@@ -374,12 +408,15 @@ class TimeSliceRunner(Process):
             return wrapper
 
         time.sleep = decorator(time.sleep)
+        self.client_class.__bases__[0].__bases__ = (TimeSlice,)
         mro = list(self.client_class.__mro__)
         mro.remove(object)
+        mro.remove(Mode)
+        mro.remove(TimeSlice)
         whole_function_call = []
         modified_module = {}
         for i in range(len(mro), 0, -1):
-            modified_line = {"yield": [], "yield_from": []}
+            modified_line = {"yield": set(), "yield_from": set()}
             target_klass = mro[i - 1]
             with open(inspect.getsourcefile(target_klass)) as sourcefile:
                 code = sourcefile.read()
@@ -390,34 +427,59 @@ class TimeSliceRunner(Process):
             for name, alias, line, func, klass in collector.used_at:
                 if klass == target_klass.__name__:
                     print(f'{name} ({alias}) used on line {line}, called by {klass}.{func}')
-                    modified_line["yield"].append(line)
+                    modified_line["yield"].add(line)
                     methods.append(func)
-            print(collector.recorded_module)
+            print(f"module used in {target_klass}:", collector.recorded_module)
             collector2 = MethodUseCollector(target_klass.__name__, methods)
             collector2.visit(tree)
-            for line, name, klass in collector2.used_at:
-                if klass == target_klass.__name__:
-                    methods.append(name)
-                    modified_line["yield_from"].append(line)
-                    print(f'methods used in {klass}.{name} on line {line}')
+            while collector2.used_at:
+                methods2 = []
+                for line, name, klass in collector2.used_at:
+                    if klass == target_klass.__name__ and name:
+                        methods.append(name)
+                        modified_line["yield_from"].add(line)
+                        print(f'methods used in {klass}.{name} on line {line}')
+                        methods2.append(name)
+                    else:
+                        modified_line["yield_from"].add(line)
+                collector2 = MethodUseCollector(target_klass.__name__, methods2)
+                collector2.visit(tree)
+            if methods:
+                whole_function_call.append((target_klass.__name__, methods))
             for name, other_methods in whole_function_call:
                 collector2 = MethodUseCollector(name, other_methods)
                 collector2.visit(tree)
                 for line, name, klass in collector2.used_at:
                     if klass == target_klass.__name__:
-                        modified_line["yield_from"].append(line)
+                        modified_line["yield_from"].add(line)
                         print(f'methods used in {klass}.{name} on line {line}')
-            if methods:
-                whole_function_call.append((target_klass.__name__, methods))
-
-            if modified_line["yield"] or modified_line["yield_from"]:
-                module = modify_and_import(target_klass.__module__, target_klass.__name__, replace, modified_line)
-                modified_module[target_klass.__module__] = module
-                if collector.recorded_module:
-                    for module_name, packages in collector.recorded_module:
-                        if packages:
-                            for package in packages:
-                                setattr(module, package, getattr(modified_module[module_name], package))
-                        else:
-                            setattr(module, module_name, modified_module[module_name])
+            print(modified_line)
+            module = modify_and_import(target_klass.__module__, target_klass.__name__, replace, modified_line)
+            modified_module[target_klass.__module__] = module
+            if collector.recorded_module:
+                for module_name, packages in collector.recorded_module:
+                    if packages:
+                        for package in packages:
+                            setattr(module, package, getattr(modified_module[module_name], package))
+                    else:
+                        setattr(module, module_name, modified_module[module_name])
+            print()
+        self.client_class = getattr(module, self.client_class.__name__)
         print("-----------------Change clients to timeslice mode successfully.-----------------")
+
+
+class SelectedEvent:
+    def __init__(self, event):
+        self.event = event
+
+    def set(self):
+        return self.event.set()
+
+    def is_set(self):
+        return self.event.is_set()
+
+    def clear(self):
+        return self.event.clear()
+
+    def wait(self):
+        yield -1

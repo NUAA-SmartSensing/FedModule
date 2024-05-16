@@ -1,16 +1,15 @@
 from abc import abstractmethod
 
-from core.Runtime import running_mode
-from utils.ProcessManager import MessageQueueFactory
+from core.Runtime import running_mode_for_client
+from core.MessageQueue import MessageQueueFactory
 
 
-class Client(running_mode()):
+class Client(running_mode_for_client()):
     def __init__(self, c_id, stop_event, selected_event, delay, index_list, dev):
         super().__init__()
         self.model = None
         self.client_id = c_id
         self.event = selected_event
-        self.event.clear()
         self.stop_event = stop_event
         self.delay = delay
         self.dev = dev
@@ -35,5 +34,12 @@ class Client(running_mode()):
         pass
 
     @abstractmethod
-    def wait_notify(self):
+    def receive_notify(self):
+        pass
+
+    @abstractmethod
+    def delay_simulate(self, secs):
+        """
+        to simulate the delay of the network and computation
+        """
         pass
