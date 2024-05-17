@@ -22,7 +22,7 @@ class BaseClientManager:
         pass
 
     @abstractmethod
-    def create_and_start_new_client(self, client_delay, dev='cpu'):
+    def create_and_start_new_client(self, dev='cpu'):
         pass
 
     @abstractmethod

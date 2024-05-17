@@ -8,6 +8,7 @@ from utils import ModuleFindTool
 from utils.GlobalVarGetter import GlobalVarGetter
 
 CLIENT_STATUS = {'created': 0, 'running': 1, 'stale': 2, 'exited': 3, 'active': 4}
+SERVER_STATUS = {'stale': 0, 'schedule': 1, 'aggregate': 2, 'exited': 3}
 
 
 class Mode:

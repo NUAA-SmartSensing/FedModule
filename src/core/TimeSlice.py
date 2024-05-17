@@ -11,7 +11,7 @@ from multiprocessing.process import BaseProcess
 from types import MappingProxyType as readonlydict
 
 from core.MessageQueue import MessageQueueFactory
-from core.Runtime import Mode, CLIENT_STATUS, running_mode_for_client
+from core.Runtime import Mode, CLIENT_STATUS, running_mode_for_client, SERVER_STATUS
 from utils import ModuleFindTool
 from utils.GlobalVarGetter import GlobalVarGetter
 
@@ -278,10 +278,11 @@ class TimeSliceRunner(Process):
     RunnerProcess is the process of the timeslice runner.
     """
 
-    def __init__(self, init_client_event, create_client_event, join_event, stop_event_list, stop_event, selected_event_list, server_finished_event, server_start_event,
-                 config):
+    def __init__(self, init_client_event, create_client_event, join_event, stop_event_list, stop_event, selected_event_list,
+                 server_finished_event, server_start_request_event, server_start_permit_event, config):
         super().__init__()
         # we need client manager delegate the power to create clients to it.
+        self.total_client_num = None
         self.global_var = None
         self.client_staleness_list = None
         self.index_list = None
@@ -293,7 +294,8 @@ class TimeSliceRunner(Process):
         self.init_client_event = init_client_event
         self.create_client_event = create_client_event
         self.join_event = join_event
-        self.server_start_event = server_start_event
+        self.server_start_request_event = server_start_request_event
+        self.server_start_permit_event = server_start_permit_event
         self.server_finished_event = server_finished_event
         self.stop_event_list = stop_event_list
         self.stop_event = stop_event
@@ -323,19 +325,20 @@ class TimeSliceRunner(Process):
         # -1 is the server
         timeline[-1] = 0
 
-        with open(os.path.join("../results/", self.global_var["global_config"]["experiment"], "client_status.txt"), 'w') as file:
-            for i in range(self.client_num):
-                file.write("{:<8}".format("client"+str(i)) + " ")
-            file.write("{:<8}".format("server") + "\n")
+        with open(os.path.join("../results/", self.global_var["global_config"]["experiment"], "timeline.txt"), 'w') as file:
             # wait for the first scheduling
             self.server_finished_event.wait()
             self.server_finished_event.clear()
-            self.server_start_event.set()
             while not self.stop_event.is_set():
                 # first check if we need to create a new client
                 if self.create_client_event.is_set():
                     self.create_client()
+                    timeline[self.client_num - 1] = 0
                     self.create_client_event.clear()
+                # wait for receiver receiving the update
+                if any(value != 0 for value in timeline.values()):
+                    print(timeline)
+                    file.write(str(timeline) + "\n")
                 # Then check each client if it should be active
                 for i, client in enumerate(self.client_list):
                     if (self.selected_event_list[i].is_set()) or (self.client_status[i] == CLIENT_STATUS["active"] and timeline[i] == 0):
@@ -346,7 +349,7 @@ class TimeSliceRunner(Process):
                                 self.client_status[i] = CLIENT_STATUS["stale"]
                                 sec = 0
                             sec += self.client_delay
-                            timeline[i] += sec # ！！！！！！这里要加参数
+                            timeline[i] += sec
                         except StopIteration:
                             self.client_status[i] = CLIENT_STATUS["exited"]
                             print(f"client {i} exited")
@@ -355,12 +358,13 @@ class TimeSliceRunner(Process):
                         timeline[i] = timeline[i] - 1 if timeline[i] - 1 > 0 else 0
                 timeline[-1] = timeline[-1] - 1 if timeline[-1] - 1 > 0 else 0
                 # the server finishes its calculation
-                if timeline[-1] == 0 and not self.server_start_event.is_set():
-                    self.server_start_event.set()
-                if self.server_finished_event.is_set():
+                if self.server_start_request_event.is_set():
                     timeline[-1] += self.server_delay
+                if timeline[-1] == 0 and self.server_start_request_event.is_set():
+                    self.server_start_request_event.clear()
+                    self.server_start_permit_event.set()
+                    self.server_finished_event.wait()
                     self.server_finished_event.clear()
-                file.write(str(self.client_status) + "\n")
 
     def create_and_start_all_clients(self):
         for i in range(self.client_num):
@@ -370,7 +374,7 @@ class TimeSliceRunner(Process):
                                   self.index_list[i], self.config['client_config'], self.config['client_dev'][i])
             )
         self.client_status = {i: CLIENT_STATUS["stale"] for i in range(self.config["client_num"])}
-        self.client_status[-1] = CLIENT_STATUS['stale']
+        self.client_status[-1] = SERVER_STATUS["stale"]
         for client in self.client_list:
             client.run = run_decorator(client.run)
 
@@ -390,6 +394,7 @@ class TimeSliceRunner(Process):
         GlobalVarGetter.set(self.global_var)
         self.client_class = ModuleFindTool.find_class_by_path(self.config["client_config"]["path"])
         self.client_num = self.config["client_num"]
+        self.total_client_num = self.config["total_client_num"]
         self.index_list = self.config["index_list"]
         self.client_staleness_list = self.config["client_staleness_list"]
         # core part of the client manager
