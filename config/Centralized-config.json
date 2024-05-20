@@ -1,51 +1,42 @@
 {
   "wandb": {
     "enabled": false,
-    "project": "FedAsync",
+    "project": "centralized learning",
     "name": "1"
   },
   "global": {
     "dataset_pre_load": true,
     "use_file_system": false,
     "multi_gpu": true,
-    "experiment": "FedAsync/1",
-    "stale": [0,0,0,0,0,8,8,8,8,8,8,8,8,8,8,16,16,16,16,16],
+    "experiment": "centralized/1",
+    "stale": false,
     "dataset": {
-      "path": "dataset.MNIST.MNIST",
+      "path": "dataset.FashionMNIST.FashionMNIST",
       "params": {}
     },
-    "iid": false,
-    "client_num": 20
+    "iid": true,
+    "client_num": 1
   },
   "server": {
     "path": "server.NormalServer.NormalServer",
-    "epochs": 300,
+    "epochs": 200,
     "model": {
-      "path": "model.LeNet5.LeNet5",
+      "path": "model.CNN.CNN",
       "params": {}
     },
     "scheduler": {
-      "path": "scheduler.AsyncScheduler.AsyncScheduler",
-      "schedule_interval": 8,
-      "schedule_delay": 20,
+      "path": "scheduler.SyncScheduler.SyncScheduler",
       "schedule": {
-        "path": "schedule.RandomSchedule.RandomSchedule",
-        "params": {
-          "c_ratio": 0.4
-        }
+        "path": "schedule.FullSchedule.FullSchedule",
+        "params": {}
       }
     },
     "updater": {
-      "path": "updater.AsyncUpdater.AsyncUpdater",
-      "num_generator": 1,
+      "path": "updater.SyncUpdater.SyncUpdater",
       "loss": "torch.nn.functional.cross_entropy",
       "update": {
-        "path": "update.FedAsync.FedAsync",
+        "path": "update.FedAvg.FedAvg",
         "params": {
-          "a": 10,
-          "b": 8,
-          "alpha": 0.9,
-          "r" : 1
         }
       }
     }
@@ -58,7 +49,7 @@
       }
     },
     "checker": {
-      "path": "checker.AllChecker.AllChecker",
+      "path": "checker.SyncChecker.SyncChecker",
       "params": {
       }
     }
@@ -68,12 +59,10 @@
   },
   "client": {
     "path": "client.NormalClient.NormalClient",
-    "epochs": 5,
-    "batch_size": 32,
-    "test_size": 0.1,
-    "test_batch_size": 16,
+    "epochs": 1,
+    "batch_size": 64,
     "model": {
-      "path": "model.LeNet5.LeNet5",
+      "path": "model.CNN.CNN",
       "params": {}
     },
     "loss": "torch.nn.functional.cross_entropy",

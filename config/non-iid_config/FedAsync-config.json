@@ -19,7 +19,7 @@
     "client_num": 20
   },
   "server": {
-    "path": "server.AsyncServer.AsyncServer",
+    "path": "server.NormalServer.NormalServer",
     "epochs": 500,
     "model": {
       "path": "model.LeNet5.LeNet5",

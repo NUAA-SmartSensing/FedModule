@@ -1,12 +1,15 @@
 import threading
 
-from server import BaseServer
+from server.BaseServer import BaseServer
 from utils import ModuleFindTool
 
 
-class AsyncServer(BaseServer.BaseServer):
+class NormalServer(BaseServer):
+    r"""
+        normal server supports sync and async FL
+    """
     def __init__(self, config):
-        BaseServer.BaseServer.__init__(self, config)
+        BaseServer.__init__(self, config)
 
         self.mutex_sem = threading.Semaphore(1)
         self.empty_sem = threading.Semaphore(1)

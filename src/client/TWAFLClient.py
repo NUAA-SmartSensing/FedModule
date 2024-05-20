@@ -1,5 +1,3 @@
-import time
-
 from client.NormalClient import NormalClient
 
 
@@ -10,15 +8,15 @@ class TWAFLClient(NormalClient):
 
     def local_task(self):
         self.flag = self.time_stamp % 15 in [11, 13, 14, 12, 0]
-        # 该client进行训练
+        # The client performs training.
         data_sum, weights = self.train()
 
-        # client传回server的信息具有延迟
+        # Information transmitted from the client to the server has latency.
         print("Client", self.client_id, "trained")
         if self.flag:
             self.delay_simulate(self.delay)
         else:
             self.delay_simulate(self.delay / 2)
 
-        # 返回其ID、模型参数和时间戳
+        # upload its updates
         self.upload(data_sum, weights)

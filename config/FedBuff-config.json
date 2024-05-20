@@ -1,14 +1,14 @@
 {
   "wandb": {
     "enabled": false,
-    "project": "FedAsync",
+    "project": "FedBuff",
     "name": "1"
   },
   "global": {
     "dataset_pre_load": true,
     "use_file_system": false,
     "multi_gpu": true,
-    "experiment": "FedAsync/1",
+    "experiment": "FedBuff/1",
     "stale": [0,0,0,0,0,8,8,8,8,8,8,8,8,8,8,16,16,16,16,16],
     "dataset": {
       "path": "dataset.MNIST.MNIST",
@@ -37,16 +37,11 @@
     },
     "updater": {
       "path": "updater.AsyncUpdater.AsyncUpdater",
-      "num_generator": 1,
+      "num_generator": 10,
       "loss": "torch.nn.functional.cross_entropy",
       "update": {
-        "path": "update.FedAsync.FedAsync",
-        "params": {
-          "a": 10,
-          "b": 8,
-          "alpha": 0.9,
-          "r" : 1
-        }
+        "path": "update.FedAvg.FedAvg",
+        "params": {}
       }
     }
   },

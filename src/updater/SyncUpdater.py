@@ -14,18 +14,22 @@ class SyncUpdater(BaseUpdater):
         for epoch in range(self.T):
             self.full_sem.acquire()
             self.mutex_sem.acquire()
-            update_list = []
-            # 接收所有的更新
-            while not self.queue_manager.empty():
-                update_list.append(self.queue_manager.get())
 
+            update_list = self.get_update_list()
             self.server_thread_lock.acquire()
             self.update_server_weights(epoch, update_list)
             self.run_server_test(epoch)
             self.server_thread_lock.release()
 
             self.current_time.time_add()
-            # 本轮结束
             self.mutex_sem.release()
             self.empty_sem.release()
-            time.sleep(0.01)
+
+        print("Average delay =", (self.sum_delay / self.T))
+
+    def get_update_list(self):
+        update_list = []
+        # receive all updates
+        while not self.queue_manager.empty():
+            update_list.append(self.queue_manager.get())
+        return update_list

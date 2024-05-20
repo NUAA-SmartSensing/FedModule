@@ -21,7 +21,7 @@
     "client_num": 50
   },
   "server": {
-    "path": "server.SyncServer.SyncServer",
+    "path": "server.NormalServer.NormalServer",
     "epochs": 20,
     "model": {
       "path": "torchvision.models.resnet.resnet50",

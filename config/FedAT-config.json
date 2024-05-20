@@ -10,24 +10,16 @@
     "multi_gpu": true,
     "experiment": "FedAT/1",
     "stale": {
-      "step": 4,
+      "step": 2,
       "shuffle": true,
-      "list": [0, 30, 20]
+      "list": [0, 5, 5, 5, 5]
     },
     "dataset": {
       "path": "dataset.FashionMNIST.FashionMNIST",
       "params": {}
     },
-    "iid": {
-      "customize": true,
-      "label": {
-        "step": 2,
-        "list": [0, 25, 25]
-      },
-      "data": {
-      }
-    },
-    "client_num": 50
+    "iid": true,
+    "client_num": 20
   },
   "server": {
     "path": "server.SemiAsyncServer.SemiAsyncServer",
@@ -66,7 +58,7 @@
     "group_method": {
       "path": "group.DelayGroup.DelayGroup",
       "params": {
-        "step": 5
+        "step": 3
       }
     }
   },
@@ -88,8 +80,8 @@
   },
   "client": {
     "path": "client.SemiClient.SemiClient",
-    "epochs": 2,
-    "batch_size": 50,
+    "epochs": 1,
+    "batch_size": 64,
     "model": {
       "path": "model.CNN.CNN",
       "params": {}

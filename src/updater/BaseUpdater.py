@@ -30,19 +30,15 @@ class BaseUpdater(threading.Thread):
         self.test_data = self.message_queue.get_test_dataset()
 
         self.queue_manager = self.global_var['queue_manager']
-
-        self.event = threading.Event()
-        self.event.clear()
-
         self.sum_delay = 0
 
         self.accuracy_list = []
         self.loss_list = []
 
-        # loss函数
+        # loss function
         self.loss_func = LossFactory(self.config['loss']).create_loss()
 
-        # 聚合算法
+        # aggregation method
         update_class = ModuleFindTool.find_class_by_path(self.config['update']['path'])
         self.update_method = update_class(self.config['update']['params'])
         self.update_caller = UpdateCaller(self)

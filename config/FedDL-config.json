@@ -22,7 +22,7 @@
     "client_num": 30
   },
   "server": {
-    "path": "server.SyncServer.SyncServer",
+    "path": "server.NormalServer.NormalServer",
     "epochs": 50,
     "model": {
       "path": "model.CNN.CNN",

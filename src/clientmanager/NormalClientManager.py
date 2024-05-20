@@ -28,7 +28,7 @@ class NormalClientManager(BaseClientManager):
 
     def start_all_clients(self):
         self.__init_clients()
-        # 启动clients
+        # start clients
         self.global_var['client_list'] = self.client_list
         self.global_var['client_id_list'] = self.client_id_list
         print("Start clients:")
@@ -42,7 +42,7 @@ class NormalClientManager(BaseClientManager):
             client_delay = self.client_staleness_list[i]
             self.client_list.append(
                 self.client_class(i, self.stop_event_list[i], self.selected_event_list[i], client_delay,
-                                  self.index_list[i], self.client_config, self.client_dev[i]))  # 实例化
+                                  self.index_list[i], self.client_config, self.client_dev[i]))  # instance
             self.client_status.append(CLIENT_STATUS['created'])
             self.client_id_list.append(i)
 
@@ -53,7 +53,7 @@ class NormalClientManager(BaseClientManager):
         return self.client_id_list
 
     def stop_all_clients(self):
-        # 终止所有client线程
+        # stop all clients
         for i in self.client_id_list:
             self.stop_client_by_id(i)
             self.client_status[i] = CLIENT_STATUS['exited']
@@ -67,7 +67,7 @@ class NormalClientManager(BaseClientManager):
         client_id = len(self.client_list)
         self.client_list.append(
             self.client_class(client_id, self.stop_event_list[client_id], self.selected_event_list[client_id],
-                              self.client_staleness_list[client_id], self.index_list[client_id], self.client_config, self.client_dev[client_id]))  # 实例化
+                              self.client_staleness_list[client_id], self.index_list[client_id], self.client_config, self.client_dev[client_id]))  # instance
         self.client_id_list.append(client_id)
         self.client_list[client_id].start()
         self.client_status.append(CLIENT_STATUS['active'])

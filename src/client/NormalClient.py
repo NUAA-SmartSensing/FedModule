@@ -56,11 +56,11 @@ class NormalClient(Client):
         """
         self.init_client()
         while not self.stop_event.is_set():
-            # 该client被选中，开始执行本地训练
+            # The client is selected and starts local training.
             if self.event.is_set():
                 self.event.clear()
                 self.local_run()
-            # 该client等待被选中
+            # The client waits to be selected.
             else:
                 self.event.wait()
 
@@ -77,14 +77,14 @@ class NormalClient(Client):
         """
         The local task of Client, namely, the detailed process of training a model.
         """
-        # 该client进行训练
+        # The client performs training.
         data_sum, weights = self.train()
-
-        # client传回server的信息具有延迟
         print("Client", self.client_id, "trained")
+
+        # Information transmitted from the client to the server has latency.
         self.delay_simulate(self.delay)
 
-        # 返回其ID、模型参数和时间戳
+        # upload its updates
         self.upload(data_sum, weights)
 
     def train(self):
@@ -98,6 +98,7 @@ class NormalClient(Client):
         update_dict = {"client_id": self.client_id, "weights": weights, "data_sum": data_sum,
                        "time_stamp": self.time_stamp}
         self.message_queue.put_into_uplink(update_dict)
+        print("Client", self.client_id, "uploaded")
 
     def train_one_epoch(self):
         """
@@ -105,29 +106,27 @@ class NormalClient(Client):
         """
         if self.mu != 0:
             global_model = copy.deepcopy(self.model)
-        # 设置迭代次数
         data_sum = 0
         for epoch in range(self.epoch):
             for data, label in self.train_dl:
                 data, label = data.to(self.dev), label.to(self.dev)
-                # 模型上传入数据
                 preds = self.model(data)
-                # 计算损失函数
+                # Calculate the loss function
                 loss = self.loss_func(preds, label)
                 data_sum += label.size(0)
-                # 正则项
+                # proximal term
                 if self.mu != 0:
                     proximal_term = 0.0
                     for w, w_t in zip(self.model.parameters(), global_model.parameters()):
                         proximal_term += (w - w_t).norm(2)
                     loss = loss + (self.mu / 2) * proximal_term
-                # 反向传播
+                # backpropagate
                 loss.backward()
-                # 计算梯度，并更新梯度
+                # Update the gradient
                 self.opti.step()
-                # 将梯度归零，初始化梯度
+                # Zero out the gradient and initialize the gradient.
                 self.opti.zero_grad()
-        # 返回当前Client基于自己的数据训练得到的新的模型参数
+        # Return the updated model parameters obtained by training on the client's own data.
         weights = self.model.state_dict()
         torch.cuda.empty_cache()
         return data_sum, weights
@@ -162,11 +161,11 @@ class NormalClient(Client):
         self.model = self._get_model(config)
         self.model = self.model.to(self.dev)
 
-        # 优化器
+        # optimizer
         opti_class = ModuleFindTool.find_class_by_path(self.optimizer_config["path"])
         self.opti = opti_class(self.model.parameters(), **self.optimizer_config["params"])
 
-        # loss函数
+        # loss function
         self.loss_func = LossFactory(config["loss"], self).create_loss()
 
         self.train_dl = DataLoader(self.fl_train_ds, batch_size=self.batch_size, shuffle=True, drop_last=True)
@@ -194,7 +193,7 @@ class NormalClient(Client):
 
     @staticmethod
     def _get_model(config):
-        # 本地模型
+        # local model
         model_class = ModuleFindTool.find_class_by_path(config["model"]["path"])
         for k, v in config["model"]["params"].items():
             if isinstance(v, str):
@@ -247,32 +246,30 @@ class NormalClientWithGrad(NormalClient):
         """
         if self.mu != 0:
             global_model = copy.deepcopy(self.model)
-        # 设置迭代次数
         data_sum = 0
-        accumulated_grads = []  # 初始化累积梯度列表
+        accumulated_grads = []  # Initialize the list of accumulated gradients
 
-        # 遍历训练数据
+        # Traverse the training data.
         for data, label in self.train_dl:
             data, label = data.to(self.dev), label.to(self.dev)
-            # 模型上传入数据
             preds = self.model(data)
-            # 计算损失函数
+            # Calculate the loss function
             loss = self.loss_func(preds, label)
             data_sum += label.size(0)
-            # 正则项
+            # Proximal term
             if self.mu != 0:
                 proximal_term = 0.0
                 for w, w_t in zip(self.model.parameters(), global_model.parameters()):
                     proximal_term += (w - w_t).norm(2)
                 loss = loss + (self.mu / 2) * proximal_term
-            # 反向传播,但不执行优化步骤
+            # Backpropagate, but do not execute optimization steps.
             loss.backward()
-            # 累积梯度
+            # Accumulate gradients.
             accumulated_grads = [None if acc_grad is None else acc_grad + param.grad
                                  for acc_grad, param in zip(accumulated_grads, self.model.parameters())]
 
-            # 将梯度归零,为下一次迭代做准备
+            # Zero out the gradient to prepare for the next iteration.
             self.model.zero_grad()
-        # 将累积的梯度返回
+        # return accumulate gradients.
         torch.cuda.empty_cache()
         return data_sum, accumulated_grads

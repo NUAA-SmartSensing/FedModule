@@ -4,6 +4,9 @@ from utils import ModuleFindTool
 
 
 class SemiAsyncServer(BaseServer.BaseServer):
+    r"""
+        semi_async_server adds a new module named group_manager compared with normal_server
+    """
     def __init__(self, config):
         BaseServer.BaseServer.__init__(self, config)
         self.group_manager_config = config['group_manager']

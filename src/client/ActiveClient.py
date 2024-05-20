@@ -11,15 +11,14 @@ class ActiveClient(NormalClient):
 
     def run(self):
         """
-        The primary running function of Client is used for clients with a base class of process,
-        which executes before being woken up by the server.
+        When it is selected by the server, the client starts local training and never stops until stop event is set.
         """
         self.init_client()
         while not self.stop_event.is_set():
-            # 该client被选中，开始执行本地训练
+            # The client is selected and starts local training.
             if self.event.is_set():
                 self.local_run()
-            # 该client等待被选中
+            # The client waits to be selected.
             else:
                 self.event.wait()
 
@@ -29,7 +28,7 @@ class ActiveClient(NormalClient):
         """
         self.message_queue.set_training_status(self.client_id, True)
         self.local_task()
-        # 获取服务器最新模型
+        # get the latest global model
         self.delay_simulate(self.acquire_model_delay)
         while True:
             if self.stop_event.is_set():

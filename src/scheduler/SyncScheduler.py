@@ -11,43 +11,37 @@ class SyncScheduler(BaseScheduler):
         self.full_sem = full_sem
 
     def run(self):
-        while True:
-            # 每隔一段时间进行一次schedule
+        while self.current_t.get_time() <= self.T:
+            # Scheduling is performed periodically.
             self.empty_sem.acquire()
             self.mutex_sem.acquire()
-            current_time = self.current_t.get_time()
-            schedule_time = self.schedule_t.get_time()
-            if current_time > self.T:
-                break
-            nums = self.schedule(current_time, schedule_time)
-            self.schedule_t.time_add()
-            # 等待所有客户端上传更新
-            self.queue_manager.receive(nums)
-
-            # 通知updater聚合权重
+            self.schedule()
+            # Notifying the updater to aggregate weights.
             self.mutex_sem.release()
             self.full_sem.release()
             time.sleep(0.01)
 
-    def schedule(self, current_time, schedule_time):
+    def schedule(self):
         r"""
             schedule the clients
-
-            Args:
-                current_time: the number of aggregation
-                schedule_time: the number scheduling clients
-
-            Returns:
-                the number of clients
         """
+        current_time = self.current_t.get_time()
+        schedule_time = self.schedule_t.get_time()
+        if current_time > self.T:
+            return
         selected_client = self.client_select()
+        self.notify_client(selected_client, current_time, schedule_time)
+        # Waiting for all clients to upload their updates.
+        self.queue_manager.receive(len(selected_client))
+
+    def notify_client(self, selected_client, current_time, schedule_time):
         print(f"| current_epoch {current_time} |. Begin client select")
         print("\nSchedulerThread select(", len(selected_client), "clients):")
         for client_id in selected_client:
             print(client_id, end=" | ")
-            # 将server的模型参数和时间戳发给client
+            # Sending the server's model parameters and timestamps to the clients
             self.send_weights(client_id, current_time, schedule_time)
-            # 启动一次client线程
+            # Starting a client thread
             self.selected_event_list[client_id].set()
         print("\n-----------------------------------------------------------------Schedule complete")
-        return len(selected_client)
+        self.schedule_t.time_add()

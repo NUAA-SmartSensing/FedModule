@@ -24,7 +24,7 @@
     "client_num": 10
   },
   "server": {
-    "path": "server.AsyncServer.AsyncServer",
+    "path": "server.NormalServer.NormalServer",
     "epochs": 20,
     "model": {
       "path": "model.CNN.CNN",

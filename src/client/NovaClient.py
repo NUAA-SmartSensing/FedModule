@@ -1,5 +1,7 @@
 import copy
 
+import torch
+
 from client.NormalClient import NormalClient
 
 
@@ -11,35 +13,67 @@ class NovaClient(NormalClient):
     def train_one_epoch(self):
         self.tau = 0
         global_model = copy.deepcopy(self.model.state_dict())
-        # 设置迭代次数
         data_sum = len(self.train_dl)
         for epoch in range(self.epoch):
             for data, label in self.train_dl:
                 self.tau += 1
                 data, label = data.to(self.dev), label.to(self.dev)
-                # 模型上传入数据
                 preds = self.model(data)
-                # 计算损失函数
+                # Calculate the loss function
                 loss = self.loss_func(preds, label)
-                # 正则项
+                # proximal term
                 if self.mu != 0:
                     proximal_term = 0.0
                     for w, w_t in zip(self.model.parameters(), global_model.parameters()):
                         proximal_term += (w - w_t).norm(2)
                     loss = loss + (self.mu / 2) * proximal_term
-                # 反向传播
+                # backpropagate
                 loss.backward()
-                # 计算梯度，并更新梯度
+                # Update the gradient
                 self.opti.step()
-                # 将梯度归零，初始化梯度
+                # Zero out the gradient and initialize the gradient.
                 self.opti.zero_grad()
-        # 返回当前Client基于自己的数据训练得到的新的模型参数
+        # return the delta weights
         weights = copy.deepcopy(self.model.state_dict())
         for k, v in weights.items():
             weights[k] = weights[k] - global_model[k]
-            weights[k] = weights[k].cpu().detach()
         return data_sum, weights
 
     def upload(self, data_sum, weights):
-        update_dict = {"client_id": self.client_id, "weights": weights, "data_sum": data_sum, "time_stamp": self.time_stamp, "tau": self.tau}
+        update_dict = {"client_id": self.client_id, "weights": weights, "data_sum": data_sum,
+                       "time_stamp": self.time_stamp, "tau": self.tau}
         self.message_queue.put_into_uplink(update_dict)
+
+
+class NovaClientWithGrad(NovaClient):
+    def train_one_epoch(self):
+        self.tau = 0
+        if self.mu != 0:
+            global_model = copy.deepcopy(self.model)
+        data_sum = len(self.train_dl)
+        accumulated_grads = []  # Initialize the list of accumulated gradients
+
+        # Traverse the training data.
+        for data, label in self.train_dl:
+            self.tau += 1
+            data, label = data.to(self.dev), label.to(self.dev)
+            preds = self.model(data)
+            # Calculate the loss function
+            loss = self.loss_func(preds, label)
+            # Proximal term
+            if self.mu != 0:
+                proximal_term = 0.0
+                for w, w_t in zip(self.model.parameters(), global_model.parameters()):
+                    proximal_term += (w - w_t).norm(2)
+                loss = loss + (self.mu / 2) * proximal_term
+            # Backpropagate, but do not execute optimization steps.
+            loss.backward()
+            # Accumulate gradients.
+            accumulated_grads = [None if acc_grad is None else acc_grad + param.grad
+                                 for acc_grad, param in zip(accumulated_grads, self.model.parameters())]
+
+            # Zero out the gradient to prepare for the next iteration.
+            self.model.zero_grad()
+        # return accumulate gradients.
+        torch.cuda.empty_cache()
+        return data_sum, accumulated_grads
