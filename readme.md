@@ -16,33 +16,12 @@
   <p>
 
 - [Brief](#brief)
-- [Git Branch Description](#git-branch-description)
 - [Requirements](#requirements)
 - [Getting Started](#getting-started)
+  - [Environment](#environment)
   - [Experiments](#experiments)
   - [Docker](#docker)
 - [Features](#features)
-- [Project Directory](#project-directory)
-- [Framework](#Framework)
-- [Code Explanations](#code-explanations)
-  - [Receiver Class](#receiver-class)
-  - [Checker Class](#checker-class)
-- [Configuration](#Configuration)
-  - [Asynchronous Configuration](#asynchronous-configuration)
-  - [Synchronous Configuration](#synchronous-configuration)
-  - [Semi-aynchronous Configuration](#semi-aynchronous-configuration)
-  - [Parameter explanation](#parameter-explanation)
-- [Adding New Algorithm](#adding-new-algorithm)
-  - [Adding Loss Function](#adding-loss-function)
-- [Staleness Settings](#staleness-settings)
-- [Data Distribution Settings](#data-distribution-settings)
-  - [iid](#iid)
-  - [dirichlet non-iid](#dirichlet-non-iid)
-  - [customize non-iid](#customize-non-iid)
-    - [label distribution](#label-distribution)
-    - [data distribution](#data-distribution)
-- [Adding New Client Class](#adding-new-client-class)
-- [Multi-GPU](#multi-gpu)
 - [Existing Bugs](#existing-bugs)
 - [Contributors](#contributors)
 - [Contact Us](#contact-us)
@@ -52,25 +31,39 @@
 
 ## Brief
 
-Use thread/process simulation clients for federated learning. The modular design makes the project highly scalable and supports various current mainstream federated learning models: synchronous, asynchronous, semi-asynchronous, personalized, etc. Thread mode provides users with a good debugging environment, while process mode improves experimental efficiency and optimizes experimental data.
+One code adapts to multiple operating modes: process, thread, timeslice.
 
-wandb synchronizes experimental data to the cloud with one click, so there is no need to worry about data loss.
+One-click start; change the experimental environment without modifying the code.
 
-## Git Branch Description
+Support random seeds for reproducible experiments.
 
-The master branch is the main branch with the latest code, but some of the commits are dirty commits and not guaranteed to run properly. It is recommended to use tagged versions for better stability.
+Redesigned the FL framework to be module with high extensibility, supporting various mainstream federated learning paradigms: `synchronous`, `asynchronous`, `semi-asynchronous`, `personalized`, etc.
 
-The checkout branch retains the functionality of adding clients to the system during the training process, which has been removed in the main branch. The checkout branch is not actively maintained and only supports synchronous and asynchronous FL.
+With wandb, synchronize experimental data to the cloud, avoiding data loss.
+
+For more project information, please see the [wiki](https://github.com/NUAA-SmartSensing/async-FL/wiki).
 
 ## Requirements
 
-python3.8 + pytorch + macos
+python3.8 + pytorch + linux
 
-It has been validated on Linux.
+It has been validated on macOS.
 
 It supports single GPU and Multi-GPU.
 
 ## Getting Started
+
+### Environment
+
+Install dependencies on an existing python environment using `pip install -r requirements.txt`
+
+or
+
+Create a new python environment using conda:
+
+```shell
+conda env create -f environment.yml
+```
 
 ### Experiments
 You can run `python main.py` (the main file in the fl directory) directly. The program will automatically read the `config.json` file in the root directory and store the results in the specified path under `results`, along with the configuration file.
@@ -80,6 +73,7 @@ You can also specify the configuration file by `python main.py ../../config.json
 The `config` folder in the root directory provides some algorithm configuration files proposed in papers. The following algorithm implementations are currently available:
 
 ```text
+centralized learning
 FedAvg
 FedAsync
 FedProx
@@ -87,7 +81,11 @@ FedAT
 FedLC
 FedDL
 M-Step AsyncFL
+FedBuff
 FedAdam
+FedNova
+FedBN
+TWAFL
 ```
 
 ### Docker
