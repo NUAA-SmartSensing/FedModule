@@ -21,7 +21,7 @@
     "client_num": 50
   },
   "server": {
-    "path": "server.SyncServer.SyncServer",
+    "path": "server.NormalServer.NormalServer",
     "epochs": 1,
     "model": {
       "path": "model.CNN.CNN",
@@ -65,7 +65,7 @@
   "client": {
     "path": "client.NormalClient.NormalClient",
     "epochs": 2,
-    "batch_size": 50,
+    "batch_size": 64,
     "model": {
       "path": "model.CNN.CNN",
       "params": {}
