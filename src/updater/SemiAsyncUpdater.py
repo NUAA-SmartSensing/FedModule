@@ -1,5 +1,3 @@
-import time
-
 import torch.utils.data
 
 from updater.SyncUpdater import SyncUpdater
