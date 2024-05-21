@@ -30,7 +30,7 @@
 
 ## 简介
 
-一份代码适配多种运行模式：[`process`](https://github.com/NUAA-SmartSensing/async-FL/wiki), [`thread`](https://github.com/NUAA-SmartSensing/async-FL/wiki), [`timeslice`](https://github.com/NUAA-SmartSensing/async-FL/wiki), [`distributed(under development)`](https://github.com/NUAA-SmartSensing/async-FL/wiki)。
+一份代码适配多种运行模式：[`thread`](https://github.com/NUAA-SmartSensing/async-FL/wiki/mode#thread), [`process`](https://github.com/NUAA-SmartSensing/async-FL/wiki/mode#process),  [`timeslice`](https://github.com/NUAA-SmartSensing/async-FL/wiki/mode#timeslice), [`distributed(under development)`](https://github.com/NUAA-SmartSensing/async-FL/wiki/mode#distribute)。
 
 一键启动，更改实验环境无需修改代码。
 
