@@ -9,13 +9,13 @@
     "use_file_system": false,
     "multi_gpu": true,
     "experiment": "FedBuff/1",
-    "stale": [0,0,0,0,0,8,8,8,8,8,8,8,8,8,8,16,16,16,16,16],
+    "stale": false,
     "dataset": {
       "path": "dataset.MNIST.MNIST",
       "params": {}
     },
     "iid": false,
-    "client_num": 20
+    "client_num": 30
   },
   "server": {
     "path": "server.NormalServer.NormalServer",
@@ -26,12 +26,12 @@
     },
     "scheduler": {
       "path": "scheduler.AsyncScheduler.AsyncScheduler",
-      "schedule_interval": 8,
+      "schedule_interval": 1,
       "schedule_delay": 20,
       "schedule": {
         "path": "schedule.RandomSchedule.RandomSchedule",
         "params": {
-          "c_ratio": 0.4
+          "c_ratio": 0.7
         }
       }
     },
