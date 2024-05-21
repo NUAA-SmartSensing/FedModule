@@ -117,10 +117,9 @@ docker run -it async-fl config/FedAvg-config.json
 - [x] Semi-asynchronous federated learning
 - [x] Provide test loss information
 - [x] Custom label heterogeneity
-- [ ] Custom data heterogeneity
+- [x] Custom data heterogeneity
 - [x] Support Dirichlet distribution
 - [x] wandb visualization
-- [ ] Support for leaf-related datasets
 - [x] Support for multiple GPUs
 - [x] Docker deployment
 - [x] Process thread switching
