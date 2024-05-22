@@ -112,14 +112,6 @@ def main():
     client_manager_config = config['client_manager']
     queue_manager_config = config['queue_manager']
     wandb_config = config['wandb']
-    GlobalVarGetter.set({'config': config, 'global_config': global_config,
-                         'server_config': server_config,
-                         'client_config': client_config,
-                         'client_manager_config': client_manager_config,
-                         'queue_manager_config': queue_manager_config})
-    global_var = GlobalVarGetter.get()
-    message_queue = MessageQueueFactory.create_message_queue(True)
-    message_queue.set_config(global_var)
 
     # 实验路径相关
     if not global_config["experiment"].endswith("/"):
@@ -143,11 +135,25 @@ def main():
 
     # 初始化wandb
     if wandb_config["enabled"]:
+        params = {}
+        if "params" in wandb_config:
+            params = wandb_config["params"]
         wandb.init(
             project=wandb_config["project"],
             config=config,
             name=wandb_config["name"],
+            **params
         )
+
+    GlobalVarGetter.set({'config': config, 'global_config': global_config,
+                         'server_config': server_config,
+                         'client_config': client_config,
+                         'client_manager_config': client_manager_config,
+                         'queue_manager_config': queue_manager_config})
+    global_var = GlobalVarGetter.get()
+    message_queue = MessageQueueFactory.create_message_queue(True)
+    message_queue.set_config(global_var)
+
     start_time = datetime.datetime.now()
 
     # 改用文件系统存储内存
