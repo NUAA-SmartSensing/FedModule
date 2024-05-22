@@ -26,7 +26,6 @@ class SemiAsyncUpdater(SyncUpdater):
         for i in range(self.global_var['group_manager'].group_num):
             update_list.append({"weights": network_list[i]})
         super().update_server_weights(epoch+1, update_list)
-        print(self.group_manager.epoch_list)
 
     def get_update_list(self):
         update_list = []
