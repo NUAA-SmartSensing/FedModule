@@ -126,7 +126,7 @@ docker run -it async-fl config/FedAvg-config.json
 
 ## 添加新的算法
 
-请查看[wiki](https://github.com/NUAA-SmartSensing/async-FL/wiki/%E6%95%B4%E4%BD%93%E6%B5%81%E7%A8%8B#%E6%B7%BB%E5%8A%A0%E6%96%B0%E7%9A%84%E7%AE%97%E6%B3%95)
+请查看[wiki](https://github.com/NUAA-SmartSensing/async-FL/wiki/total#%E6%B7%BB%E5%8A%A0%E6%96%B0%E7%9A%84%E7%AE%97%E6%B3%95)
 
 ## 代码尚存问题
 
