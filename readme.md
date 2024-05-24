@@ -32,7 +32,7 @@
 
 ## Brief
 
-One code adapts to multiple operating modes: [`thread`](https://github.com/NUAA-SmartSensing/async-FL/wiki/mode#thread), [`process`](https://github.com/NUAA-SmartSensing/async-FL/wiki/mode#process),  [`timeslice`](https://github.com/NUAA-SmartSensing/async-FL/wiki/mode#timeslice), [`distributed(under development)`](https://github.com/NUAA-SmartSensing/async-FL/wiki/mode#distribute).
+One code adapts to multiple operating modes: [`thread`](https://github.com/NUAA-SmartSensing/async-FL/wiki/mode#thread), [`process`](https://github.com/NUAA-SmartSensing/async-FL/wiki/mode#process),  [`timeslice`](https://github.com/NUAA-SmartSensing/async-FL/wiki/mode#timeslice), [`distributed(under development)`](https://github.com/NUAA-SmartSensing/async-FL/wiki/mode#distributed).
 
 One-click start; change the experimental environment without modifying the code.
 
