@@ -4,8 +4,9 @@ from utils.Tools import to_cpu, to_dev
 
 
 class UpdateCaller:
-    def __init__(self, updater):
+    def __init__(self, updater, update_method = None):
         self.updater = updater
+        self.update_method = update_method if update_method is not None else updater.update_method
 
     def update_server_weights(self, epoch, update_list, *args, **kwargs):
         # 确保形参进入GPU

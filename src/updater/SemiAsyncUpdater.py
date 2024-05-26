@@ -1,5 +1,6 @@
 import torch.utils.data
 
+from update.UpdateCaller import UpdateCaller
 from updater.SyncUpdater import SyncUpdater
 from utils import ModuleFindTool
 
@@ -13,9 +14,10 @@ class SemiAsyncUpdater(SyncUpdater):
         self.loss_list = []
         group_update_class = ModuleFindTool.find_class_by_path(config["group"]["path"])
         self.group_update = group_update_class(self.config["group"]["params"])
+        self.group_update_caller = UpdateCaller(self, self.group_update)
 
     def update_group_weights(self, epoch, update_list):
-        model, _ = self.group_update.update_server_weights(epoch, update_list)
+        model, _ = self.group_update_caller.update_server_weights(epoch, update_list)
         if torch.cuda.is_available():
             for key, var in model.items():
                 model[key] = model[key].cuda()
