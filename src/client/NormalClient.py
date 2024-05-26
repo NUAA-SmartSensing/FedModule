@@ -180,8 +180,7 @@ class NormalClient(Client):
         """
         time.sleep(secs)
 
-    @staticmethod
-    def _get_transform(config):
+    def _get_transform(self, config):
         transform, target_transform = None, None
         if "transform" in config:
             transform_func = ModuleFindTool.find_class_by_path(config["transform"]["path"])
@@ -191,8 +190,7 @@ class NormalClient(Client):
             target_transform = target_transform_func(**config["target_transform"]["params"])
         return transform, target_transform
 
-    @staticmethod
-    def _get_model(config):
+    def _get_model(self, config):
         # local model
         model_class = ModuleFindTool.find_class_by_path(config["model"]["path"])
         for k, v in config["model"]["params"].items():
