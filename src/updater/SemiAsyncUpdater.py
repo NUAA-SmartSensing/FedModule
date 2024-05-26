@@ -9,18 +9,12 @@ class SemiAsyncUpdater(SyncUpdater):
     def __init__(self, server_thread_lock, stop_event, config, mutex_sem, empty_sem, full_sem):
         SyncUpdater.__init__(self, server_thread_lock, stop_event, config, mutex_sem, empty_sem, full_sem)
         self.group_manager = self.global_var["group_manager"]
-
-        self.accuracy_list = []
-        self.loss_list = []
         group_update_class = ModuleFindTool.find_class_by_path(config["group"]["path"])
         self.group_update = group_update_class(self.config["group"]["params"])
         self.group_update_caller = UpdateCaller(self, self.group_update)
 
     def update_group_weights(self, epoch, update_list):
         model, _ = self.group_update_caller.update_server_weights(epoch, update_list)
-        if torch.cuda.is_available():
-            for key, var in model.items():
-                model[key] = model[key].cuda()
         return model
 
     def update_server_weights(self, epoch, network_list):
