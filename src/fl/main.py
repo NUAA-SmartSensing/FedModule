@@ -157,7 +157,7 @@ def main():
     start_time = datetime.datetime.now()
 
     # 改用文件系统存储内存
-    if global_config['use_file_system']:
+    if 'use_file_system' in global_config and global_config['use_file_system']:
         torch.multiprocessing.set_sharing_strategy('file_system')
 
     # 客户端延迟文件生成
