@@ -4,7 +4,7 @@ import numpy as np
 from torch.utils.data import Dataset
 
 from utils import Random
-from utils.JsonTool import dict_to_list, list_to_dict
+from utils.Tools import dict_to_list, list_to_dict
 
 
 class DatasetSplit(Dataset):

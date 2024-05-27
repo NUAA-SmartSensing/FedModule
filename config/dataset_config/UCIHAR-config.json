@@ -26,7 +26,7 @@
     "model": {
       "path": "model.HAR.cnn.CNN",
       "params": {
-        "train_shape": "self.fl_train_ds.data[0].shape",
+        "train_shape": "self.train_ds.data.shape",
         "category": 12
       }
     },
@@ -72,7 +72,7 @@
     "model": {
       "path": "model.HAR.cnn.CNN",
       "params": {
-        "train_shape": "self.fl_train_ds.data[0].shape",
+        "train_shape": "self.train_ds.data.shape",
         "category": 12
       }
     },

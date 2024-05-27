@@ -11,7 +11,7 @@ from torch.utils.data import DataLoader
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from core.Runtime import running_mode
-from utils.DataReader import CustomDataset
+from utils.DatasetUtils import CustomDataset
 from utils.GlobalVarGetter import GlobalVarGetter
 from core.MessageQueue import MessageQueueFactory
 from utils.Tools import *

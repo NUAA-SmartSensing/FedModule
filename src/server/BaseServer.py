@@ -4,7 +4,7 @@ import torch.cuda
 from torch.multiprocessing import Event
 
 from utils import ModuleFindTool, Time
-from utils.DataReader import FLDataset
+from utils.DatasetUtils import FLDataset
 from utils.GlobalVarGetter import GlobalVarGetter
 from core.MessageQueue import DataGetter, MessageQueueFactory
 

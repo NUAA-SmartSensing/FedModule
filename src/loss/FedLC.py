@@ -3,7 +3,6 @@ import torch
 from torch import nn
 
 from client import Client
-from utils.DataReader import FLDataset
 
 
 class FedLC(nn.Module):

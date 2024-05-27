@@ -7,7 +7,7 @@ from torch.utils.data import DataLoader
 from client.Client import Client
 from loss.LossFactory import LossFactory
 from utils import ModuleFindTool
-from utils.DataReader import FLDataset
+from utils.DatasetUtils import FLDataset
 from utils.Tools import to_cpu
 
 

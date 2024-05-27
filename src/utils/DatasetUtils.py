@@ -8,6 +8,42 @@ import numpy as np
 from collections import Counter
 from sklearn.preprocessing import StandardScaler
 
+from torch.utils.data import Dataset
+
+
+class CustomDataset(Dataset):
+    def __init__(self, data, targets):
+        self.data = data
+        self.targets = targets
+
+    def __getitem__(self, index):
+        x = self.data[index]
+        y = self.targets[index]
+        return x, y
+
+    def __len__(self):
+        return len(self.data)
+
+
+class FLDataset(Dataset):
+    def __init__(self, dataset, idxs, transform=None, target_transform=None):
+        self.dataset = dataset
+        self.idxs = idxs
+        self.transform = transform
+        self.target_transform = target_transform
+
+    def __len__(self):
+        return len(self.idxs)
+
+    def __getitem__(self, item):
+        image, label = self.dataset[self.idxs[item]]
+        if self.transform is not None:
+            image = self.transform(image)
+
+        if self.target_transform is not None:
+            label = self.target_transform(label)
+        return image, label
+
 
 def download_dataset(dataset_name, file_url, dataset_dir):
     '''
@@ -37,7 +73,8 @@ def download_dataset(dataset_name, file_url, dataset_dir):
             for file in glob.glob(os.path.join(dataset_dir, '*.zip')):
                 for format in ["zip", "tar", "gztar", "bztar", "xztar"]:
                     try:
-                        shutil.unpack_archive(filename=file, extract_dir=os.path.join(dataset_dir, dataset_name), format=format)
+                        shutil.unpack_archive(filename=file, extract_dir=os.path.join(dataset_dir, dataset_name),
+                                              format=format)
                         break
                     except:
                         continue
@@ -103,7 +140,7 @@ def build_npydataset_readme(path):
             for i in range(category):
                 new_d[i] = d[i]
             log = '\n===============================================================\n%s\n   x_train shape: %s\n   x_test shape: %s\n   y_train shape: %s\n   y_test shape: %s\n\n共【%d】个类别\ny_test中每个类别的样本数为 %s\n' % (
-            dataset, x_train.shape, x_test.shape, y_train.shape, y_test.shape, category, new_d)
+                dataset, x_train.shape, x_test.shape, y_train.shape, y_test.shape, category, new_d)
             w.write(log)
     os.chdir(curdir)  # 返回原始地址
 
