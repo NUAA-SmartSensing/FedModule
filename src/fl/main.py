@@ -125,6 +125,7 @@ def main():
         is_cover = False
     else:
         is_cover = True
+
     # 保存配置文件
     if os.path.exists(
             os.path.join(os.path.dirname(os.path.abspath(__file__)), "../results/", global_config["experiment"],
