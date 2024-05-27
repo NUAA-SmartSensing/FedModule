@@ -224,13 +224,13 @@ def main():
         result_to_markdown(
             os.path.join(os.path.dirname(os.path.abspath(__file__)), "../results/", global_config["experiment"],
                          "实验阐述.md"), config)
-        if wandb_config['enabled']:
-            saveAns(os.path.join(wandb.run.dir, "accuracy.txt"), list(accuracy_list))
-            saveAns(os.path.join(wandb.run.dir, "loss.txt"), list(loss_list))
-            saveAns(os.path.join(wandb.run.dir, "time.txt"), end_time - start_time)
-            saveJson(os.path.join(wandb.run.dir, "data_distribution.json"), label_counts)
-            saveJson(os.path.join(wandb.run.dir, "config.json"), raw_config)
-            result_to_markdown(os.path.join(wandb.run.dir, "实验阐述.md"), config)
+    if wandb_config['enabled']:
+        saveAns(os.path.join(wandb.run.dir, "accuracy.txt"), list(accuracy_list))
+        saveAns(os.path.join(wandb.run.dir, "loss.txt"), list(loss_list))
+        saveAns(os.path.join(wandb.run.dir, "time.txt"), end_time - start_time)
+        saveJson(os.path.join(wandb.run.dir, "data_distribution.json"), label_counts)
+        saveJson(os.path.join(wandb.run.dir, "config.json"), raw_config)
+        result_to_markdown(os.path.join(wandb.run.dir, "实验阐述.md"), config)
 
 
 def cleanup():
