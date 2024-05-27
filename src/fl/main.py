@@ -121,11 +121,14 @@ def main():
         os.makedirs(
             os.path.join(os.path.dirname(os.path.abspath(__file__)), "../results/", global_config["experiment"]))
 
-    is_cover = True
+    if "save" in global_config and not global_config["save"]:
+        is_cover = False
+    else:
+        is_cover = True
     # 保存配置文件
     if os.path.exists(
             os.path.join(os.path.dirname(os.path.abspath(__file__)), "../results/", global_config["experiment"],
-                         "config.json")):
+                         "config.json")) and is_cover:
         is_cover = input("实验路径已存在，是否覆盖(y/n):")
         if is_cover == 'y' or is_cover == 'Y':
             is_cover = True
