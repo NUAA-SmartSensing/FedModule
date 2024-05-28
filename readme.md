@@ -87,6 +87,7 @@ FedAdam
 FedNova
 FedBN
 TWAFL
+more methods to refer to the [wiki](https://github.com/NUAA-SmartSensing/async-FL/wiki/%E7%8E%B0%E6%9C%89%E7%AE%97%E6%B3%95)
 ```
 
 ### Docker
