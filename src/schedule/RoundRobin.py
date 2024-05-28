@@ -3,7 +3,7 @@ from schedule.AbstractSchedule import AbstractSchedule
 
 class RoundRobin(AbstractSchedule):
     def __init__(self, config):
-        self.config = config
+        super().__init__(config)
         self.pos = 0
         self.c_ratio = config["c_ratio"]
 

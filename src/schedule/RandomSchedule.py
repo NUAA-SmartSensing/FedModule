@@ -5,7 +5,7 @@ from schedule.AbstractSchedule import AbstractSchedule
 
 class RandomSchedule(AbstractSchedule):
     def __init__(self, config):
-        self.config = config
+        super().__init__(config)
         self.c_ratio = config["c_ratio"]
 
     def schedule(self, client_list):

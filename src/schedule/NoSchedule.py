@@ -3,7 +3,7 @@ from schedule.AbstractSchedule import AbstractSchedule
 
 class NoSchedule(AbstractSchedule):
     def __init__(self, config):
-        self.config = config
+        super().__init__(config)
         self.init = False
 
     def schedule(self, client_list):
