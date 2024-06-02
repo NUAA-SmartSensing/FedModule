@@ -41,16 +41,27 @@ def running_mode_for_mq():
 
 class ManagerWrapper:
     _manager = None
+    _address_port = 50000
+    _address_host = ''
+    _address_init = False
 
     @staticmethod
     def get_manager(main_process=False):
+        if not ManagerWrapper._address_init:
+            ManagerWrapper._address_init = True
+            config = GlobalVarGetter.get()['global_config']
+            if 'message_queue' in config:
+                if 'address' in config:
+                    ManagerWrapper._address_host = config['message_queue']['address']
+                if 'port' in config:
+                    ManagerWrapper._address_port = config['message_queue']['port']
         if main_process and ManagerWrapper._manager is None:
             ManagerWrapper.__register()
-            ManagerWrapper._manager = SyncManager(address=('', 50000))
+            ManagerWrapper._manager = SyncManager(address=(ManagerWrapper._address_host, ManagerWrapper._address_port))
             ManagerWrapper._manager.start()
         elif not main_process and ManagerWrapper._manager is None:
             ManagerWrapper.__register()
-            ManagerWrapper._manager = SyncManager(address=('', 50000))
+            ManagerWrapper._manager = SyncManager(address=(ManagerWrapper._address_host, ManagerWrapper._address_port))
             ManagerWrapper._manager.connect()
         return ManagerWrapper._manager
 
