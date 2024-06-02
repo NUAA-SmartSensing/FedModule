@@ -21,6 +21,7 @@ class NormalClientManager(BaseClientManager):
         self.index_list = whole_config["client_manager"]["index_list"]  # each client's index list
         self.client_config = whole_config["client"]
 
+        self.client_dev = self.get_client_dev_list(self.total_client_num, self.multi_gpu)
         self.client_class = ModuleFindTool.find_class_by_path(whole_config["client"]["path"])
         self.stop_event_list = [EventFactory.create_Event() for _ in range(self.client_num)]
         self.selected_event_list = [EventFactory.create_Event() for _ in range(self.client_num)]
@@ -31,17 +32,15 @@ class NormalClientManager(BaseClientManager):
         # start clients
         self.global_var['client_list'] = self.client_list
         self.global_var['client_id_list'] = self.client_id_list
-        print("Start clients:")
+        print("Starting clients")
         for i in self.client_id_list:
             self.client_list[i].start()
             self.client_status[i] = CLIENT_STATUS['active']
 
     def __init_clients(self):
-        self.client_dev = self.get_client_dev_list(self.total_client_num, self.multi_gpu)
         for i in range(self.client_num):
-            client_delay = self.client_staleness_list[i]
             self.client_list.append(
-                self.client_class(i, self.stop_event_list[i], self.selected_event_list[i], client_delay,
+                self.client_class(i, self.stop_event_list[i], self.selected_event_list[i], self.client_staleness_list[i],
                                   self.index_list[i], self.client_config, self.client_dev[i]))  # instance
             self.client_status.append(CLIENT_STATUS['created'])
             self.client_id_list.append(i)
