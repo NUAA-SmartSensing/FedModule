@@ -1,0 +1,84 @@
+{
+  "wandb": {
+    "enabled": false,
+    "project": "FedAvg",
+    "name": "1"
+  },
+  "global": {
+    "mode": {
+      "path": "core.MPMT.MPMT"
+    },
+    "dataset_pre_load": true,
+    "use_file_system": false,
+    "multi_gpu": true,
+    "experiment": "FedAvg/1",
+    "stale": false,
+    "dataset": {
+      "path": "dataset.FashionMNIST.FashionMNIST",
+      "params": {}
+    },
+    "iid": true,
+    "client_num": 16
+  },
+  "server": {
+    "path": "server.NormalServer.NormalServer",
+    "epochs": 10,
+    "model": {
+      "path": "model.CNN.CNN",
+      "params": {}
+    },
+    "scheduler": {
+      "path": "scheduler.SyncScheduler.SyncScheduler",
+      "schedule": {
+        "path": "schedule.RandomSchedule.RandomSchedule",
+        "params": {
+          "c_ratio": 0.3
+        }
+      }
+    },
+    "updater": {
+      "path": "updater.SyncUpdater.SyncUpdater",
+      "loss": "torch.nn.functional.cross_entropy",
+      "update": {
+        "path": "update.FedAvg.FedAvg",
+        "params": {
+        }
+      }
+    }
+  },
+  "queue_manager": {
+    "path": "queuemanager.SingleQueueManager.SingleQueueManager",
+    "receiver": {
+      "path": "receiver.NormalReceiver.NormalReceiver",
+      "params": {
+      }
+    },
+    "checker": {
+      "path": "checker.SyncChecker.SyncChecker",
+      "params": {
+      }
+    }
+  },
+  "client_manager": {
+    "path": "clientmanager.MPMTClientManager.MPMTClientManager",
+    "process_num": 2
+  },
+  "client": {
+    "path": "client.NormalClient.NormalClient",
+    "epochs": 2,
+    "batch_size": 64,
+    "model": {
+      "path": "model.CNN.CNN",
+      "params": {}
+    },
+    "loss": "torch.nn.functional.cross_entropy",
+    "mu": 0,
+    "optimizer": {
+      "path": "torch.optim.SGD",
+      "params": {
+        "lr": 0.01,
+        "weight_decay": 0
+      }
+    }
+  }
+}
