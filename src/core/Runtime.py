@@ -61,7 +61,13 @@ def running_mode(config):
 
 
 def running_mode_for_client():
-    config = GlobalVarGetter.get()['config']
+    global_var = GlobalVarGetter.get()
+    if global_var == "--multiprocessing-fork":
+        # this condition only exists in multiprocessing-fork process
+        # and client is the process
+        return Process
+    else:
+        config = global_var['config']
     sys.stdout = open(os.devnull, 'w')
     mode = running_mode(config)
     sys.stdout = sys.__stdout__

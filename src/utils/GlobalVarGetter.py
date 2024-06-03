@@ -9,8 +9,9 @@ class GlobalVarGetter:
     @staticmethod
     def set(global_var):
         GlobalVarGetter.global_var = defaultdict(dict, global_var)
-        sys.argv.append(global_var)
-        GlobalVarGetter.pos = len(sys.argv) - 1
+        if not isinstance(sys.argv, str):
+            sys.argv.append({"config": global_var['config']})
+            GlobalVarGetter.pos = len(sys.argv) - 1
         return GlobalVarGetter.global_var
 
     @staticmethod
@@ -19,4 +20,4 @@ class GlobalVarGetter:
             for index, i in enumerate(reversed(sys.argv)):
                 if isinstance(i, defaultdict):
                     GlobalVarGetter.pos = index
-        return sys.argv[GlobalVarGetter.pos]
+        return GlobalVarGetter.global_var
