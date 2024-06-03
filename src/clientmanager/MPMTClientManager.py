@@ -61,6 +61,18 @@ class MPMTClientManager(NormalClientManager):
         for i in self.process_pool:
             i.join()
 
+    def stop_all_clients(self):
+        # stop all clients
+        for i in self.client_id_list:
+            self.stop_client_by_id(i)
+        self.stop_event.set()
+        for e in self.create_client_event:
+            e.set()
+
+    def stop_client_by_id(self, client_id):
+        self.stop_event_list[client_id].set()
+        self.selected_event_list[client_id].set()
+
 
 class MPMT(Process):
     def __init__(self, id, process_num, init_client_num, client_class, init_event, run_event, stop_event, create_client_event, stop_event_list, selected_event_list,
@@ -90,8 +102,10 @@ class MPMT(Process):
         self.init()
         self.run_event.wait()
         self.run_client()
-        while not self.stop_event.is_set():
+        while True:
             self.create_client_event.wait()
+            if self.stop_event.is_set():
+                break
             self.create_client()
             self.create_client_event.clear()
         for i in self.client_list:
