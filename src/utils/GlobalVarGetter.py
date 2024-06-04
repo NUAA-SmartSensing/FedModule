@@ -20,4 +20,5 @@ class GlobalVarGetter:
             for index, i in enumerate(reversed(sys.argv)):
                 if isinstance(i, defaultdict):
                     GlobalVarGetter.pos = index
+            GlobalVarGetter.global_var = sys.argv[GlobalVarGetter.pos]
         return GlobalVarGetter.global_var

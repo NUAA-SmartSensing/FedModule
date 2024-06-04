@@ -49,7 +49,7 @@ class ManagerWrapper:
     def get_manager(main_process=False):
         if not ManagerWrapper._address_init:
             ManagerWrapper._address_init = True
-            config = GlobalVarGetter.get()['global_config']
+            config = GlobalVarGetter.get()['config']['global']
             if 'message_queue' in config:
                 if 'address' in config:
                     ManagerWrapper._address_host = config['message_queue']['address']
