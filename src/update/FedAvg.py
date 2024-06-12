@@ -22,3 +22,16 @@ class FedAvg(AbstractUpdate):
             for key, var in client_weights.items():
                 updated_parameters[key] += client_weights[key] * update_dict["data_sum"] / total_nums
         return updated_parameters, updated_parameters
+
+
+class FedAvgWithPrevious(FedAvg):
+    def __init__(self, config):
+        super().__init__(config)
+        self.beta = config["beta"]
+
+    def update_server_weights(self, epoch, update_list):
+        global_model = self.global_var["server_network"].state_dict()
+        updated_parameters, _ = super().update_server_weights(epoch, update_list)
+        for key, var in updated_parameters.items():
+            updated_parameters[key] = self.beta * global_model[key] + (1 - self.beta) * updated_parameters[key]
+        return updated_parameters, updated_parameters
