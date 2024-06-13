@@ -1,0 +1,85 @@
+{
+  "wandb": {
+    "enabled": false,
+    "project": "PFedMe",
+    "name": "1"
+  },
+  "global": {
+    "save": false,
+    "dataset_pre_load": true,
+    "use_file_system": false,
+    "multi_gpu": true,
+    "experiment": "PFedMe/1",
+    "stale": false,
+    "dataset": {
+      "path": "dataset.FashionMNIST.FashionMNIST",
+      "params": {}
+    },
+    "iid": {
+      "beta": 0.5
+    },
+    "client_num": 20
+  },
+  "server": {
+    "path": "server.NormalServer.NormalServer",
+    "epochs": 200,
+    "model": {
+      "path": "model.CNN.CNN",
+      "params": {}
+    },
+    "scheduler": {
+      "path": "scheduler.SyncScheduler.SyncScheduler",
+      "schedule": {
+        "path": "schedule.RandomSchedule.RandomSchedule",
+        "params": {
+          "c_ratio": 0.25
+        }
+      }
+    },
+    "updater": {
+      "path": "updater.PersonalUpdater.PersonalUpdater",
+      "loss": "torch.nn.functional.cross_entropy",
+      "update": {
+        "path": "update.FedAvg.FedAvgWithPrevious",
+        "params": {
+            "beta": 0
+        }
+      }
+    }
+  },
+  "queue_manager": {
+    "path": "queuemanager.SingleQueueManager.SingleQueueManager",
+    "receiver": {
+      "path": "receiver.NormalReceiver.NormalReceiver",
+      "params": {
+      }
+    },
+    "checker": {
+      "path": "checker.SyncChecker.SyncChecker",
+      "params": {
+      }
+    }
+  },
+  "client_manager": {
+    "path": "clientmanager.NormalClientManager.NormalClientManager"
+  },
+  "client": {
+    "path": "client.PFedMeClient.PFedMeClientRaw",
+    "epochs": 20,
+    "K": 30,
+    "batch_size": 20,
+    "model": {
+      "path": "model.CNN.CNN",
+      "params": {}
+    },
+    "loss": "torch.nn.functional.cross_entropy",
+    "mu": 0,
+    "optimizer": {
+      "path": "client.PFedMeClient.PFedMeOptimizer",
+      "params": {
+        "lr": 0.005,
+        "lamda": 15
+      }
+    }
+  }
+}
