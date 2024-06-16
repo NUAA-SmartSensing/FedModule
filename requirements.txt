@@ -36,3 +36,4 @@ torchvision==0.18.0+cpu
 typing_extensions==4.9.0
 urllib3==2.2.1
 wandb==0.17.0
+kmeans1d==0.3.1
