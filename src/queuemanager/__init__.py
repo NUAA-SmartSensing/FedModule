@@ -1,2 +1,3 @@
 from queuemanager import QueueListManager
 from queuemanager import SingleQueueManager
+from queuemanager import VCMQueueManager
