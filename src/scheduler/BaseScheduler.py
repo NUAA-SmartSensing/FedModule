@@ -37,6 +37,8 @@ class BaseScheduler(threading.Thread):
 
     def client_select(self, *args, **kwargs):
         client_list = self.global_var['client_id_list']
+        training_status = self.message_queue.get_training_status()
+        client_list = [client_id for client_id in client_list if client_id not in training_status or not training_status[client_id]]
         selected_clients = self.schedule_caller.schedule(client_list)
         return selected_clients
 
