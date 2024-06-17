@@ -44,7 +44,7 @@
       "optimizer": {
         "path": "torch.optim.Adam",
         "params": {
-          "lr": 0.03,
+          "lr": 0.01,
           "weight_decay": 0
         }
       }
@@ -83,7 +83,7 @@
     "optimizer": {
       "path": "torch.optim.SGD",
       "params": {
-        "lr": 0.01,
+        "lr": 0.3,
         "weight_decay": 0
       }
     }
