@@ -30,6 +30,7 @@ class VCMQueueManager(SingleQueueManager):
         self.existing_versions = {}
         self.existing_versions_model = {}
         self.current_t = self.global_var['current_t']
+        self.schedule_t = self.global_var['schedule_t']
         self.vcm = VCM_Factory.create_VCM(config['vcm'], self.existing_versions_model)
         self.client_num = 0
 
@@ -37,8 +38,8 @@ class VCMQueueManager(SingleQueueManager):
         self.receiver.receive(self, nums, *args, **kwargs)
 
     def put(self, update, *args, **kwargs):
-        if update['time_stamp'] != self.current_t.get_time():
-            self.vcm.correct(update, self.current_t.get_time())
+        if update['time_stamp'] != self.current_t.get_time() and update['time_stamp'] != self.schedule_t.get_time() - 1:
+            self.vcm.correct(update, self.schedule_t.get_time() - 1)
         else:
             self.client_num += 1
         super().put(update, *args, **kwargs)
