@@ -56,4 +56,4 @@ class StepAsyncAvg(AbstractUpdate):
         for key, var in server_weights.items():
             updated_parameters[key] = (alpha * updated_parameters[key] + (1 - alpha) * server_weights[key])
 
-        return updated_parameters, updated_parameters
+        return updated_parameters, None

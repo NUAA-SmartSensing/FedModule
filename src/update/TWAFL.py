@@ -38,4 +38,4 @@ class TWAFL(AbstractUpdate):
                     pass
                 else:
                     updated_parameters[key] += client_weights[key] * update_dict["data_sum"] / total_nums
-        return updated_parameters, updated_parameters
+        return updated_parameters, None

@@ -30,4 +30,4 @@ class FedNova(AbstractUpdate):
             if torch.cuda.is_available():
                 updated_parameters[key] = updated_parameters[key].cuda()
             updated_parameters[key] = server_weights[key] + updated_parameters[key] * pre_param
-        return updated_parameters, updated_parameters
+        return updated_parameters, None

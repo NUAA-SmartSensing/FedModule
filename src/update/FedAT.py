@@ -20,4 +20,4 @@ class FedAT(AbstractUpdate):
             client_weights = update_dict["weights"]
             for key, var in client_weights.items():
                 updated_parameters[key] += client_weights[key] * epoch_list[group_num - 2 - i] / epoch
-        return updated_parameters, updated_parameters
+        return updated_parameters, None

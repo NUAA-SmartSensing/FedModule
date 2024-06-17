@@ -29,4 +29,4 @@ class FedAsync(AbstractUpdate):
         server_weights = self.global_var['updater'].server_network.state_dict()
         for key, var in server_weights.items():
             updated_parameters[key] = (alpha * client_weights[key] + (1 - alpha) * server_weights[key])
-        return updated_parameters, updated_parameters
+        return updated_parameters, None
