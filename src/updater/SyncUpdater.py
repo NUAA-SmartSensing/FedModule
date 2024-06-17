@@ -11,14 +11,14 @@ class SyncUpdater(BaseUpdater):
         self.full_sem = full_sem
 
     def run(self):
-        for epoch in range(self.T):
+        for _ in range(self.T):
             self.full_sem.acquire()
             self.mutex_sem.acquire()
 
             update_list = self.get_update_list()
             self.server_thread_lock.acquire()
-            self.update_server_weights(epoch, update_list)
-            self.run_server_test(epoch)
+            epoch = self.current_time.get_time()
+            self.server_update(epoch, update_list)
             self.server_thread_lock.release()
 
             self.current_time.time_add()
@@ -26,6 +26,10 @@ class SyncUpdater(BaseUpdater):
             self.empty_sem.release()
 
         print("Average delay =", (self.sum_delay / self.T))
+
+    def server_update(self, epoch, update_list):
+        self.update_server_weights(epoch, update_list)
+        self.run_server_test(epoch)
 
     def get_update_list(self):
         update_list = []
