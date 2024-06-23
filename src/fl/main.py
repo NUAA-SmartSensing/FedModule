@@ -136,6 +136,7 @@ def main():
         else:
             print("试验结果将不会被存储")
             is_cover = False
+    global_config["save"] = is_cover
 
     # 初始化wandb
     if wandb_config["enabled"]:

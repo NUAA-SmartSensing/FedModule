@@ -10,8 +10,9 @@ class TestClient(NormalClient, TestableMixin):
 
     def run(self):
         super().run()
-        experiment = self.global_config['experiment']
-        self.save_test_record(self.client_id, experiment)
+        if self.global_config['save']:
+            experiment = self.global_config['experiment']
+            self.save_test_record(self.client_id, experiment)
 
     def train(self):
         data_sum, weights = super().train()
