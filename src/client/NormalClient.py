@@ -39,6 +39,7 @@ class NormalClient(Client):
     """
     def __init__(self, c_id, stop_event, selected_event, delay, index_list, config, dev):
         Client.__init__(self, c_id, stop_event, selected_event, delay, index_list, dev)
+        self.lr_scheduler = None
         self.fl_train_ds = None
         self.opti = None
         self.loss_func = None
@@ -124,6 +125,8 @@ class NormalClient(Client):
                 loss.backward()
                 # Update the gradient
                 self.opti.step()
+                if self.lr_scheduler:
+                    self.lr_scheduler.step()
                 # Zero out the gradient and initialize the gradient.
                 self.opti.zero_grad()
         # Return the updated model parameters obtained by training on the client's own data.
@@ -164,6 +167,9 @@ class NormalClient(Client):
         # optimizer
         opti_class = ModuleFindTool.find_class_by_path(self.optimizer_config["path"])
         self.opti = opti_class(self.model.parameters(), **self.optimizer_config["params"])
+        if "scheduler" in config:
+            scheduler_class = ModuleFindTool.find_class_by_path(config["scheduler"]["path"])
+            self.lr_scheduler = scheduler_class(self.opti, **config["scheduler"]["params"])
 
         # loss function
         self.loss_func = LossFactory(config["loss"], self).create_loss()

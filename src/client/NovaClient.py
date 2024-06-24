@@ -31,6 +31,8 @@ class NovaClient(NormalClient):
                 loss.backward()
                 # Update the gradient
                 self.opti.step()
+                if self.lr_scheduler:
+                    self.lr_scheduler.step()
                 # Zero out the gradient and initialize the gradient.
                 self.opti.zero_grad()
         # return the delta weights
