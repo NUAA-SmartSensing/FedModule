@@ -126,6 +126,14 @@ class MessageQueue:
         MessageQueue.uplink[key].put(item)
 
     @staticmethod
+    def create_uplink(key, dtype=dict):
+        MessageQueue.uplink[key] = dtype()
+
+    @staticmethod
+    def create_downlink(key, dtype=dict):
+        MessageQueue.downlink[key] = dtype()
+
+    @staticmethod
     def get_from_downlink(client_id, key):
         if client_id in MessageQueue.downlink[key]:
             return copy.deepcopy(MessageQueue.downlink[key][client_id])
