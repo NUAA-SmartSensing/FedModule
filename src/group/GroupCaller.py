@@ -9,7 +9,7 @@ class GroupCaller:
         if isinstance(self.group_manager.group_method, OneGroup):
             return self.group_manager.group_method.group(client_list)
         else:
-            return self.group_manager.group_method.group(client_list, latency_list)
+            return self.group_manager.group_method.group(client_list, latency_list, *args, **kwargs)
 
     def check_update(self, *args, **kwargs):
         return self.group_manager.group_method.check_update()
