@@ -9,3 +9,4 @@ from client import BNClient
 from client import NovaClient
 from client import TWAFLClient
 from client import PFedMeClient
+from client import StreamClient
