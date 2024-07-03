@@ -51,8 +51,8 @@ class BaseDataset:
             self.index_list = generate_iid_data(self, clients)
         elif isinstance(self.iid_config, dict) and "path" in self.iid_config:
             print("generate customize data distribution")
-            data_distribution_generator = ModuleFindTool.find_class_by_path(self.iid_config["path"])()(self.iid_config["params"])
-            self.index_list = data_distribution_generator.generate_data(self.iid_config, self, train_dataset)
+            data_distribution_generator = ModuleFindTool.find_class_by_path(self.iid_config["path"])(self.iid_config["params"])
+            self.index_list = data_distribution_generator.generate_data(self.iid_config, self, clients, train_dataset)
         else:
             print("generating non_iid data...")
             self.index_list = generate_non_iid_data(self.iid_config, self, clients, self.label_min, self.label_max + 1,

@@ -72,7 +72,7 @@ def generate_client_stale_list(global_config):
 
 def get_client_data_distri(index_lists, targets):
     client_num = len(index_lists)
-    label_counts = [{i: 0 for i in range(10)} for j in range(client_num)]
+    label_counts = [{i: 0 for i in range(10)} for _ in range(client_num)]
     for i, index_list in enumerate(index_lists):
         for index in index_list:
             label_counts[i][int(targets[index])] += 1
@@ -188,8 +188,10 @@ def main():
     client_manager.start_all_clients()
 
     # 获取数据集分布
-    label_counts = get_client_data_distri(index_list, train_dataset.targets)
-
+    try:
+        label_counts = get_client_data_distri(index_list, train_dataset.targets)
+    except:
+        print("can't get the data distribution")
     # wandb启动配置植入update_config中
     server_config['updater']['enabled'] = wandb_config['enabled']
     server_class = ModuleFindTool.find_class_by_path(server_config["path"])
