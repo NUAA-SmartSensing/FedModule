@@ -1,45 +1,33 @@
 import random
 
 import numpy as np
-from torch.utils.data import Dataset
 
 from utils import Random
-from utils.Tools import dict_to_list, list_to_dict
+from utils.Tools import dict_to_list
 
 
-class DatasetSplit(Dataset):
-    def __init__(self, dataset, idxs):
-        self.dataset = dataset
-        self.idxs = list(idxs)
-
-    def __len__(self):
-        return len(self.idxs)
-
-    def __getitem__(self, item):
-        image, label = self.dataset[self.idxs[item]]
-        return image, label
-
-
-def generate_iid_data(dataset, clients):
-    class_idx = [np.argwhere(dataset.train_labels == y).flatten() for y in range(max(dataset.train_labels)-min(dataset.train_labels)+1)]
-    client_idx = [[] for _ in range(clients + 1)]
+def generate_iid_data(train_labels, clients_num):
+    class_idx = [np.argwhere(train_labels == y).flatten() for y in range(max(train_labels)-min(train_labels)+1)]
+    client_idx = [[] for _ in range(clients_num + 1)]
     for c in class_idx:
-        for i, idcs in enumerate(np.array_split(c, clients)):
+        for i, idcs in enumerate(np.array_split(c, clients_num)):
             client_idx[i] += [idcs]
-    client_idx = [np.concatenate(client_idx[i]) for i in range(clients)]
+    client_idx = [np.concatenate(client_idx[i]) for i in range(clients_num)]
     return client_idx
 
 
-def generate_non_iid_data(iid_config, dataset, clients, left, right, datasets):
+def generate_non_iid_data(iid_config, train_labels, clients_num):
+    left = min(train_labels)
+    right = max(train_labels)
     if "customize" in iid_config.keys() and iid_config["customize"]:
         label_config = iid_config['label']
         data_config = iid_config['data']
-        return customize_distribution(label_config, data_config, dataset, clients, left, right, datasets)
+        return customize_distribution(label_config, data_config, train_labels, clients_num, left, right)
     else:
-        return dirichlet_distribution(iid_config, dataset, clients, left, right)
+        return dirichlet_distribution(iid_config["beta"], train_labels, clients_num, left, right)
 
 
-def customize_distribution(label_config, data_config, dataset, clients, left, right, datasets):
+def customize_distribution(label_config, data_config, train_labels, clients_num, left, right):
     # 生成label lists
     # 洗牌算法
     label_lists = []
@@ -59,23 +47,20 @@ def customize_distribution(label_config, data_config, dataset, clients, left, ri
     # 生成data lists
     # {}
     if len(data_config) == 0:
-        size = dataset.train_data_size // clients
-        data_lists = generate_data_lists(size, size, clients, label_lists)
+        size = len(train_labels) // clients_num
+        data_lists = generate_data_lists(size, size, clients_num, label_lists)
     # max,min
     else:
-        data_lists = generate_data_lists(data_config["max"], data_config["min"], clients, label_lists)
-    # 保存label至配置文件
-    dataset.iid_config['label'] = list_to_dict(label_lists)
+        data_lists = generate_data_lists(data_config["max"], data_config["min"], clients_num, label_lists)
     # 生成序列
-    return generate_non_iid_dataset(dataset.train_data, dataset.train_labels, label_lists,
+    return generate_non_iid_dataset(train_labels, label_lists,
                                     data_lists)
 
 
-def dirichlet_distribution(iid_config, dataset, clients, left, right):
-    beta = iid_config["beta"]
-    label_distribution = np.random.dirichlet([beta] * clients, right - left)
-    class_idx = [np.argwhere(dataset.train_labels == y).flatten() for y in range(right - left)]
-    client_idx = [[] for _ in range(clients+1)]
+def dirichlet_distribution(beta, labels, clients_num, left, right):
+    label_distribution = np.random.dirichlet([beta] * clients_num, right - left)
+    class_idx = [np.argwhere(labels == y).flatten() for y in range(right - left)]
+    client_idx = [[] for _ in range(clients_num+1)]
     for c, fracs in zip(class_idx, label_distribution):
         # np.split按照比例将类别为k的样本划分为了N个子集
         # for i, idcs 为遍历第i个client对应样本集合的索引
@@ -85,7 +70,7 @@ def dirichlet_distribution(iid_config, dataset, clients, left, right):
     return client_idx
 
 
-def generate_non_iid_dataset(x, y, label_lists, data_lists):
+def generate_non_iid_dataset(y, label_lists, data_lists):
     client_idx_list = []
     for i in range(len(label_lists)):
         index_list = []

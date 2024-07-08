@@ -1,6 +1,5 @@
-import time
-
 from updater.BaseUpdater import BaseUpdater
+from updater.mixin.MoreTest import TestEachClass, TestMultiTask
 
 
 class SyncUpdater(BaseUpdater):
@@ -37,3 +36,13 @@ class SyncUpdater(BaseUpdater):
         while not self.queue_manager.empty():
             update_list.append(self.queue_manager.get())
         return update_list
+
+
+class SyncUpdaterWithDetailedTest(TestEachClass, SyncUpdater):
+    pass
+
+
+class SyncUpdaterWithTaskTest(TestMultiTask, SyncUpdater):
+    def __init__(self, server_thread_lock, stop_event, config, mutex_sem, empty_sem, full_sem):
+        TestMultiTask.__init__(self)
+        SyncUpdater.__init__(self, server_thread_lock, stop_event, config, mutex_sem, empty_sem, full_sem)

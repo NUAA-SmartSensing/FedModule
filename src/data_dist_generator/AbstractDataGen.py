@@ -6,5 +6,5 @@ class AbstractDataGen:
         self.config = config
 
     @abstractmethod
-    def generate_data(self, iid_config, dataset, client_num, train_dataset):
+    def generate_data(self, iid_config, labels, client_num, dataset, train=True):
         pass

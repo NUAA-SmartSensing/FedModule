@@ -177,8 +177,10 @@ def main():
     test_dataset = dataset.get_test_dataset()
     train_dataset, test_dataset = send_dataset(train_dataset, test_dataset, message_queue, global_config)
     index_list = dataset.get_index_list()
+    test_index_list = dataset.get_test_index_list()
     client_manager_config["index_list"] = index_list
     global_var['client_index_list'] = index_list
+    global_var['test_index_list'] = test_index_list
 
     # 启动client_manager
     # get the running mode of client
