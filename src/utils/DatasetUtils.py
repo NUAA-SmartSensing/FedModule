@@ -1,13 +1,13 @@
 # The whole file is borrowed from
 # https://github.com/xushige/HAR-Dataset-Preprocess/blob/main/utils.py
 # Thanks to xushige for providing this useful preprocessing technique
-import shutil
-import os
 import glob
-import numpy as np
+import os
+import shutil
 from collections import Counter
-from sklearn.preprocessing import StandardScaler
 
+import numpy as np
+from sklearn.preprocessing import StandardScaler
 from torch.utils.data import Dataset
 
 
@@ -23,6 +23,24 @@ class CustomDataset(Dataset):
 
     def __len__(self):
         return len(self.data)
+
+
+class CompositeDataset(Dataset):
+    def __init__(self, datasets):
+        self.datasets = datasets
+        self.lens = [len(d) for d in datasets]
+        for i in range(1, len(self.lens)):
+            self.lens[i] += self.lens[i - 1]
+
+    def __getitem__(self, index):
+        pos = 0
+        for pos, data_sum in enumerate(self.lens):
+            if index < data_sum:
+                break
+        return self.datasets[pos][index - self.lens[pos]]
+
+    def __len__(self):
+        return self.lens[-1]
 
 
 class FLDataset(Dataset):

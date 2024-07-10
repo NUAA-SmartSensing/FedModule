@@ -10,6 +10,7 @@ class StreamDataByClass(AbstractDataGen):
     r"""
         The class is used to divide a whole class into several tasks.
     """
+
     def __init__(self, config):
         super().__init__(config)
         self.label_list = None
@@ -55,9 +56,11 @@ class StreamDataByClass(AbstractDataGen):
                 print(f"task{j}: (", end='')
                 index_list_for_task[i].append([])
                 for k in range(class_num_per_task):
-                    label_mapping[self.label_list[k+j*class_num_per_task]] = k
-                    print(f"'{self.label_list[k+j*class_num_per_task]}:{len(list_per_label[i][self.label_list[k+j*class_num_per_task]])}'", end='')
-                    index_list_for_task[i][j] += list_per_label[i][self.label_list[k+j*class_num_per_task]]
+                    label_mapping[self.label_list[k + j * class_num_per_task]] = k
+                    print(
+                        f"'{self.label_list[k + j * class_num_per_task]}:{len(list_per_label[i][self.label_list[k + j * class_num_per_task]])}'",
+                        end='')
+                    index_list_for_task[i][j] += list_per_label[i][self.label_list[k + j * class_num_per_task]]
                 print(')', end=' | ')
             print()
         return index_list_for_task, label_mapping
@@ -80,5 +83,5 @@ class StreamDataByClass(AbstractDataGen):
         for i in range(class_total // self.class_num_per_task):
             index_list_for_task.append([])
             for j in range(self.class_num_per_task):
-                index_list_for_task[i] += list_per_label[self.label_list[j+i*self.class_num_per_task]]
-        return index_list_for_task
+                index_list_for_task[i] += list_per_label[self.label_list[j + i * self.class_num_per_task]]
+        return [index_list_for_task]

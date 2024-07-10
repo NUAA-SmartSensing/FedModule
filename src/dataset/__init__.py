@@ -6,3 +6,4 @@ from dataset import EMNIST
 from dataset import SVHN
 from dataset import PAMAP2
 from dataset import UCIHAR
+from dataset import CompositeDataset

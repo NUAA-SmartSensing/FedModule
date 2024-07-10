@@ -45,7 +45,7 @@ class TestMultiTask:
     def __init__(self):
         global_var = GlobalVarGetter().get()
         self.test_index_list = global_var["test_index_list"]
-        self.label_mapping = global_var["label_mapping"]
+        self.label_mapping = global_var["label_mapping"] if "label_mapping" in global_var else None
 
     def run_server_test(self, epoch):
         for task, task_list in enumerate(self.test_index_list):
@@ -57,12 +57,16 @@ class TestMultiTask:
         test_loss = 0
         dev = 'cuda' if torch.cuda.is_available() else 'cpu'
         classes = set(self.test_data.targets.data.numpy())
-        num_classes = len(set(self.label_mapping[i] for i in classes))
+        if self.label_mapping is not None:
+            num_classes = len(set(self.label_mapping[i] for i in classes))
+        else:
+            num_classes = len(set(self.test_data.targets.data.numpy()))
         class_accuracies = np.zeros(num_classes)
         class_total = np.zeros(num_classes)
         with torch.no_grad():
             for inputs, labels in dl:
-                labels = torch.LongTensor([self.label_mapping[i.item()] for i in labels])
+                if self.label_mapping is not None:
+                    labels = torch.LongTensor([self.label_mapping[i.item()] for i in labels])
                 inputs, labels = inputs.to(dev), labels.to(dev)
                 outputs = self.server_network(inputs)
                 _, id = torch.max(outputs.data, 1)
