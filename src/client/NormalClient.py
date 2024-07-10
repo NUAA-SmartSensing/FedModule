@@ -198,11 +198,17 @@ class NormalClient(Client):
 
     def _get_model(self, config):
         # local model
-        model_class = ModuleFindTool.find_class_by_path(config["model"]["path"])
-        for k, v in config["model"]["params"].items():
-            if isinstance(v, str):
-                config["model"]["params"][k] = eval(v)
-        return model_class(**config["model"]["params"])
+        if isinstance(config["model"], dict):
+            model_class = ModuleFindTool.find_class_by_path(config["model"]["path"])
+            for k, v in config["model"]["params"].items():
+                if isinstance(v, str):
+                    config["model"]["params"][k] = eval(v)
+            model = model_class(**config["model"]["params"])
+        elif isinstance(config["model"], str):
+            model = torch.load(config["model"])
+        else:
+            raise ValueError("model config error")
+        return model
 
 
 class NormalClientWithDelta(NormalClient):
