@@ -1,16 +1,13 @@
-import copy
 from copy import deepcopy
 
 import torch
-from torch import nn
+from torch.nn import functional as F
 from torch.utils.data import DataLoader
 
 from client.NormalClient import NormalClient
 from utils import ModuleFindTool
 from utils.DatasetUtils import FLDataset
 from utils.IID import generate_iid_data, generate_non_iid_data
-from utils.Tools import to_dev, to_cpu
-from torch.nn import functional as F
 
 
 class StreamClient(NormalClient):
@@ -79,7 +76,8 @@ class ContinualClient(StreamClientWithGlobal):
         data_sum = 0
         for epoch in range(self.epoch):
             for data, label in self.train_dl:
-                label = torch.LongTensor([self.label_mapping[i.item()] for i in label])
+                if self.label_mapping is not None:
+                    label = torch.LongTensor([self.label_mapping[i.item()] for i in label])
                 data, label = data.to(self.dev), label.to(self.dev)
                 preds = self.model(data)
                 # Calculate the loss function
@@ -110,7 +108,7 @@ class ContinualClientWithEWC(ContinualClient):
         super().__init__(c_id, stop_event, selected_event, delay, index_list, config, dev)
         self.previous_model = None
         self.fisher = None
-        self.ewc_lambda = 1000
+        self.ewc_lambda = 2000
 
     def receive_notify(self):
         if self.total_epoch % self.task_interval == 0:
@@ -119,9 +117,8 @@ class ContinualClientWithEWC(ContinualClient):
             else:
                 del self.fisher
                 del self.previous_model
-                self.previous_model = deepcopy({n: p for n, p in self.model.named_parameters() if p.requires_grad})
+                self.previous_model = {n: deepcopy(p.data) for n, p in self.model.named_parameters() if p.requires_grad}
                 self.compute_fisher(self.train_dl)
-                print(f"client {self.client_id} saved task model.")
         super().receive_notify()
 
     def train_one_epoch(self):
@@ -131,7 +128,8 @@ class ContinualClientWithEWC(ContinualClient):
         self.model.train()
         for epoch in range(self.epoch):
             for data, label in self.train_dl:
-                label = torch.LongTensor([self.label_mapping[i.item()] for i in label])
+                if self.label_mapping is not None:
+                    label = torch.LongTensor([self.label_mapping[i.item()] for i in label])
                 data, label = data.to(self.dev), label.to(self.dev)
                 preds = self.model(data)
                 # Calculate the loss function
@@ -144,9 +142,7 @@ class ContinualClientWithEWC(ContinualClient):
                         proximal_term += (w - w_t).norm(2)
                     loss = loss + (self.mu / 2) * proximal_term
                 if self.fisher is not None:
-                    l = self.ewc_loss()
-                    print(l)
-                    loss += l
+                    loss += self.ewc_loss()
                 # backpropagate
                 loss.backward()
                 # Update the gradient
@@ -160,7 +156,7 @@ class ContinualClientWithEWC(ContinualClient):
         torch.cuda.empty_cache()
         return data_sum, weights
 
-    def compute_fisher(self, data_loader, num_samples=100):
+    def compute_fisher(self, data_loader, num_samples=512):
         """
         Compute the Fisher information matrix for the current model
 
@@ -170,7 +166,7 @@ class ContinualClientWithEWC(ContinualClient):
         """
         fisher = {}
         params = {n: p for n, p in self.model.named_parameters() if p.requires_grad}
-        for n, p in params.items():
+        for n, p in deepcopy(params).items():
             fisher[n] = torch.zeros_like(p.data, requires_grad=False)
         self.model.eval()
         # 计算fisher矩阵
@@ -183,7 +179,7 @@ class ContinualClientWithEWC(ContinualClient):
             loss = F.cross_entropy(outputs, targets)
             loss.backward()
             for name, param in self.model.named_parameters():
-                fisher[name] += param.grad.data.pow(2) / num_samples
+                fisher[name].data += param.grad.data.pow(2) / num_samples
         # 使用fisher矩阵计算ewc loss
         self.fisher = {n: p for n, p in fisher.items()}
 
@@ -196,6 +192,7 @@ class ContinualClientWithEWC(ContinualClient):
         """
         loss = 0
         for name, param in self.model.named_parameters():
-            loss += torch.sum(self.fisher[name] * (param.data - self.previous_model[name]).pow(2))
-        loss = (self.ewc_lambda / 2) * loss
+            _loss = torch.sum(self.fisher[name] * (param - self.previous_model[name]).pow(2))
+            loss += _loss.sum()
+        loss = self.ewc_lambda / 2 * loss
         return loss
