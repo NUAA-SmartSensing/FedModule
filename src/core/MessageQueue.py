@@ -135,6 +135,8 @@ class MessageQueue:
 
     @staticmethod
     def get_from_downlink(client_id, key):
+        if key not in MessageQueue.downlink:
+            return None
         if client_id in MessageQueue.downlink[key]:
             return copy.deepcopy(MessageQueue.downlink[key][client_id])
         return None
