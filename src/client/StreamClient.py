@@ -59,6 +59,19 @@ class StreamClientWithDir(StreamClient):
         else:
             index_list = generate_non_iid_data(iid_config, train_labels, self.task_num)
         self.task_index_list = index_list
+        self.print_data_distribution()
+
+    def print_data_distribution(self):
+        for i in range(self.task_num):
+            labels = self.train_ds.targets[self.index_list]
+            label_counts = torch.bincount(labels[self.task_index_list[i]])
+            print(f"Client {self.client_id}, Task {i}: {len(self.task_index_list[i])}, {label_counts}")
+
+    def change_task(self):
+        self.fl_train_ds = FLDataset(self.train_ds, self.index_list[self.task_index_list[self.task_id]], self.transform,
+                                     self.target_transform)
+        self.train_dl = DataLoader(self.fl_train_ds, batch_size=self.batch_size, shuffle=True, drop_last=True)
+        self.task_id = (self.task_id + 1) % self.task_num
 
 
 class ContinualClient(StreamClientWithGlobal):
