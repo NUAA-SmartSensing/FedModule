@@ -5,34 +5,16 @@ from dataset.BaseDataset import BaseDataset
 from utils.DatasetUtils import CompositeDataset
 
 
-class MNIST_FM(BaseDataset):
-    def __init__(self, clients, iid_config, params):
-        BaseDataset.__init__(self, iid_config)
-        transformer = transforms.Compose([
-            # 将图片转化为Tensor格式
-            transforms.ToTensor()
-        ])
+class CompositeAbstractDataset(BaseDataset):
+    def __init__(self, iid_config):
+        super().__init__(iid_config)
         # 获取数据集
-        self.names = ["MNIST", "FashionMNIST"]
-        train_datasets = [None, None]
-        test_datasets = [None, None]
         self.train_labels = [None, None]
         self.test_labels = [None, None]
         self.train_data = [None, None]
         self.test_data = [None, None]
         self.train_dataset = None
         self.test_dataset = None
-        train_datasets[0] = datasets.MNIST(root=self.path, train=True,
-                                           transform=transformer, download=True)
-        test_datasets[0] = datasets.MNIST(root=self.path, train=False,
-                                          transform=transformer, download=True)
-        train_datasets[1] = datasets.FashionMNIST(root=self.path, train=True,
-                                                  transform=transformer, download=True)
-        test_datasets[1] = datasets.FashionMNIST(root=self.path, train=False,
-                                                 transform=transformer, download=True)
-        self.init(clients, train_datasets, test_datasets)
-        self.train_dataset = CompositeDataset(train_datasets)
-        self.test_dataset = CompositeDataset(test_datasets)
 
     def init(self, clients, train_datasets, test_datasets):
         for i in range(len(train_datasets)):
@@ -45,7 +27,7 @@ class MNIST_FM(BaseDataset):
                                                   message="test_dataset")
 
     def generate_data(self, clients_num, labels, datasets, train=True, message="train_dataset"):
-        index_list = [[] * clients_num]
+        index_list = [[] for _ in range(clients_num)]
         pos = 0
         for i in range(len(datasets)):
             print(f"generating dataset {i}\n")
@@ -61,3 +43,27 @@ class MNIST_FM(BaseDataset):
             return index_list
         else:
             return index_list[0]
+
+
+class MNIST_FM(CompositeAbstractDataset):
+    def __init__(self, clients, iid_config, params):
+        super().__init__(iid_config)
+        transformer = transforms.Compose([
+            # 将图片转化为Tensor格式
+            transforms.ToTensor()
+        ])
+        # 获取数据集
+        self.names = ["MNIST", "FashionMNIST"]
+        train_datasets = [None, None]
+        test_datasets = [None, None]
+        train_datasets[0] = datasets.MNIST(root=self.path, train=True,
+                                           transform=transformer, download=True)
+        test_datasets[0] = datasets.MNIST(root=self.path, train=False,
+                                          transform=transformer, download=True)
+        train_datasets[1] = datasets.FashionMNIST(root=self.path, train=True,
+                                                  transform=transformer, download=True)
+        test_datasets[1] = datasets.FashionMNIST(root=self.path, train=False,
+                                                 transform=transformer, download=True)
+        self.init(clients, train_datasets, test_datasets)
+        self.train_dataset = CompositeDataset(train_datasets)
+        self.test_dataset = CompositeDataset(test_datasets)
