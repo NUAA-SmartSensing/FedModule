@@ -18,7 +18,7 @@ def generate_iid_data(train_labels, clients_num):
 
 def generate_non_iid_data(iid_config, train_labels, clients_num):
     left = min(train_labels)
-    right = max(train_labels)
+    right = max(train_labels) + 1
     if "customize" in iid_config.keys() and iid_config["customize"]:
         label_config = iid_config['label']
         data_config = iid_config['data']
