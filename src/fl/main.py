@@ -3,6 +3,7 @@ import datetime
 import os
 import sys
 import time
+import uuid
 
 import torch.multiprocessing as mp
 import wandb
@@ -92,6 +93,10 @@ def main():
         config_file = sys.argv[1]
 
     config = getJson(config_file)
+    # 生成uuid
+    uuid_v4 = uuid.uuid4()
+    uid = uuid_v4.hex
+    config["global"]["uid"] = uid
 
     # 随机数种子
     if "seed" not in config["global"]:
