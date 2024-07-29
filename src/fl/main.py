@@ -2,7 +2,6 @@ import copy
 import datetime
 import os
 import sys
-import time
 import uuid
 
 import torch.multiprocessing as mp
@@ -17,11 +16,6 @@ from utils.GlobalVarGetter import GlobalVarGetter
 from core.MessageQueue import MessageQueueFactory
 from utils.Tools import *
 from utils import ModuleFindTool
-
-
-def generate_random_seed():
-    seed = int(time.time() * 1000) % 2147483647
-    return seed
 
 
 def _read_data(dataset):
@@ -117,6 +111,7 @@ def main():
     client_manager_config = config['client_manager']
     queue_manager_config = config['queue_manager']
     wandb_config = config['wandb']
+    client_config["seed"] = seed
 
     # 实验路径相关
     if not global_config["experiment"].endswith("/"):

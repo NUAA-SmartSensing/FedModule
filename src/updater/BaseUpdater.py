@@ -5,12 +5,12 @@ import torch.utils.data
 import wandb
 from torch.utils.data import DataLoader
 
+from core.MessageQueue import MessageQueueFactory
 from loss.LossFactory import LossFactory
 from update.UpdateCaller import UpdateCaller
 from utils import ModuleFindTool
 from utils.GlobalVarGetter import GlobalVarGetter
-from core.MessageQueue import MessageQueueFactory
-from utils.Tools import to_cpu, to_dev
+from utils.Tools import to_cpu, to_dev, random_seed_set
 
 
 class BaseUpdater(threading.Thread):
@@ -20,6 +20,7 @@ class BaseUpdater(threading.Thread):
         self.stop_event = stop_event
         self.config = config
         self.global_var = GlobalVarGetter.get()
+        random_seed_set(self.global_var['global']['seed'])
 
         self.T = self.global_var['T']
         self.current_time = self.global_var['current_t']

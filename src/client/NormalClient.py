@@ -1,6 +1,8 @@
 import copy
+import random
 import time
 
+import numpy as np
 import torch
 from torch.utils.data import DataLoader
 
@@ -156,6 +158,11 @@ class NormalClient(Client):
 
     def init_client(self):
         config = self.config
+        random.seed(config["seed"])
+        np.random.seed(config["seed"])
+        torch.manual_seed(config["seed"])
+        torch.cuda.manual_seed(config["seed"])
+
         self.train_ds = self.message_queue.get_train_dataset()
 
         self.transform, self.target_transform = self._get_transform(config)

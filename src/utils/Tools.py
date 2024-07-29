@@ -1,6 +1,7 @@
 import json
 import random
 import shutil
+import time
 
 import numpy as np
 import torch
@@ -121,3 +122,15 @@ def list_to_dict(src):
     for i in range(len(src)):
         des[i] = src[i]
     return des
+
+
+def random_seed_set(seed):
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed(seed)
+
+
+def generate_random_seed():
+    seed = int(time.time() * 1000) % 2147483647
+    return seed

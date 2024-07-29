@@ -1,12 +1,11 @@
 import threading
 from abc import abstractmethod
 
-
+from core.MessageQueue import MessageQueueFactory
 from schedule.ScheduleCaller import ScheduleCaller
 from utils import ModuleFindTool
 from utils.GlobalVarGetter import GlobalVarGetter
-from core.MessageQueue import MessageQueueFactory
-from utils.Tools import to_cpu
+from utils.Tools import to_cpu, random_seed_set
 
 
 class BaseScheduler(threading.Thread):
@@ -16,6 +15,8 @@ class BaseScheduler(threading.Thread):
         self.config = config
 
         self.global_var = GlobalVarGetter.get()
+        random_seed_set(self.global_var['global']['seed'])
+
         self.selected_event_list = self.global_var['selected_event_list']
         self.current_t = self.global_var['current_t']
         self.schedule_t = self.global_var['schedule_t']
