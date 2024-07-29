@@ -15,7 +15,7 @@ class BaseScheduler(threading.Thread):
         self.config = config
 
         self.global_var = GlobalVarGetter.get()
-        random_seed_set(self.global_var['global']['seed'])
+        random_seed_set(self.global_var['global_config']['seed'])
 
         self.selected_event_list = self.global_var['selected_event_list']
         self.current_t = self.global_var['current_t']

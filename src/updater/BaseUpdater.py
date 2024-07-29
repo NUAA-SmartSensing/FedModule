@@ -20,7 +20,7 @@ class BaseUpdater(threading.Thread):
         self.stop_event = stop_event
         self.config = config
         self.global_var = GlobalVarGetter.get()
-        random_seed_set(self.global_var['global']['seed'])
+        random_seed_set(self.global_var['global_config']['seed'])
 
         self.T = self.global_var['T']
         self.current_time = self.global_var['current_t']
