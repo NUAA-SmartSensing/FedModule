@@ -39,8 +39,9 @@ class SyncUpdater(BaseUpdater):
 
 
 class SyncUpdaterWithDetailedTest(TestEachClass, SyncUpdater):
-    pass
-
+    def __init__(self, server_thread_lock, stop_event, config, mutex_sem, empty_sem, full_sem):
+        TestEachClass.__init__(self)
+        SyncUpdater.__init__(self, server_thread_lock, stop_event, config, mutex_sem, empty_sem, full_sem)
 
 class SyncUpdaterWithTaskTest(TestMultiTask, SyncUpdater):
     def __init__(self, server_thread_lock, stop_event, config, mutex_sem, empty_sem, full_sem):
