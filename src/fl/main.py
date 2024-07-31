@@ -16,7 +16,7 @@ from utils.GlobalVarGetter import GlobalVarGetter
 from core.MessageQueue import MessageQueueFactory
 from utils.Tools import *
 from utils import ModuleFindTool
-
+import argparse
 
 def _read_data(dataset):
     data = []
@@ -76,21 +76,29 @@ def get_client_data_distri(index_lists, targets):
 
 
 def main():
+    parser = argparse.ArgumentParser(description='FedModule Framework')
+    parser.add_argument('config_file', nargs='?', default='', help='config file path')
+    parser.add_argument('--config', type=str, default='', help='config file path')
+    parser.add_argument('--uid', type=str, default='', help='process uid to distinguish different runs')
+    args = parser.parse_args()
+
     # 创建结果文件夹
     if not os.path.exists(os.path.join(os.path.dirname(os.path.abspath(__file__)), "../results")):
         os.mkdir(os.path.join(os.path.dirname(os.path.abspath(__file__)), "../results"))
 
     # 配置文件读取
-    if len(sys.argv) < 2:
+    config_file = args.config_file if args.config_file else args.config
+    if config_file == '':
         config_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../../config.json")
-    else:
-        config_file = sys.argv[1]
-
     config = getJson(config_file)
+
     # 生成uuid
-    uuid_v4 = uuid.uuid4()
-    uid = uuid_v4.hex
+    uid = args.uid
+    if uid == '':
+        uuid_v4 = uuid.uuid4()
+        uid = uuid_v4.hex
     config["global"]["uid"] = uid
+    print("global uid:", uid)
 
     # 随机数种子
     if "seed" not in config["global"]:
@@ -99,10 +107,7 @@ def main():
     else:
         seed = config["global"]["seed"]
     # 设置随机数种子
-    random.seed(seed)
-    np.random.seed(seed)
-    torch.manual_seed(seed)
-    torch.cuda.manual_seed(seed)
+    random_seed_set(seed)
 
     raw_config = copy.deepcopy(config)
     global_config = config['global']
