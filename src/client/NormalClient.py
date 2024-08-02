@@ -58,6 +58,7 @@ class NormalClient(Client):
         which executes before being woken up by the server.
         """
         self.init_client()
+        self.message_queue.set_training_status(self.client_id, False)
         while not self.stop_event.is_set():
             # The client is selected and starts local training.
             if self.event.is_set():
