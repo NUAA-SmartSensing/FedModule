@@ -6,44 +6,15 @@ import uuid
 
 import torch.multiprocessing as mp
 import wandb
-from torch.utils.data import DataLoader
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from core.Runtime import running_mode
-from utils.DatasetUtils import CustomDataset
 from utils.GlobalVarGetter import GlobalVarGetter
 from core.MessageQueue import MessageQueueFactory
 from utils.Tools import *
 from utils import ModuleFindTool
 import argparse
-
-def _read_data(dataset):
-    data = []
-    targets = []
-    dl = DataLoader(dataset, batch_size=1)
-    for x, y in dl:
-        data.append(x[0])
-        targets.append(y[0])
-    data = torch.stack(data)
-    targets = torch.stack(targets)
-    data.share_memory_()
-    targets.share_memory_()
-    return data, targets
-
-
-def send_dataset(train_dataset, test_dataset, message_queue, global_config):
-    # 预加载
-    if 'dataset_pre_load' in global_config and global_config['dataset_pre_load']:
-        data, targets = _read_data(train_dataset)
-        message_queue.set_train_dataset(CustomDataset(data, targets))
-        data, targets = _read_data(test_dataset)
-        message_queue.set_test_dataset(CustomDataset(data, targets))
-    # 静态加载
-    else:
-        message_queue.set_train_dataset(train_dataset)
-        message_queue.set_test_dataset(test_dataset)
-    return train_dataset, test_dataset
 
 
 def generate_client_stale_list(global_config):
@@ -224,7 +195,7 @@ def main():
     if is_cover:
         raw_config['global']['stale'] = client_staleness_list
         saveJson(os.path.join(os.path.dirname(os.path.abspath(__file__)), "../results/", global_config["experiment"],
-                 "config.json"), raw_config)
+                              "config.json"), raw_config)
 
         # 保存结果
         saveAns(os.path.join(os.path.dirname(os.path.abspath(__file__)), "../results/", global_config["experiment"],

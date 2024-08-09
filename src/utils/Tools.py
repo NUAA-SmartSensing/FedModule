@@ -5,6 +5,9 @@ import time
 
 import numpy as np
 import torch
+from torch.utils.data import DataLoader
+
+from utils.DatasetUtils import CustomDataset
 
 
 def generate_stale_list(step, shuffle, n):
@@ -134,3 +137,31 @@ def random_seed_set(seed):
 def generate_random_seed():
     seed = int(time.time() * 1000) % 2147483647
     return seed
+
+
+def _read_data(dataset):
+    data = []
+    targets = []
+    dl = DataLoader(dataset, batch_size=1)
+    for x, y in dl:
+        data.append(x[0])
+        targets.append(y[0])
+    data = torch.stack(data)
+    targets = torch.stack(targets)
+    data.share_memory_()
+    targets.share_memory_()
+    return data, targets
+
+
+def send_dataset(train_dataset, test_dataset, message_queue, global_config):
+    # 预加载
+    if 'dataset_pre_load' in global_config and global_config['dataset_pre_load']:
+        data, targets = _read_data(train_dataset)
+        message_queue.set_train_dataset(CustomDataset(data, targets))
+        data, targets = _read_data(test_dataset)
+        message_queue.set_test_dataset(CustomDataset(data, targets))
+    # 静态加载
+    else:
+        message_queue.set_train_dataset(train_dataset)
+        message_queue.set_test_dataset(test_dataset)
+    return train_dataset, test_dataset
