@@ -292,7 +292,6 @@ class MessageQueueWrapperForMQTT:
         elif not cls.__id_init and "manager_id" in global_var["config"]["client_manager"]:
             if 'downlink' not in cls.mask_list and len(global_var['client_id_list']) != 0:
                 cls.__id_init = True
-                print("init success")
                 for cid in global_var['client_id_list']:
                     cls.client.subscribe(f'{cls.uid}/mq/downlink/{cid}')
         return super().__new__(cls)
