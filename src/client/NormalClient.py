@@ -39,6 +39,7 @@ class NormalClient(Client):
     dev: str
         Device
     """
+
     def __init__(self, c_id, stop_event, selected_event, delay, index_list, config, dev):
         Client.__init__(self, c_id, stop_event, selected_event, delay, index_list, dev)
         self.lr_scheduler = None
@@ -142,20 +143,26 @@ class NormalClient(Client):
         Receive server notifications,
         including whether model parameters are received and timestamp information, etc.
         """
-        if self.message_queue.get_from_downlink(self.client_id, 'received_weights'):
-            if self.training_params is None:
-                self.training_params = self.message_queue.get_training_params()
-            self.message_queue.put_into_downlink(self.client_id, 'received_weights', False)
-            weights_buffer = self.message_queue.get_from_downlink(self.client_id, 'weights_buffer')
-            state_dict = self.model.state_dict()
-            for k in weights_buffer:
-                if self.training_params[k]:
-                    state_dict[k] = weights_buffer[k]
-            self.model.load_state_dict(state_dict)
-        if self.message_queue.get_from_downlink(self.client_id, 'received_time_stamp'):
-            self.message_queue.put_into_downlink(self.client_id, 'received_time_stamp', False)
-            self.time_stamp = self.message_queue.get_from_downlink(self.client_id, 'time_stamp_buffer')
-            self.schedule_t = self.message_queue.get_from_downlink(self.client_id, 'schedule_time_stamp_buffer')
+        received_weights = False
+        received_time_stamp = False
+        while not received_weights:
+            received_weights = self.message_queue.get_from_downlink(self.client_id, 'received_weights')
+            time.sleep(0.1)
+        if self.training_params is None:
+            self.training_params = self.message_queue.get_training_params()
+        self.message_queue.put_into_downlink(self.client_id, 'received_weights', False)
+        weights_buffer = self.message_queue.get_from_downlink(self.client_id, 'weights_buffer')
+        state_dict = self.model.state_dict()
+        for k in weights_buffer:
+            if self.training_params[k]:
+                state_dict[k] = weights_buffer[k]
+        self.model.load_state_dict(state_dict)
+        while not received_time_stamp:
+            received_time_stamp = self.message_queue.get_from_downlink(self.client_id, 'received_time_stamp')
+            time.sleep(0.1)
+        self.message_queue.put_into_downlink(self.client_id, 'received_time_stamp', False)
+        self.time_stamp = self.message_queue.get_from_downlink(self.client_id, 'time_stamp_buffer')
+        self.schedule_t = self.message_queue.get_from_downlink(self.client_id, 'schedule_time_stamp_buffer')
 
     def init_client(self):
         config = self.config
@@ -226,6 +233,7 @@ class NormalClientWithDelta(NormalClient):
     uploads $delta = w_i^t - w^t$, where $w_i^t$ is the model parameter updated by the client locally,
     and $w^t$ is the model parameter before local iteration.
     """
+
     def train_one_epoch(self):
         """
         The training function of Client, used for model training.
@@ -248,6 +256,7 @@ class NormalClientWithGrad(NormalClient):
     """
     This class inherits from NormalClient and implements the cumulative gradient upload after training.
     """
+
     def init_client(self):
         super().init_client()
         del self.opti
