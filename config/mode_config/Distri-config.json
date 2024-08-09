@@ -1,0 +1,103 @@
+{
+  "wandb": {
+    "enabled": false,
+    "project": "distri_mode",
+    "name": "1"
+  },
+  "global": {
+    "save": false,
+    "dataset_pre_load": true,
+    "use_file_system": false,
+    "multi_gpu": true,
+    "experiment": "FedAvg/1",
+    "stale": {
+      "step": 1,
+      "shuffle": true,
+      "list": [10, 10, 10, 5, 5, 5, 5]
+    },
+    "mqtt": {
+      "host": "127.0.0.1",
+      "port": 1883
+    },
+    "message_queue": {
+      "type": "mqtt",
+      "mask_list": ["train_dataset", "test_dataset"]
+    },
+    "dataset": {
+      "path": "dataset.FashionMNIST.FashionMNIST",
+      "params": {}
+    },
+    "iid": true,
+    "client_num": 50
+  },
+  "server": {
+    "path": "server.NormalServer.NormalServer",
+    "epochs": 2,
+    "model": {
+      "path": "model.CNN.CNN",
+      "params": {}
+    },
+    "scheduler": {
+      "path": "scheduler.SyncScheduler.SyncScheduler",
+      "schedule": {
+        "path": "schedule.RandomSchedule.RandomSchedule",
+        "params": {
+          "c_ratio": 0.3
+        }
+      }
+    },
+    "updater": {
+      "path": "updater.SyncUpdater.SyncUpdater",
+      "loss": "torch.nn.functional.cross_entropy",
+      "update": {
+        "path": "update.FedAvg.FedAvg",
+        "params": {
+        }
+      }
+    }
+  },
+  "queue_manager": {
+    "path": "queuemanager.SingleQueueManager.SingleQueueManager",
+    "receiver": {
+      "path": "receiver.NormalReceiver.NormalReceiver",
+      "params": {
+      }
+    },
+    "checker": {
+      "path": "checker.SyncChecker.SyncChecker",
+      "params": {
+      }
+    }
+  },
+  "client_manager": {
+    "path": "clientmanager.DistributedClientManager.DistributedClientManager",
+    "sub_path": "clientmanager.DistributedClientManager.SubNormalClientManager",
+    "client_num": [25, 25],
+    "event": {
+      "type": "mqtt"
+    },
+    "communication_proxy": {
+      "type": "mqtt",
+      "host": "127.0.0.1",
+      "port": 1883
+    }
+  },
+  "client": {
+    "path": "client.NormalClient.NormalClient",
+    "epochs": 2,
+    "batch_size": 64,
+    "model": {
+      "path": "model.CNN.CNN",
+      "params": {}
+    },
+    "loss": "torch.nn.functional.cross_entropy",
+    "mu": 0,
+    "optimizer": {
+      "path": "torch.optim.SGD",
+      "params": {
+        "lr": 0.01,
+        "weight_decay": 0
+      }
+    }
+  }
+}
