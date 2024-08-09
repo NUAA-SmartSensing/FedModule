@@ -1,3 +1,4 @@
 from clientmanager import NormalClientManager
 from clientmanager import TimeSliceClientManager
 from clientmanager import MPMTClientManager
+from clientmanager import DistributedClientManager
