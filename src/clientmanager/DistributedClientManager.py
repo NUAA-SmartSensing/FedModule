@@ -206,8 +206,10 @@ class SubNormalClientManager(NormalClientManager):
 
         print("Start connecting to server")
         self.communication_proxy.get(-2, "manager_affair", on_message)
-        self.communication_proxy.send(-1, "manager_affair_join", self.manager_id)
-        self.init_event.wait()
+        while not self.init_event.is_set():
+            self.communication_proxy.send(-1, "manager_affair_join", self.manager_id)
+            sleep(1)
+
 
     def start_all_clients(self):
         self.__init_clients()
