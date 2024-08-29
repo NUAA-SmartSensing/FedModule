@@ -53,9 +53,9 @@ class ManagerWrapper:
             ManagerWrapper._address_init = True
             config = GlobalVarGetter.get()['config']['global']
             if 'message_queue' in config:
-                if 'address' in config:
+                if 'address' in config['message_queue']:
                     ManagerWrapper._address_host = config['message_queue']['address']
-                if 'port' in config:
+                if 'port' in config['message_queue']:
                     ManagerWrapper._address_port = config['message_queue']['port']
         if main_process and ManagerWrapper._manager is None:
             ManagerWrapper.__register()
