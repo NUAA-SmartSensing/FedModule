@@ -1,4 +1,3 @@
-import json
 import pickle
 import warnings
 from abc import abstractmethod
@@ -9,7 +8,7 @@ from time import sleep
 
 from clientmanager.BaseClientManager import BaseClientManager
 from clientmanager.NormalClientManager import NormalClientManager
-from core.MessageQueue import MessageQueueFactory
+from core.MessageQueue import MessageQueueFactory, MessageQueueWrapperForMQTT
 from utils import ModuleFindTool
 from utils.GlobalVarGetter import GlobalVarGetter
 from utils.MQTT import MQTTClientSingleton
@@ -72,33 +71,34 @@ class DistributedClientManager(BaseClientManager):
         return id_list, prefix_client_num
 
     def wait_for_sub_client_manager(self):
-        joined_machine = 0
+        joined_machine = {}
 
         def callback(client, userdata, message):
             msg = pickle.loads(message.payload)
-            print(f"sub-client_manager {msg} has joined")
             nonlocal joined_machine
-            joined_machine += 1
+            if msg not in joined_machine:
+                print(f"sub-client_manager {msg} has joined")
+                joined_machine[msg] = 1
 
         self.communication_proxy.get(-1, "manager_affair_join", callback)
-        while joined_machine != self.sub_manger_num:
+        while len(joined_machine) != self.sub_manger_num:
             sleep(0.1)
         print("All sub-client_manager has joined")
 
-        joined_machine = 0
+        joined_machine = {}
 
         def callback2(client, userdata, message):
             msg = pickle.loads(message.payload)
             print(f"sub-client_manager {msg} has received data")
             nonlocal joined_machine
-            joined_machine += 1
+            joined_machine[msg] = 1
 
         self.communication_proxy.get(-1, "manager_affair_data", callback2)
         print("Start transferring data to sub-client_manager")
         self.communication_proxy.send(-2, "manager_affair",
                                       [self.client_staleness_list, self.index_list])
         print("Waiting for data transferring to complete")
-        while joined_machine != self.sub_manger_num:
+        while len(joined_machine) != self.sub_manger_num:
             sleep(0.1)
         print("Data transferring has completed")
 
@@ -311,7 +311,6 @@ class PollingDistributedEvent(DistributedEvent):
 class MQTTDistributedEvent(DistributedEvent):
     client = None
     uid = None
-    flags = defaultdict(lambda: defaultdict(bool))
 
     def __new__(cls, *args, **kwargs):
         if cls.client is None:
@@ -330,21 +329,18 @@ class MQTTDistributedEvent(DistributedEvent):
         def on_message(client, userdata, message):
             msg = pickle.loads(message.payload)
             if msg:
-                MQTTDistributedEvent.flags[self.event_name][self.id] = True
                 self.event.set()
             else:
-                MQTTDistributedEvent.flags[self.event_name][self.id] = False
                 self.event.clear()
 
         MQTTDistributedEvent.client.message_callback_add(self.topic, on_message)
 
     def set(self):
         MQTTDistributedEvent.client.publish(self.topic, pickle.dumps(True))
-        MQTTDistributedEvent.flags[self.event_name][self.id] = True
         self.event.set()
 
     def is_set(self):
-        return MQTTDistributedEvent.flags[self.event_name][self.id]
+        return self.event.is_set()
 
     def wait(self):
         self.event.wait()
@@ -352,7 +348,6 @@ class MQTTDistributedEvent(DistributedEvent):
     def clear(self):
         self.event.clear()
         MQTTDistributedEvent.client.publish(self.topic, pickle.dumps(False))
-        MQTTDistributedEvent.flags[self.event_name][self.id] = False
 
 
 def create_communication_proxy(config):

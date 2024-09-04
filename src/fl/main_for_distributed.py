@@ -106,7 +106,7 @@ def main():
                          'client_manager_config': client_manager_config,
                          'queue_manager_config': queue_manager_config})
     global_var = GlobalVarGetter.get()
-    message_queue = MessageQueueFactory.create_message_queue(False)
+    message_queue = MessageQueueFactory.create_message_queue(True)
     message_queue.set_config(global_var)
 
     start_time = datetime.datetime.now()
@@ -157,7 +157,7 @@ def cleanup():
 
 if __name__ == '__main__':
     try:
-        mp.set_start_method('spawn', force=True)
+        mp.set_start_method('forkserver', force=True)
         main()
     finally:
         cleanup()

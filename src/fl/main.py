@@ -229,7 +229,7 @@ def cleanup():
 
 if __name__ == '__main__':
     try:
-        mp.set_start_method('spawn', force=True)
+        mp.set_start_method('forkserver', force=True)
         main()
     finally:
         cleanup()

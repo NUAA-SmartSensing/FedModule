@@ -234,10 +234,18 @@ class MessageQueueWrapperForMQTT:
     mask_list = []
     __id_init = False
 
+    def __init__(self, main_process=False):
+        pass
+
     def __new__(cls, *args, **kwargs):
         global_var = GlobalVarGetter.get()
-        if MessageQueueWrapperForMQTT.message_queue is None:
-            MessageQueueWrapperForMQTT.message_queue = MessageQueue()
+        if cls.message_queue is None:
+            mode = running_mode_for_mq()
+            if mode == 'thread':
+                cls.message_queue = MessageQueue()
+            elif mode == 'process':
+                main_process = kwargs.get('main_process')
+                cls.message_queue = ManagerWrapper.get_manager(main_process).MessageQueue()
         if cls.client is None:
             cls.client = MQTTClientSingleton.get_client()
             cls.uid = MQTTClientSingleton.get_uid()
@@ -328,11 +336,11 @@ class MessageQueueWrapperForMQTT:
 
     @staticmethod
     def uplink_empty(key='update'):
-        return not MessageQueue.uplink[key].qsize()
+        return MessageQueueWrapperForMQTT.message_queue.uplink_empty(key)
 
     @staticmethod
     def downlink_empty(client_id, key):
-        return MessageQueue.downlink[key][client_id].empty()
+        return MessageQueueWrapperForMQTT.message_queue.downlink_empty(client_id, key)
 
     @staticmethod
     def set_training_status(client_id, value):
@@ -343,11 +351,11 @@ class MessageQueueWrapperForMQTT:
 
     @staticmethod
     def get_training_status():
-        return MessageQueue.training_status
+        return MessageQueueWrapperForMQTT.message_queue.get_training_status()
 
     @staticmethod
     def get_registered_client_num():
-        return len(MessageQueue.training_status)
+        return MessageQueueWrapperForMQTT.message_queue.get_registered_client_num()
 
     @staticmethod
     def set_training_params(value):
@@ -358,15 +366,11 @@ class MessageQueueWrapperForMQTT:
 
     @staticmethod
     def get_training_params():
-        return MessageQueue.training_params
+        return MessageQueueWrapperForMQTT.message_queue.get_training_params()
 
     @staticmethod
     def get_training_client_num():
-        total = 0
-        for _, v in MessageQueue.training_status.items():
-            if v:
-                total = total + 1
-        return total
+        return MessageQueueWrapperForMQTT.message_queue.get_training_client_num()
 
     @staticmethod
     def set_config(config):
@@ -383,11 +387,11 @@ class MessageQueueWrapperForMQTT:
 
     @staticmethod
     def get_config():
-        return MessageQueue.config
+        return MessageQueueWrapperForMQTT.message_queue.get_config()
 
     @staticmethod
     def get_config_by_key(key):
-        return MessageQueue.config[key]
+        return MessageQueueWrapperForMQTT.message_queue.get_config_by_key(key)
 
     @staticmethod
     def set_latest_model(model, current_t):
@@ -398,7 +402,7 @@ class MessageQueueWrapperForMQTT:
 
     @staticmethod
     def get_latest_model():
-        return copy.deepcopy(MessageQueue.latest_model), MessageQueue.current_t
+        return MessageQueueWrapperForMQTT.message_queue.get_latest_model()
 
     @staticmethod
     def set_train_dataset(train_dataset):
@@ -409,7 +413,7 @@ class MessageQueueWrapperForMQTT:
 
     @staticmethod
     def get_train_dataset():
-        return copy.deepcopy(MessageQueue.train_dataset)
+        return copy.deepcopy(MessageQueueWrapperForMQTT.message_queue.get_train_dataset())
 
     @staticmethod
     def set_test_dataset(test_dataset):
@@ -420,7 +424,7 @@ class MessageQueueWrapperForMQTT:
 
     @staticmethod
     def get_test_dataset():
-        return copy.deepcopy(MessageQueue.test_dataset)
+        return MessageQueueWrapperForMQTT.message_queue.get_test_dataset()
 
 
 class MessageQueueFactory:
@@ -430,7 +434,7 @@ class MessageQueueFactory:
         if 'message_queue' in config:
             if 'type' in config['message_queue']:
                 if config['message_queue']['type'] == 'mqtt':
-                    return MessageQueueWrapperForMQTT()
+                    return MessageQueueWrapperForMQTT(main_process=main_process)
         mode = running_mode_for_mq()
         if mode == 'thread':
             return MessageQueue()
