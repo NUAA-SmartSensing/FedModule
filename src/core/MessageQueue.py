@@ -42,6 +42,7 @@ def running_mode_for_mq():
 
 
 class ManagerWrapper:
+    __lock = mp.Lock()
     _manager = None
     _address_port = 50000
     _address_host = ''
@@ -57,14 +58,15 @@ class ManagerWrapper:
                     ManagerWrapper._address_host = config['message_queue']['address']
                 if 'port' in config['message_queue']:
                     ManagerWrapper._address_port = config['message_queue']['port']
-        if main_process and ManagerWrapper._manager is None:
-            ManagerWrapper.__register()
-            ManagerWrapper._manager = SyncManager(address=(ManagerWrapper._address_host, ManagerWrapper._address_port))
-            ManagerWrapper._manager.start()
-        elif not main_process and ManagerWrapper._manager is None:
-            ManagerWrapper.__register()
-            ManagerWrapper._manager = SyncManager(address=(ManagerWrapper._address_host, ManagerWrapper._address_port))
-            ManagerWrapper._manager.connect()
+        with ManagerWrapper.__lock:
+            if main_process and ManagerWrapper._manager is None:
+                ManagerWrapper.__register()
+                ManagerWrapper._manager = SyncManager(address=(ManagerWrapper._address_host, ManagerWrapper._address_port))
+                ManagerWrapper._manager.start()
+            elif not main_process and ManagerWrapper._manager is None:
+                ManagerWrapper.__register()
+                ManagerWrapper._manager = SyncManager(address=(ManagerWrapper._address_host, ManagerWrapper._address_port))
+                ManagerWrapper._manager.connect()
         return ManagerWrapper._manager
 
     @staticmethod
@@ -95,7 +97,7 @@ class DataGetter(Thread):
         self.message_queue = MessageQueueFactory.create_message_queue()
         while not self.is_end:
             while not self.message_queue.uplink_empty():
-                update = self.message_queue.get_from_uplink()
+                update = copy.deepcopy(self.message_queue.get_from_uplink())
                 self.queue_manager.put(update)
             # Give up cpu to other threads
             sleep(0.01)
@@ -108,6 +110,8 @@ class DataGetter(Thread):
 class MessageQueue:
     train_dataset = None
     test_dataset = None
+    __uplink_lock = mp.Lock()
+    __downlink_lock = mp.Lock()
     uplink = {'update': Queue()}
     downlink = {'received_weights': {}, 'received_time_stamp': {}, 'time_stamp_buffer': {}, 'weights_buffer': {},
                 'schedule_time_stamp_buffer': {}, 'group_id': {}}
@@ -119,35 +123,41 @@ class MessageQueue:
 
     @staticmethod
     def get_from_uplink(key='update'):
-        return copy.deepcopy(MessageQueue.uplink[key].get())
+        with MessageQueue.__uplink_lock:
+            return copy.deepcopy(MessageQueue.uplink[key].get())
 
     @staticmethod
     def put_into_uplink(item, key='update'):
-        if key != 'update' and key not in MessageQueue.uplink.keys():
-            MessageQueue.uplink[key] = Queue()
-        MessageQueue.uplink[key].put(item)
+        with MessageQueue.__uplink_lock:
+            if key != 'update' and key not in MessageQueue.uplink.keys():
+                MessageQueue.uplink[key] = Queue()
+            MessageQueue.uplink[key].put(copy.deepcopy(item))
 
     @staticmethod
     def create_uplink(key, dtype=dict):
-        MessageQueue.uplink[key] = dtype()
+        with MessageQueue.__uplink_lock:
+            MessageQueue.uplink[key] = dtype()
 
     @staticmethod
     def create_downlink(key, dtype=dict):
-        MessageQueue.downlink[key] = dtype()
+        with MessageQueue.__downlink_lock:
+            MessageQueue.downlink[key] = dtype()
 
     @staticmethod
     def get_from_downlink(client_id, key):
-        if key not in MessageQueue.downlink:
+        with MessageQueue.__downlink_lock:
+            if key not in MessageQueue.downlink:
+                return None
+            if client_id in MessageQueue.downlink[key]:
+                return MessageQueue.downlink[key][client_id]
             return None
-        if client_id in MessageQueue.downlink[key]:
-            return copy.deepcopy(MessageQueue.downlink[key][client_id])
-        return None
 
     @staticmethod
     def put_into_downlink(client_id, key, item):
-        if key not in MessageQueue.downlink.keys():
-            MessageQueue.downlink[key] = {}
-        MessageQueue.downlink[key][client_id] = item
+        with MessageQueue.__downlink_lock:
+            if key not in MessageQueue.downlink.keys():
+                MessageQueue.downlink[key] = {}
+            MessageQueue.downlink[key][client_id] = copy.deepcopy(item)
 
     @staticmethod
     def uplink_empty(key='update'):
@@ -202,9 +212,9 @@ class MessageQueue:
         return MessageQueue.config[key]
 
     @staticmethod
-    def set_latest_model(model, current_t):
+    def set_latest_model(model, current_epoch):
         MessageQueue.latest_model = model
-        MessageQueue.current_t = current_t
+        MessageQueue.current_t = current_epoch
 
     @staticmethod
     def get_latest_model():
