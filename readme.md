@@ -1,5 +1,3 @@
-# Async-FL
-
 <img src="./doc/pic/header.png" style="width:800px"></img>
 
 ![GitHub code size](https://img.shields.io/github/languages/code-size/desperadoccy/async-FL?style=flat-square&logo=github)
