@@ -33,13 +33,14 @@ class VCMQueueManager(SingleQueueManager):
         self.schedule_t = self.global_var['schedule_t']
         self.vcm = VCM_Factory.create_VCM(config['vcm'], self.existing_versions_model)
         self.client_num = 0
+        self.latest_model = {}
 
     def receive(self, nums, *args, **kwargs):
         self.receiver.receive(self, nums, *args, **kwargs)
 
     def put(self, update, *args, **kwargs):
         if update['time_stamp'] != self.current_t.get_time() and update['time_stamp'] != self.schedule_t.get_time() - 1:
-            self.vcm.correct(update, self.schedule_t.get_time() - 1)
+            self.vcm.correct(self.latest_model, update)
         else:
             self.client_num += 1
         super().put(update, *args, **kwargs)
@@ -53,18 +54,19 @@ class VCMQueueManager(SingleQueueManager):
         self.client_num = 0
 
     def set_version(self, version_id, version_num, version_model):
-        version_model = copy.deepcopy(version_model)
+        version_model = to_dev(copy.deepcopy(version_model), self.device)
         if version_id == 1:
             self.vcm.init(version_model)
+        self.latest_model = version_model
         self.existing_versions[version_id] = version_num
-        self.existing_versions_model[version_id] = to_dev(version_model, self.device)
+        self.existing_versions_model[version_id] = version_model
 
 
 class VCM_None:
     def __init__(self, exising_version_model, beta=0, gamma_vcm=0):
         pass
 
-    def correct(self, update_dict, epoch):
+    def correct(self, latest_model, update_dict):
         pass
 
     def t1_add(self, version_model):
@@ -82,19 +84,19 @@ class VCM_Direct:
         self.t1 = 0
         self.existing_versions_model = exising_version_model
 
-    def correct(self, update_dict, epoch):
-        self.correct_update(update_dict, epoch)
-        self.correct_data_sum(update_dict, epoch)
+    def correct(self, latest_model, update_dict):
+        self.correct_update(latest_model, update_dict)
+        self.correct_data_sum(update_dict)
 
-    def correct_update(self, update_dict, epoch):
+    def correct_update(self, latest_model, update_dict):
         update_dict["weights"] = to_dev(update_dict["weights"], self.device)
         for key, var in update_dict["weights"].items():
             update_dict["weights"][key] = var + self.gamma_vcm * (
-                    self.existing_versions_model[epoch][key] -
+                    latest_model[key] -
                     self.existing_versions_model[update_dict["time_stamp"]][key])
         update_dict["weights"] = to_cpu(update_dict["weights"])
 
-    def correct_data_sum(self, update_dict, epoch):
+    def correct_data_sum(self, update_dict):
         pass
 
     def t1_add(self, version_model):
@@ -116,7 +118,7 @@ class VCM_First(VCM_Direct):
             self.global_exp_avg[k] = torch.zeros_like(v, memory_format=torch.preserve_format, dtype=torch.float32).to(
                 self.device)
 
-    def correct_update(self, update_dict, epoch):
+    def correct_update(self, latest_model, update_dict):
         update_dict["weights"] = to_dev(update_dict["weights"], self.device)
         if update_dict["client_id"] not in self.exp_avgs:
             self.exp_avgs[update_dict["client_id"]] = {}
@@ -131,7 +133,7 @@ class VCM_First(VCM_Direct):
             update_dict["weights"][key] = update_dict["weights"][key] + self.gamma_vcm * abs(
                 self.exp_avgs[update_dict["client_id"]][key] * bias_correction1 / (
                         bias_correction2 * self.global_exp_avg[key] + 1e-8)) * (
-                                                      self.existing_versions_model[epoch][key] -
+                                                      latest_model[key] -
                                                       self.existing_versions_model[
                                                           update_dict["time_stamp"]][
                                                           key])
@@ -148,7 +150,7 @@ class VCM_Second(VCM_First):
     def __init__(self, exising_version_model, beta=0.9, gamma_vcm=0.9):
         super().__init__(exising_version_model, beta, gamma_vcm)
 
-    def correct_update(self, update_dict, epoch):
+    def correct_update(self, latest_model, update_dict):
         update_dict["weights"] = to_dev(update_dict["weights"], self.device)
         if update_dict["client_id"] not in self.exp_avgs:
             self.exp_avgs[update_dict["client_id"]] = {}
@@ -163,7 +165,7 @@ class VCM_Second(VCM_First):
             update_dict["weights"][key] = update_dict["weights"][key] + self.gamma_vcm * (
                         self.exp_avgs[update_dict["client_id"]][key] * bias_correction1 / (
                             bias_correction2 * self.global_exp_avg[key] + 1e-8)).sqrt() * (
-                                                      self.existing_versions_model[epoch][key] -
+                                                      latest_model[key] -
                                                       self.existing_versions_model[update_dict["time_stamp"]][key])
         update_dict["weights"] = to_cpu(update_dict["weights"])
 
