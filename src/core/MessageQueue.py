@@ -72,8 +72,11 @@ class ManagerWrapper:
     @staticmethod
     def del_manager():
         if ManagerWrapper._manager:
-            ManagerWrapper._manager.shutdown()
-            ManagerWrapper._manager = None
+            try:
+                ManagerWrapper._manager.shutdown()
+                ManagerWrapper._manager = None
+            except:
+                pass
 
     @staticmethod
     def __register():
@@ -452,6 +455,14 @@ class MessageQueueFactory:
             return ManagerWrapper.get_manager(main_process).MessageQueue()
         else:
             return ManagerWrapper.get_manager(main_process).MessageQueue()
+
+    @staticmethod
+    def del_message_queue():
+        mode = running_mode_for_mq()
+        if mode == 'thread':
+            return
+        else:
+            return ManagerWrapper.del_manager()
 
 
 class EventFactory:

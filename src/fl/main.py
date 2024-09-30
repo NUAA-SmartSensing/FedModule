@@ -11,7 +11,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from core.Runtime import running_mode
 from utils.GlobalVarGetter import GlobalVarGetter
-from core.MessageQueue import MessageQueueFactory
+from core.MessageQueue import MessageQueueFactory, ManagerWrapper
 from utils.Tools import *
 from utils import ModuleFindTool
 import argparse
@@ -233,3 +233,4 @@ if __name__ == '__main__':
         main()
     finally:
         cleanup()
+        MessageQueueFactory.del_message_queue()
