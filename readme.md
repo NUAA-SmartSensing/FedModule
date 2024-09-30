@@ -72,7 +72,7 @@ You can also specify the configuration file by `python main.py ../../config.json
 The `config` folder in the root directory provides some algorithm configuration files proposed in papers. The following algorithm implementations are currently available:
 
 ```text
-centralized learning
+Centralized Learning
 FedAvg
 FedAsync
 FedProx
@@ -85,8 +85,9 @@ FedAdam
 FedNova
 FedBN
 TWAFL
-more methods to refer to the [wiki](https://github.com/NUAA-SmartSensing/async-FL/wiki/%E7%8E%B0%E6%9C%89%E7%AE%97%E6%B3%95)
 ```
+
+more methods to refer to the [wiki](https://github.com/NUAA-SmartSensing/async-FL/wiki/%E7%8E%B0%E6%9C%89%E7%AE%97%E6%B3%95)
 
 ### Docker
 
