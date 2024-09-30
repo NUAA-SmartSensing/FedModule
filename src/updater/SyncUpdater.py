@@ -1,3 +1,5 @@
+import wandb
+
 from updater.BaseUpdater import BaseUpdater
 from updater.mixin.MoreTest import TestEachClass, TestMultiTask
 
@@ -28,7 +30,9 @@ class SyncUpdater(BaseUpdater):
 
     def server_update(self, epoch, update_list):
         self.update_server_weights(epoch, update_list)
-        self.run_server_test(epoch)
+        acc, loss = self.run_server_test(epoch)
+        if self.config['enabled']:
+            wandb.log({'accuracy': acc, 'loss': loss})
 
     def get_update_list(self):
         update_list = []

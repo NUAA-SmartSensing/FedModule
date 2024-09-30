@@ -2,7 +2,6 @@ import threading
 from abc import abstractmethod
 
 import torch.utils.data
-import wandb
 from torch.utils.data import DataLoader
 
 from core.MessageQueue import MessageQueueFactory
@@ -82,8 +81,6 @@ class BaseUpdater(threading.Thread):
             self.loss_list.append(loss)
             self.accuracy_list.append(accuracy)
             print('Epoch(t):', epoch, 'accuracy:', accuracy, 'loss', loss)
-            if self.config['enabled']:
-                wandb.log({'accuracy': accuracy, 'loss': loss})
         return accuracy, loss
 
     def get_accuracy_and_loss_list(self):
