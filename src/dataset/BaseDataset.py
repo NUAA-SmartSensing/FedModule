@@ -63,7 +63,7 @@ class BaseDataset:
             index_list = self.data_distribution_generator.generate_data(self.iid_config, labels, clients_num, dataset, train)
         else:
             print("generating non_iid data...")
-            index_list = generate_non_iid_data(self.iid_config, labels, clients_num)
+            index_list = generate_non_iid_data(self.iid_config, labels, clients_num, train)
         print(f"{message} data generation process completed")
         if train:
             return index_list

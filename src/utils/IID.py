@@ -16,9 +16,14 @@ def generate_iid_data(train_labels, clients_num):
     return client_idx
 
 
-def generate_non_iid_data(iid_config, train_labels, clients_num):
+def generate_non_iid_data(iid_config, train_labels, clients_num, train=True):
     left = min(train_labels)
     right = max(train_labels) + 1
+    if not train:
+        if "for_test" in iid_config.keys() and iid_config["for_test"]:
+            pass
+        else:
+            return generate_iid_data(train_labels, clients_num)
     if "customize" in iid_config.keys() and iid_config["customize"]:
         label_config = iid_config['label']
         data_config = iid_config['data']
@@ -87,9 +92,8 @@ def generate_data_lists(max_size, min_size, num, label_lists):
     data_lists = []
     data_list = generate_data_list(max_size, min_size, num)
     for i in range(len(label_lists)):
-        tmp_list = []
-        for j in range(len(label_lists[i]) - 1):
-            tmp_list.append(data_list[i] // len(label_lists[i]))
+        data_num = data_list[i] // len(label_lists[i])
+        tmp_list = [data_num] * (len(label_lists[i]) - 1)
         tmp_list.append(data_list[i] - data_list[i] // len(label_lists[i]) * (len(label_lists[i]) - 1))
         data_lists.append(tmp_list)
     return data_lists
