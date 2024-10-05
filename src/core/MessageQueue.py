@@ -119,7 +119,6 @@ class MessageQueue:
     downlink = {'received_weights': {}, 'received_time_stamp': {}, 'time_stamp_buffer': {}, 'weights_buffer': {},
                 'schedule_time_stamp_buffer': {}, 'group_id': {}}
     training_status = {}
-    training_params = {}
     config = {}
     latest_model = None
     current_t = None
@@ -181,14 +180,6 @@ class MessageQueue:
     @staticmethod
     def get_registered_client_num():
         return len(MessageQueue.training_status)
-
-    @staticmethod
-    def set_training_params(value):
-        MessageQueue.training_params = value
-
-    @staticmethod
-    def get_training_params():
-        return MessageQueue.training_params
 
     @staticmethod
     def get_training_client_num():
@@ -275,8 +266,6 @@ class MessageQueueWrapperForMQTT:
                 elif topic == f'{cls.uid}/mq/training_status':
                     client_id, status = msg
                     cls.message_queue.set_training_status(client_id, status)
-                elif topic == f'{cls.uid}/mq/training_params':
-                    cls.message_queue.set_training_params(msg)
                 elif topic == f'{cls.uid}/mq/config':
                     value = msg
                     if isinstance(value, tuple):
@@ -301,8 +290,6 @@ class MessageQueueWrapperForMQTT:
                 cls.client.subscribe(f'{cls.uid}/mq/train_dataset') if 'train_dataset' not in cls.mask_list else None
                 cls.client.subscribe(f'{cls.uid}/mq/test_dataset') if 'test_dataset' not in cls.mask_list else None
                 cls.client.subscribe(f'{cls.uid}/mq/latest_model') if 'latest_model' not in cls.mask_list else None
-                cls.client.subscribe(
-                    f'{cls.uid}/mq/training_params') if 'training_params' not in cls.mask_list else None
                 cls.client.subscribe(f'{cls.uid}/mq/config') if 'config' not in cls.mask_list else None
             # server
             else:
@@ -369,17 +356,6 @@ class MessageQueueWrapperForMQTT:
     @staticmethod
     def get_registered_client_num():
         return MessageQueueWrapperForMQTT.message_queue.get_registered_client_num()
-
-    @staticmethod
-    def set_training_params(value):
-        if 'training_params' not in MessageQueueWrapperForMQTT.mask_list:
-            MessageQueueWrapperForMQTT.client.publish(f'{MessageQueueWrapperForMQTT.uid}/mq/training_params',
-                                                      pickle.dumps(value))
-        return MessageQueueWrapperForMQTT.message_queue.set_training_params(value)
-
-    @staticmethod
-    def get_training_params():
-        return MessageQueueWrapperForMQTT.message_queue.get_training_params()
 
     @staticmethod
     def get_training_client_num():

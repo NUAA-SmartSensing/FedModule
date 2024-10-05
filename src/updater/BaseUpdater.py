@@ -92,7 +92,7 @@ class BaseUpdater(threading.Thread):
     def update_global_model(self, new_model):
         new_model = to_dev(new_model, 'cuda')
         if self.optimizer is not None:
-            training_params = self.message_queue.get_training_params()
+            training_params = self.global_var['training_params']
             global_model = self.server_network.state_dict()
             g = {}
             for k in global_model:

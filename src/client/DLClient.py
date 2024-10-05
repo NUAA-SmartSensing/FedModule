@@ -10,8 +10,6 @@ class DLClient(TestClient):
 
     def receive_notify(self):
         if self.message_queue.get_from_downlink(self.client_id, 'received_weights'):
-            if self.training_params is None:
-                self.training_params = self.message_queue.get_training_params()
             self.message_queue.put_into_downlink(self.client_id, 'received_weights', False)
             weights_buffer = self.message_queue.get_from_downlink(self.client_id, 'weights_buffer')
             # 更新模型参数

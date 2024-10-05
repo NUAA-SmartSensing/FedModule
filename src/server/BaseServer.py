@@ -44,20 +44,8 @@ class BaseServer:
         self.global_var['server_network'] = self.server_network
 
         # 对模型非更新参数进行检测
-        d = self.server_network.state_dict()
-        w = list(self.server_network.parameters())
-        i = 0
-        training_params = {}
-        for k in d:
-            try:
-                if isinstance(w[i], type(d[k])) and d[k].equal(w[i]):
-                    i += 1
-                    training_params[k] = True
-                else:
-                    training_params[k] = False
-            except:
-                training_params[k] = False
-        self.message_queue.set_training_params(training_params)
+        training_params = {n: p for n, p in self.server_network.named_parameters()}
+        self.global_var['training_params'] = training_params
 
         # 计时变量
         self.T = self.server_config["epochs"]
