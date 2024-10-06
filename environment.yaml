@@ -14,3 +14,4 @@ dependencies:
     - torchvision==0.18.0
     - wandb==0.17.0
     - kmeans1d==0.3.1
+    - paho-mqtt==2.1.0
