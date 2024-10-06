@@ -1,17 +1,16 @@
 import numpy as np
 import torch
 from sklearn.cluster import KMeans
-from core.MessageQueue import MessageQueueFactory
 
 from group.AbstractGroup import AbstractGroup
+from utils.GlobalVarGetter import GlobalVarGetter
 
 
 class CosMatrix(AbstractGroup):
     def __init__(self, group_manager, config):
         self.group_manager = group_manager
         self.n = config["n"]
-        self.message_queue = MessageQueueFactory.create_message_queue()
-        self.training_params = self.message_queue.get_training_params()
+        self.training_params = GlobalVarGetter.get()['training_params']
 
     def group(self, client_list, latency_list, *args, **kwargs):
         if len(args) == 0:
