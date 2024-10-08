@@ -176,7 +176,9 @@ class NormalClient(Client):
 
         self.model = self._get_model(config)
         self.model = self.model.to(self.dev)
-        self.training_params = {n: p.requires_grad for n, p in self.model.named_parameters()}
+        self.training_params = {k: False for k in self.model.state_dict()}
+        for n, p in self.model.named_parameters():
+            self.training_params[n] = p.requires_grad
 
         # optimizer
         opti_class = ModuleFindTool.find_class_by_path(self.optimizer_config["path"])

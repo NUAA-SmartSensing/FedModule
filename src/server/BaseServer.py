@@ -44,7 +44,9 @@ class BaseServer:
         self.global_var['server_network'] = self.server_network
 
         # 对模型非更新参数进行检测
-        training_params = {n: p for n, p in self.server_network.named_parameters()}
+        training_params = {k: False for k in self.server_network.state_dict()}
+        for n, p in self.server_network.named_parameters():
+            training_params[n] = p.requires_grad
         self.global_var['training_params'] = training_params
 
         # 计时变量
