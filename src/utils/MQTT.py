@@ -30,7 +30,6 @@ class MQTTClientSingleton:
         host = config["host"] if "host" in config else "broker.emqx.io"
         port = config["port"] if "port" in config else 1883
         connect_to_mqtt(MQTTClientSingleton.client, host, port)
-        print("uid ", MQTTClientSingleton.uid)
 
     @staticmethod
     def get_client():
