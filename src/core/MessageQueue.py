@@ -1,6 +1,7 @@
 import copy
 import multiprocessing as mp
 import pickle
+import sys
 import threading
 from multiprocessing.managers import SyncManager
 from queue import Queue
@@ -93,17 +94,16 @@ class DataGetter(Thread):
         super().__init__()
         self.is_end = False
         self.queue_manager = None
-        self.message_queue = None
+        self.message_queue = MessageQueueFactory.create_message_queue()
 
     def run(self) -> None:
         self.queue_manager = GlobalVarGetter.get()['queue_manager']
-        self.message_queue = MessageQueueFactory.create_message_queue()
         while not self.is_end:
             while not self.message_queue.uplink_empty():
                 update = copy.deepcopy(self.message_queue.get_from_uplink())
                 self.queue_manager.put(update)
             # Give up cpu to other threads
-            sleep(0.01)
+            sleep(0.1)
 
     def kill(self):
         self.is_end = True
@@ -159,7 +159,7 @@ class MessageQueue:
         with MessageQueue.__downlink_lock:
             if key not in MessageQueue.downlink.keys():
                 MessageQueue.downlink[key] = {}
-            MessageQueue.downlink[key][client_id] = copy.deepcopy(item)
+            MessageQueue.downlink[key][client_id] = item
 
     @staticmethod
     def uplink_empty(key='update'):
@@ -248,8 +248,11 @@ class MessageQueueWrapperForMQTT:
             if mode == 'thread':
                 cls.message_queue = MessageQueue()
             elif mode == 'process':
-                main_process = kwargs.get('main_process')
-                cls.message_queue = ManagerWrapper.get_manager(main_process).MessageQueue()
+                if 'main_for_distributed' in sys.argv[0]:
+                    main_process = kwargs.get('main_process')
+                    cls.message_queue = ManagerWrapper.get_manager(main_process).MessageQueue()
+                else:
+                    cls.message_queue = MessageQueue()
         if cls.client is None:
             cls.client = MQTTClientSingleton.get_client()
             cls.uid = MQTTClientSingleton.get_uid()
