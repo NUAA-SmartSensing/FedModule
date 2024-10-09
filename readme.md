@@ -9,6 +9,7 @@
 
 > keywords: `federated-learning`, `asynchronous`, `synchronous`, `semi-asynchronous`, `personalized`
 
+> 
 <details>
   <summary><b>Table of Contents</b></summary>
   <p>
@@ -23,6 +24,7 @@
 - [Add new Methods](#add-new-methods)
 - [Existing Bugs](#existing-bugs)
 - [Contributors](#contributors)
+- [Citation](#citation)
 - [Contact Us](#contact-us)
 
   </p>
@@ -171,6 +173,22 @@ for key, var in client_weights.items():
     </td></tr>
 </table>
 <!-- readme: contributors -end -->
+
+## Citation
+
+Please cite our paper in your publications if this code helps your research.
+
+```latex
+@misc{chen2024fedmodulemodularfederatedlearning,
+      title={FedModule: A Modular Federated Learning Framework}, 
+      author={Chuyi Chen and Zhe Zhang and Yanchao Zhao},
+      year={2024},
+      eprint={2409.04849},
+      archivePrefix={arXiv},
+      primaryClass={cs.LG},
+      url={https://arxiv.org/abs/2409.04849}, 
+}
+```
 
 ## Contact us
 

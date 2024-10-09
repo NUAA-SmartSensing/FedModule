@@ -24,6 +24,7 @@
 - [添加新的算法](#添加新的算法)
 - [代码尚存问题](#代码尚存问题)
 - [Contributors](#contributors)
+- [引用][#引用]
 - [联系我](#联系我)
   </p>
 </details>
@@ -172,6 +173,22 @@ for key, var in client_weights.items():
     </td></tr>
 </table>
 <!-- readme: contributors -end -->
+
+## 引用
+
+如果代码对你的研究有帮助的话，请引用我们的文章。
+
+```latex
+@misc{chen2024fedmodulemodularfederatedlearning,
+      title={FedModule: A Modular Federated Learning Framework}, 
+      author={Chuyi Chen and Zhe Zhang and Yanchao Zhao},
+      year={2024},
+      eprint={2409.04849},
+      archivePrefix={arXiv},
+      primaryClass={cs.LG},
+      url={https://arxiv.org/abs/2409.04849}, 
+}
+```
 
 ## 联系我
 
