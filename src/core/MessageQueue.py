@@ -8,8 +8,6 @@ from queue import Queue
 from threading import Thread
 from time import sleep
 
-import torchvision.models
-
 from utils.GlobalVarGetter import GlobalVarGetter
 from utils.MQTT import MQTTClientSingleton
 
