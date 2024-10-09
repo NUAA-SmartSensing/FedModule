@@ -8,6 +8,8 @@ from queue import Queue
 from threading import Thread
 from time import sleep
 
+import torchvision.models
+
 from utils.GlobalVarGetter import GlobalVarGetter
 from utils.MQTT import MQTTClientSingleton
 
@@ -126,14 +128,14 @@ class MessageQueue:
     @staticmethod
     def get_from_uplink(key='update'):
         with MessageQueue.__uplink_lock:
-            return copy.deepcopy(MessageQueue.uplink[key].get())
+            return MessageQueue.uplink[key].get()
 
     @staticmethod
     def put_into_uplink(item, key='update'):
         with MessageQueue.__uplink_lock:
             if key != 'update' and key not in MessageQueue.uplink.keys():
                 MessageQueue.uplink[key] = Queue()
-            MessageQueue.uplink[key].put(copy.deepcopy(item))
+            MessageQueue.uplink[key].put(item)
 
     @staticmethod
     def create_uplink(key, dtype=dict):
@@ -212,7 +214,7 @@ class MessageQueue:
 
     @staticmethod
     def get_latest_model():
-        return copy.deepcopy(MessageQueue.latest_model), MessageQueue.current_t
+        return MessageQueue.latest_model, MessageQueue.current_t
 
     @staticmethod
     def set_train_dataset(train_dataset):
@@ -220,7 +222,7 @@ class MessageQueue:
 
     @staticmethod
     def get_train_dataset():
-        return copy.deepcopy(MessageQueue.train_dataset)
+        return MessageQueue.train_dataset
 
     @staticmethod
     def set_test_dataset(test_dataset):
@@ -228,7 +230,7 @@ class MessageQueue:
 
     @staticmethod
     def get_test_dataset():
-        return copy.deepcopy(MessageQueue.test_dataset)
+        return MessageQueue.test_dataset
 
 
 class MessageQueueWrapperForMQTT:
@@ -316,7 +318,7 @@ class MessageQueueWrapperForMQTT:
         if 'uplink' not in MessageQueueWrapperForMQTT.mask_list:
             MessageQueueWrapperForMQTT.client.publish(f'{MessageQueueWrapperForMQTT.uid}/mq/uplink',
                                                       pickle.dumps((item, key)))
-        return MessageQueueWrapperForMQTT.message_queue.put_into_uplink(item, key)
+        return
 
     @staticmethod
     def create_uplink(key, dtype=dict):
@@ -405,7 +407,7 @@ class MessageQueueWrapperForMQTT:
 
     @staticmethod
     def get_train_dataset():
-        return copy.deepcopy(MessageQueueWrapperForMQTT.message_queue.get_train_dataset())
+        return MessageQueueWrapperForMQTT.message_queue.get_train_dataset()
 
     @staticmethod
     def set_test_dataset(test_dataset):

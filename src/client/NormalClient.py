@@ -146,7 +146,7 @@ class NormalClient(Client):
         received_weights = False
         received_time_stamp = False
         while not received_weights:
-            received_weights = copy.deepcopy(self.message_queue.get_from_downlink(self.client_id, 'received_weights'))
+            received_weights = self.message_queue.get_from_downlink(self.client_id, 'received_weights')
             time.sleep(0.1)
         self.message_queue.put_into_downlink(self.client_id, 'received_weights', False)
         weights_buffer = self.message_queue.get_from_downlink(self.client_id, 'weights_buffer')
@@ -154,13 +154,14 @@ class NormalClient(Client):
         for k in weights_buffer:
             if self.training_params[k]:
                 state_dict[k] = copy.deepcopy(weights_buffer[k])
+        del weights_buffer
         self.model.load_state_dict(state_dict)
         while not received_time_stamp:
-            received_time_stamp = copy.deepcopy(self.message_queue.get_from_downlink(self.client_id, 'received_time_stamp'))
+            received_time_stamp = self.message_queue.get_from_downlink(self.client_id, 'received_time_stamp')
             time.sleep(0.1)
         self.message_queue.put_into_downlink(self.client_id, 'received_time_stamp', False)
-        self.time_stamp = copy.deepcopy(self.message_queue.get_from_downlink(self.client_id, 'time_stamp_buffer'))
-        self.schedule_t = copy.deepcopy(self.message_queue.get_from_downlink(self.client_id, 'schedule_time_stamp_buffer'))
+        self.time_stamp = self.message_queue.get_from_downlink(self.client_id, 'time_stamp_buffer')
+        self.schedule_t = self.message_queue.get_from_downlink(self.client_id, 'schedule_time_stamp_buffer')
 
     def init_client(self):
         config = self.config
@@ -169,7 +170,7 @@ class NormalClient(Client):
         torch.manual_seed(config["seed"])
         torch.cuda.manual_seed(config["seed"])
 
-        self.train_ds = copy.deepcopy(self.message_queue.get_train_dataset())
+        self.train_ds = self.message_queue.get_train_dataset()
 
         self.transform, self.target_transform = self._get_transform(config)
         self.fl_train_ds = FLDataset(self.train_ds, list(self.index_list), self.transform, self.target_transform)
