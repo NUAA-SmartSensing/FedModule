@@ -174,11 +174,10 @@ class SubNormalClientManager(NormalClientManager):
         self.client_id_list = [i for i in range(self.start_id, self.start_id + self.client_num)]
         # to activate the message queue to subscribe the client topic
         MessageQueueFactory.create_message_queue()
-        self.client_status = {k:0 for k in self.client_id_list}
+        self.client_status = {k: 0 for k in self.client_id_list}
         self.global_var['client_id_list'] = self.client_id_list
         self.stop_event_list = create_event_list(self.config["event"], self.client_id_list, event_name="stop")
         self.selected_event_list = create_event_list(self.config["event"], self.client_id_list)
-
 
         self.communication_proxy = create_communication_proxy(
             self.config["communication_proxy"] if "communication_proxy" in self.config else None)
@@ -210,7 +209,6 @@ class SubNormalClientManager(NormalClientManager):
             self.communication_proxy.send(-1, "manager_affair_join", self.manager_id)
             sleep(1)
 
-
     def start_all_clients(self):
         self.__init_clients()
         # start clients
@@ -221,8 +219,8 @@ class SubNormalClientManager(NormalClientManager):
         self.communication_proxy.send(-1, "manager_affair_start", self.manager_id)
 
     def stop_client_by_id(self, client_id):
-        self.stop_event_list[client_id-self.start_id].set()
-        self.selected_event_list[client_id-self.start_id].set()
+        self.stop_event_list[client_id - self.start_id].set()
+        self.selected_event_list[client_id - self.start_id].set()
 
     def __init_clients(self):
         for i in range(self.client_num):
