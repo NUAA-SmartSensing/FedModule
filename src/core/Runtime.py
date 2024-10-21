@@ -1,3 +1,4 @@
+import contextlib
 import os
 import sys
 from abc import abstractmethod
@@ -70,7 +71,6 @@ def running_mode_for_client():
         return Process
     else:
         config = global_var['config']
-    sys.stdout = open(os.devnull, 'w')
-    mode = running_mode(config)
-    sys.stdout = sys.__stdout__
+    with contextlib.redirect_stdout(open(os.devnull, 'w')):
+        mode = running_mode(config)
     return mode
