@@ -1,6 +1,5 @@
 import contextlib
 import os
-import sys
 from abc import abstractmethod
 from multiprocessing import Process
 from threading import Thread
