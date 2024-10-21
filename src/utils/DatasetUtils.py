@@ -62,6 +62,9 @@ class FLDataset(Dataset):
             label = self.target_transform(label)
         return image, label
 
+    def change_idxs(self, idxs):
+        self.idxs = idxs
+
 
 def download_dataset(dataset_name, file_url, dataset_dir):
     '''

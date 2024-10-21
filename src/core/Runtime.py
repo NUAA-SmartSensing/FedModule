@@ -21,9 +21,11 @@ class Mode:
     def run(self):
         pass
 
+    @abstractmethod
     def start(self):
         pass
 
+    @abstractmethod
     def join(self):
         pass
 
