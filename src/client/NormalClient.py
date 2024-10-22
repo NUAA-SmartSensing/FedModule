@@ -1,8 +1,6 @@
 import copy
-import random
 import time
 
-import numpy as np
 import torch
 from torch.utils.data import DataLoader
 
@@ -10,7 +8,7 @@ from client.Client import Client
 from loss.LossFactory import LossFactory
 from utils import ModuleFindTool
 from utils.DatasetUtils import FLDataset
-from utils.Tools import to_cpu
+from utils.Tools import to_cpu, random_seed_set
 
 
 class NormalClient(Client):
@@ -59,7 +57,6 @@ class NormalClient(Client):
         which executes before being woken up by the server.
         """
         self.init_client()
-        self.message_queue.set_training_status(self.client_id, False)
         while not self.stop_event.is_set():
             # The client is selected and starts local training.
             if self.event.is_set():
@@ -68,6 +65,7 @@ class NormalClient(Client):
             # The client waits to be selected.
             else:
                 self.event.wait()
+        self.finsh_client()
 
     def local_run(self):
         """
@@ -163,35 +161,42 @@ class NormalClient(Client):
         self.time_stamp = self.message_queue.get_from_downlink(self.client_id, 'time_stamp_buffer')
         self.schedule_t = self.message_queue.get_from_downlink(self.client_id, 'schedule_time_stamp_buffer')
 
+    def finish_client(self):
+        pass
+
     def init_client(self):
         config = self.config
-        random.seed(config["seed"])
-        np.random.seed(config["seed"])
-        torch.manual_seed(config["seed"])
-        torch.cuda.manual_seed(config["seed"])
+        random_seed_set(config["seed"])
 
         self.train_ds = self.message_queue.get_train_dataset()
 
         self.transform, self.target_transform = self._get_transform(config)
         self.fl_train_ds = FLDataset(self.train_ds, list(self.index_list), self.transform, self.target_transform)
 
+        self.create_model()
+
+        # optimizer
+        self.create_optimizer()
+
+        # loss function
+        self.loss_func = LossFactory(config["loss"], self).create_loss()
+        self.train_dl = DataLoader(self.fl_train_ds, batch_size=self.batch_size, shuffle=True, drop_last=True)
+        self.message_queue.set_training_status(self.client_id, False)
+
+    def create_model(self):
         self.model = self._get_model(config)
         self.model = self.model.to(self.dev)
         self.training_params = {k: False for k in self.model.state_dict()}
         for n, p in self.model.named_parameters():
             self.training_params[n] = p.requires_grad
 
-        # optimizer
+    def create_optimizer(self):
+        config = self.config
         opti_class = ModuleFindTool.find_class_by_path(self.optimizer_config["path"])
         self.opti = opti_class(self.model.parameters(), **self.optimizer_config["params"])
         if "scheduler" in config:
             scheduler_class = ModuleFindTool.find_class_by_path(config["scheduler"]["path"])
             self.lr_scheduler = scheduler_class(self.opti, **config["scheduler"]["params"])
-
-        # loss function
-        self.loss_func = LossFactory(config["loss"], self).create_loss()
-
-        self.train_dl = DataLoader(self.fl_train_ds, batch_size=self.batch_size, shuffle=True, drop_last=True)
 
     def delay_simulate(self, secs):
         """
