@@ -1,12 +1,14 @@
 import contextlib
+import copy
 import os
+import sys
 from time import sleep
 
 import numpy as np
 
 from client.NormalClient import NormalClient
 from clientmanager.BaseClientManager import BaseClientManager
-from core.Runtime import Mode
+from core.Runtime import Mode, running_mode_for_client
 from utils import ModuleFindTool
 from utils.GlobalVarGetter import GlobalVarGetter
 
@@ -79,44 +81,70 @@ class LargeScaleClient(Mode):
         pass
 
 
-class _TrueLargeScaleClient(NormalClient):
+class _TrueLargeScaleClient(running_mode_for_client()):
     def __init__(self, c_id, stop_event, selected_event, delay, index_list, config, dev):
-        super().__init__(c_id, stop_event, selected_event, delay, index_list, config, dev)
-        self.inner_client_module = ModuleFindTool.find_class_by_path(config['inner_client']['path'])
+        super().__init__()
+        self.training_params = None
+        self.model = None
         self.whole_index_list = index_list
         self.delay_list = delay
         self.selected_event_list = selected_event
         self.stop_event_list = stop_event
         self.id_list = c_id
         self.untraining_params = {}
+        self.shared_values = {}
+        self.exchange_logic = None
+        self.saved_values = {i: {} for i in self.id_list}
+        self.inner_client_dict = self.create_inner_client_dict(config, dev)
+
+    def create_inner_client_dict(self, config, dev):
+        inner_client = ModuleFindTool.find_class_by_path(config['inner_client']['path'])
+        inner_client_dict = {}
+        self.exchange_logic = config['exchange_logic'] if 'exchange_logic' in config else {}
+        for i, c_id in enumerate(self.id_list):
+            client_ins = inner_client(c_id, self.stop_event_list[c_id], self.selected_event_list[c_id], self.delay_list[c_id], self.whole_index_list[c_id], config, dev)
+            client_ins.init_client()
+            if i == 0:
+                self.model = client_ins.model
+                self.training_params = client_ins.training_params
+                if 'shared_values' in config:
+                    for k in config['shared_values']:
+                        self.shared_values[k] = getattr(client_ins, k)
+                eval(self.exchange_logic['init']) if 'init' in self.exchange_logic else None
+            else:
+                del client_ins.model
+                client_ins.model = self.model
+                client_ins.create_optimizer()
+                if 'shared_values' in config:
+                    for k in config['shared_values']:
+                        setattr(client_ins, k, self.shared_values[k])
+            inner_client_dict[c_id] = client_ins
+        return inner_client_dict
 
     def run(self):
-        self.init_client()
-        for i in self.id_list:
-            self.message_queue.set_training_status(i, False)
         while len(self.id_list):
-            for i, e in zip(self.id_list, self.selected_event_list.values()):
+            for c_id, e, se in zip(self.id_list, self.selected_event_list.values(), self.stop_event_list.values()):
                 if e.is_set():
                     e.clear()
-                    self.client_id = i
-                    if self.client_id in self.untraining_params:
-                        state_dict = self.model.state_dict()
+                    if c_id in self.untraining_params:
+                        state_dict = self.inner_client_dict[c_id].model.state_dict()
+                        for k in self.untraining_params[c_id]:
+                            state_dict[k] = copy.deepcopy(self.untraining_params[c_id][k])
+                        self.inner_client_dict[c_id].model.load_state_dict(state_dict)
+                    eval(self.exchange_logic['before']) if 'before' in self.exchange_logic else None
+
+                    # stop a client which it must be selected
+                    if se.is_set():
+                        self.inner_client_dict[c_id].finish_client()
+                        se.clear()
+                        self.stop_event_list.pop(c_id)
+                        self.id_list.remove(c_id)
+                    else:
+                        self.inner_client_dict[c_id].local_run()
+                        if c_id not in self.untraining_params:
+                            self.untraining_params[c_id] = {}
+                        state_dict = self.inner_client_dict[c_id].model.state_dict()
                         for k in state_dict:
                             if not self.training_params[k]:
-                                state_dict[k] = self.untraining_params[self.client_id][k]
-                        self.model.load_state_dict(state_dict)
-                    self.delay = self.delay_list[i]
-                    self.fl_train_ds.change_idxs(self.whole_index_list[i])
-                    self.inner_client_module.local_run(self)
-                    if self.client_id not in self.untraining_params:
-                        self.untraining_params[self.client_id] = {}
-                    state_dict = self.model.state_dict()
-                    for k in state_dict:
-                        if not self.training_params[k]:
-                            self.untraining_params[self.client_id][k] = state_dict[k]
-            sleep(0.01)
-            for i, e in zip(self.id_list, self.stop_event_list.values()):
-                if e.is_set():
-                    e.clear()
-                    self.stop_event_list.pop(i)
-                    self.id_list.remove(i)
+                                self.untraining_params[c_id][k] = copy.deepcopy(state_dict[k])
+                        eval(self.exchange_logic['after']) if 'after' in self.exchange_logic else None
