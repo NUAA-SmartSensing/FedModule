@@ -54,9 +54,26 @@ def customize_distribution(label_config, data_config, train_labels, clients_num,
     if len(data_config) == 0:
         size = len(train_labels) // clients_num
         data_lists = generate_data_lists(size, size, clients_num, label_lists)
-    # max,min
+    elif isinstance(data_config, dict):
+        # max,min
+        if "max" in data_config or "min" in data_config:
+            data_max = data_config["max"] if "max" in data_config else len(train_labels)
+            data_min = data_config["min"] if "min" in data_config else 0
+            data_lists = generate_data_lists(data_max, data_min, clients_num, label_lists)
+        # step
+        elif "step" in data_config:
+            shuffle = data_config["shuffle"] if "shuffle" in data_config else True
+            num_random = data_config["random"] if "random" in data_config else True
+            data_lists = generate_data_lists_by_step(data_config["step"], data_config["list"], label_lists, num_random, shuffle)
+        else:
+            data_lists = [None for _ in range(len(label_lists))]
+            for k, v in data_config.items():
+                data_lists[int(k)] = v
+    # []
+    elif isinstance(data_config, list):
+        data_lists = average_data_list(data_config, label_lists)
     else:
-        data_lists = generate_data_lists(data_config["max"], data_config["min"], clients_num, label_lists)
+        raise ValueError("data_config error")
     # 生成序列
     return generate_non_iid_dataset(train_labels, label_lists,
                                     data_lists)
@@ -89,8 +106,13 @@ def generate_non_iid_dataset(y, label_lists, data_lists):
 
 
 def generate_data_lists(max_size, min_size, num, label_lists):
-    data_lists = []
     data_list = generate_data_list(max_size, min_size, num)
+    data_lists = average_data_list(data_list, label_lists)
+    return data_lists
+
+
+def average_data_list(data_list, label_lists):
+    data_lists = []
     for i in range(len(label_lists)):
         data_num = data_list[i] // len(label_lists[i])
         tmp_list = [data_num] * (len(label_lists[i]) - 1)
@@ -104,6 +126,23 @@ def generate_data_list(max_size, min_size, num):
     for _ in range(num):
         ans.append(random.randint(min_size, max_size))
     return ans
+
+
+def generate_data_lists_by_step(step, num_list, label_lists, num_random=True, shuffle=True):
+    data_lists = []
+    data_list = []
+    bound = 0
+    for num in num_list:
+        data_list += [bound] * num
+        bound += step
+    if shuffle:
+        random.shuffle(data_list)
+    if num_random:
+        for num, label_list in zip(data_list, label_lists):
+            data_lists.append(random_partition(num, len(label_list)))
+    else:
+        data_lists = average_data_list(data_list, label_lists)
+    return data_lists
 
 
 def generate_label_lists(label_num_list, left, right, shuffle=False):
@@ -155,3 +194,25 @@ def generate_label_lists_by_step(step, num_list, left, right, shuffle=False):
                 label_lists.append(s.tolist())
             bound += step
     return label_lists
+
+
+def random_partition(n, k):
+    """
+    Randomly partition an integer n into k non-negative integers.
+
+    Args:
+        n: The integer to partition into.
+        k: The number of integers to partition into.
+
+    Returns:
+        A list of k non-negative integers whose sum is n. If k > n or k <= 0, returns None.
+    """
+    if k > n or k <= 0:
+        return None
+
+    partitions = sorted(random.choices(range(n + 1), k=k - 1))
+    result = [partitions[0]]
+    for i in range(1, k - 1):
+        result.append(partitions[i] - partitions[i - 1])
+    result.append(n - partitions[-1])
+    return result
