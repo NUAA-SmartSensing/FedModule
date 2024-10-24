@@ -184,7 +184,7 @@ class NormalClient(Client):
         self.message_queue.set_training_status(self.client_id, False)
 
     def create_model(self):
-        self.model = self._get_model(config)
+        self.model = self._get_model(self.config)
         self.model = self.model.to(self.dev)
         self.training_params = {k: False for k in self.model.state_dict()}
         for n, p in self.model.named_parameters():
