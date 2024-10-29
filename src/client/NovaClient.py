@@ -41,10 +41,8 @@ class NovaClient(NormalClient):
             weights[k] = weights[k] - global_model[k]
         return data_sum, weights
 
-    def upload(self, data_sum, weights):
-        update_dict = {"client_id": self.client_id, "weights": weights, "data_sum": data_sum,
-                       "time_stamp": self.time_stamp, "tau": self.tau}
-        self.message_queue.put_into_uplink(update_dict)
+    def customize_upload(self):
+        self.upload_item("tau", self.tau)
 
 
 class NovaClientWithGrad(NovaClient):

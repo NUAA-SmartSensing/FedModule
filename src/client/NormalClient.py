@@ -40,6 +40,7 @@ class NormalClient(Client):
 
     def __init__(self, c_id, stop_event, selected_event, delay, index_list, config, dev):
         Client.__init__(self, c_id, stop_event, selected_event, delay, index_list, dev)
+        self.update_dict = {}
         self.lr_scheduler = None
         self.fl_train_ds = None
         self.opti = None
@@ -88,20 +89,34 @@ class NormalClient(Client):
         self.delay_simulate(self.delay)
 
         # upload its updates
-        self.upload(data_sum, weights)
+        self.upload(data_sum=data_sum, weights=weights)
 
     def train(self):
         data_sum, weights = self.train_one_epoch()
         return data_sum, to_cpu(weights)
 
-    def upload(self, data_sum, weights):
+    def upload(self, **kwargs):
         """
         The detailed parameters uploaded to the server by Client.
         """
-        update_dict = {"client_id": self.client_id, "weights": weights, "data_sum": data_sum,
-                       "time_stamp": self.time_stamp}
-        self.message_queue.put_into_uplink(update_dict)
+        if "client_id" not in self.update_dict:
+            self.update_dict["client_id"] = self.client_id
+        if "time_stamp" not in self.update_dict:
+            self.update_dict["time_stamp"] = self.time_stamp
+        for k, v in kwargs.items():
+            self.upload_item(k, v)
+        self.customize_upload()
+        self.message_queue.put_into_uplink(self.update_dict)
         print("Client", self.client_id, "uploaded")
+
+    def upload_item(self, k, v):
+        self.update_dict[k] = v
+
+    def customize_upload(self):
+        """
+        Customize the parameters uploaded to the server by the client.
+        """
+        pass
 
     def train_one_epoch(self):
         """

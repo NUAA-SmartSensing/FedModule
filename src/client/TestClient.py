@@ -13,12 +13,9 @@ class TestClient(NormalClient, TestableMixin):
         self.run_test(self.client_id, self.time_stamp, self.model, self.loss_func, self.dev)
         return data_sum, weights
 
-    def upload(self, data_sum, weights):
-        update_dict = {"client_id": self.client_id, "weights": weights, "data_sum": data_sum,
-                       "time_stamp": self.time_stamp,
-                       "accuracy": self.accuracy_list[len(self.accuracy_list) - 1],
-                       "loss": self.loss_list[len(self.loss_list) - 1]}
-        self.message_queue.put_into_uplink(update_dict)
+    def customize_upload(self):
+        self.upload_item("accuracy", self.accuracy_list[len(self.accuracy_list) - 1])
+        self.upload_item("loss", self.loss_list[len(self.loss_list) - 1])
 
     def init_client(self):
         super().init_client()
