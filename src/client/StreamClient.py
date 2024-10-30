@@ -11,6 +11,10 @@ from utils.IID import generate_iid_data, generate_non_iid_data
 
 
 class StreamClient(NormalClient):
+    """
+    StreamClient is a class that inherits from NormalClient and is used to implement the stream data scenario.
+    This class's data is divided into multiple tasks equally, and the model is trained on each task in turn.
+    """
     def __init__(self, c_id, stop_event, selected_event, delay, index_list, config, dev):
         super().__init__(c_id, stop_event, selected_event, delay, index_list, config, dev)
         self.task_num = config["task_num"]
@@ -19,9 +23,10 @@ class StreamClient(NormalClient):
         self.total_epoch = 0
 
     def change_task(self):
-        self.fl_train_ds = FLDataset(self.train_ds, list(self.index_list)[self.task_id::self.task_num], self.transform,
-                                     self.target_transform)
-        self.train_dl = DataLoader(self.fl_train_ds, batch_size=self.batch_size, shuffle=True, drop_last=True)
+        self.fl_train_ds.change_idxs(list(self.index_list)[self.task_id::self.task_num])
+        # self.fl_train_ds = FLDataset(self.train_ds, list(self.index_list)[self.task_id::self.task_num], self.transform,
+        #                              self.target_transform)
+        # self.train_dl = DataLoader(self.fl_train_ds, batch_size=self.batch_size, shuffle=True, drop_last=True)
         self.task_id = (self.task_id + 1) % self.task_num
 
     def local_task(self):
@@ -33,14 +38,24 @@ class StreamClient(NormalClient):
 
 
 class StreamClientWithGlobal(StreamClient):
+    """
+    StreamClientWithGlobal is a class that inherits from StreamClient and is used to implement the stream data
+    scenario. This class's data is controlled by the server, and the model is trained on each task in turn.
+    """
     def change_task(self):
-        self.fl_train_ds = FLDataset(self.train_ds, list(self.index_list[self.task_id]), self.transform,
-                                     self.target_transform)
-        self.train_dl = DataLoader(self.fl_train_ds, batch_size=self.batch_size, shuffle=True, drop_last=True)
+        self.fl_train_ds.change_idxs(self.index_list[self.task_id])
+        # self.fl_train_ds = FLDataset(self.train_ds, list(self.index_list[self.task_id]), self.transform,
+        #                              self.target_transform)
+        # self.train_dl = DataLoader(self.fl_train_ds, batch_size=self.batch_size, shuffle=True, drop_last=True)
         self.task_id = (self.task_id + 1) % self.task_num
 
 
 class StreamClientWithDir(StreamClient):
+    """
+    StreamClientWithDir is a class that inherits from StreamClient and is used to implement the stream data
+    scenario. This class's data is divided into multiple tasks which customized by the user, and the model is trained on
+    each task in turn.
+    """
     def __init__(self, c_id, stop_event, selected_event, delay, index_list, config, dev):
         super().__init__(c_id, stop_event, selected_event, delay, index_list, config, dev)
         self.task_index_list = [[] for _ in range(self.task_num)]
@@ -68,13 +83,18 @@ class StreamClientWithDir(StreamClient):
             print(f"Client {self.client_id}, Task {i}: {len(self.task_index_list[i])}, {label_counts}")
 
     def change_task(self):
-        self.fl_train_ds = FLDataset(self.train_ds, self.index_list[self.task_index_list[self.task_id]], self.transform,
-                                     self.target_transform)
-        self.train_dl = DataLoader(self.fl_train_ds, batch_size=self.batch_size, shuffle=True, drop_last=True)
+        self.fl_train_ds.change_idxs(self.index_list[self.task_index_list[self.task_id]])
+        # self.fl_train_ds = FLDataset(self.train_ds, self.index_list[self.task_index_list[self.task_id]], self.transform,
+        #                              self.target_transform)
+        # self.train_dl = DataLoader(self.fl_train_ds, batch_size=self.batch_size, shuffle=True, drop_last=True)
         self.task_id = (self.task_id + 1) % self.task_num
 
 
 class ContinualClient(StreamClientWithGlobal):
+    """
+    ContinualClient is a class that inherits from StreamClientWithGlobal and is used to implement the continual learning
+    scenario. In this scenario, client trains on different independent datasets in sequence.
+    """
     def __init__(self, c_id, stop_event, selected_event, delay, index_list, config, dev):
         super().__init__(c_id, stop_event, selected_event, delay, index_list, config, dev)
         self.label_mapping = None
@@ -117,6 +137,9 @@ class ContinualClient(StreamClientWithGlobal):
 
 
 class ContinualClientWithEWC(ContinualClient):
+    """
+    ContinualClientWithEWC is a class that inherits from ContinualClient and is used to implement the EWC loss.
+    """
     def __init__(self, c_id, stop_event, selected_event, delay, index_list, config, dev):
         super().__init__(c_id, stop_event, selected_event, delay, index_list, config, dev)
         self.previous_model = None
