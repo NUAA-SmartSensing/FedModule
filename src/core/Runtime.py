@@ -61,13 +61,21 @@ class ModeFactory:
                 return ModuleFindTool.find_class_by_path(mode)(client, **params)
 
 
-def running_mode(config):
+def running_mode(config, output=False):
     """
     running_mode is a function that returns the running mode of the client.
 
     Returns:
         The running mode of the client.
     """
+    if not output:
+        with contextlib.redirect_stdout(open(os.devnull, 'w')):
+            return _running_mode(config)
+    else:
+        return _running_mode(config)
+
+
+def _running_mode(config):
     if not config:
         print("Running Mode: None, Default(Thread)")
         return "thread", {}

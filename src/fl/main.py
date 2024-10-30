@@ -160,7 +160,7 @@ def main():
 
     # 启动client_manager
     # get the running mode of client
-    running_mode(config)
+    running_mode(config, output=True)
     client_manager_class = ModuleFindTool.find_class_by_path(client_manager_config["path"])
     client_manager = client_manager_class(config)
     client_manager.start_all_clients()
