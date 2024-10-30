@@ -1,10 +1,9 @@
 from abc import abstractmethod
 
-from core.Runtime import running_mode_for_client
 from core.MessageQueue import MessageQueueFactory
 
 
-class Client(running_mode_for_client()):
+class Client:
     def __init__(self, c_id, stop_event, selected_event, delay, index_list, dev):
         super().__init__()
         self.model = None

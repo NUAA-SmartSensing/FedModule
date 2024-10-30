@@ -4,7 +4,6 @@ import inspect
 import os
 import sys
 import time
-from abc import abstractmethod
 from collections import ChainMap
 from multiprocessing import Process
 from types import MappingProxyType as readonlydict
@@ -21,12 +20,11 @@ class TimeSlice(Mode):
     TimeSlice is a class that uses time slices to simulate client work and server work.
     """
 
-    def __init__(self):
-        pass
+    def __init__(self, client):
+        self.client = client
 
-    @abstractmethod
     def run(self):
-        pass
+        self.client.run()
 
     def start(self):
         pass
@@ -412,11 +410,8 @@ class TimeSliceRunner(Process):
             return wrapper
 
         time.sleep = decorator(time.sleep)
-        self.client_class.__bases__[0].__bases__ = (TimeSlice,)
         mro = list(self.client_class.__mro__)
         mro.remove(object)
-        mro.remove(Mode)
-        mro.remove(TimeSlice)
         whole_function_call = []
         modified_module = {}
         for i in range(len(mro), 0, -1):

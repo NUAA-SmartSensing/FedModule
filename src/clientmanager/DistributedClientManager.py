@@ -8,7 +8,8 @@ from time import sleep
 
 from clientmanager.BaseClientManager import BaseClientManager
 from clientmanager.NormalClientManager import NormalClientManager
-from core.MessageQueue import MessageQueueFactory, MessageQueueWrapperForMQTT
+from core.MessageQueue import MessageQueueFactory
+from core.Runtime import running_mode, ModeFactory
 from utils import ModuleFindTool
 from utils.GlobalVarGetter import GlobalVarGetter
 from utils.MQTT import MQTTClientSingleton
@@ -223,24 +224,28 @@ class SubNormalClientManager(NormalClientManager):
         self.selected_event_list[client_id - self.start_id].set()
 
     def __init_clients(self):
+        mode, params = running_mode(self.global_var['config'])
         for i in range(self.client_num):
             uid = self.start_id + i
             self.client_list.append(
-                self.client_class(uid, self.stop_event_list[uid - self.start_id],
-                                  self.selected_event_list[uid - self.start_id],
-                                  self.client_staleness_list[uid],
-                                  self.index_list[uid], self.client_config,
-                                  self.client_dev[uid - self.start_id]))  # instance
+                ModeFactory.create_mode_instance(
+                    self.client_class(uid, self.stop_event_list[uid - self.start_id],
+                                      self.selected_event_list[uid - self.start_id],
+                                      self.client_staleness_list[uid],
+                                      self.index_list[uid], self.client_config,
+                                      self.client_dev[uid - self.start_id]), mode, params))  # instance
 
     def create_and_start_new_client(self, dev='cpu'):
         # client_id 如何生成
         client_id = self.start_id + self.client_num
         self.selected_event_list.append(create_event(self.config, client_id))
         self.stop_event_list.append(create_event(self.config, client_id, event_name="stop"))
+        mode, params = running_mode(self.global_var['config'])
         self.client_list.append(
-            self.client_class(client_id, self.stop_event_list[client_id], self.selected_event_list[client_id],
-                              self.client_staleness_list[client_id], self.index_list[client_id], self.client_config,
-                              self.client_dev[client_id]))  # instance
+            ModeFactory.create_mode_instance(
+                self.client_class(client_id, self.stop_event_list[client_id], self.selected_event_list[client_id],
+                                  self.client_staleness_list[client_id], self.index_list[client_id], self.client_config,
+                                  self.client_dev[client_id]), mode, params))  # instance
         self.client_id_list.append(client_id)
         self.client_list[client_id].start()
         self.client_num += 1

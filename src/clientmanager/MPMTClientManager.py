@@ -2,6 +2,8 @@ from multiprocessing import Process, Event
 
 from clientmanager.NormalClientManager import NormalClientManager
 from core.MessageQueue import MessageQueueFactory
+from core.Runtime import ModeFactory, running_mode
+from utils.GlobalVarGetter import GlobalVarGetter
 
 
 def distribute_evenly(x, length):
@@ -31,9 +33,12 @@ class MPMTClientManager(NormalClientManager):
         self.create_client_event = [Event() for _ in range(self.process_num)]
 
         client_nums = distribute_evenly(self.client_num, self.process_num)
-        self.process_pool = [MPMT(i, self.process_num, client_nums[i], self.client_class, self.init_event, self.run_event,
-                                  self.stop_event, self.create_client_event[i], self.stop_event_list[i::self.process_num], self.selected_event_list[i::self.process_num],
-                                  self.client_staleness_list[i::self.process_num], self.index_list[i::self.process_num], self.client_config, self.client_dev[i::self.process_num]) for i in range(self.process_num)]
+        self.process_pool = [
+            MPMT(i, self.process_num, client_nums[i], self.client_class, self.init_event, self.run_event,
+                 self.stop_event, self.create_client_event[i], self.stop_event_list[i::self.process_num],
+                 self.selected_event_list[i::self.process_num],
+                 self.client_staleness_list[i::self.process_num], self.index_list[i::self.process_num],
+                 self.client_config, self.client_dev[i::self.process_num]) for i in range(self.process_num)]
 
     def start_all_clients(self):
         self.__init_clients()
@@ -75,7 +80,8 @@ class MPMTClientManager(NormalClientManager):
 
 
 class MPMT(Process):
-    def __init__(self, id, process_num, init_client_num, client_class, init_event, run_event, stop_event, create_client_event, stop_event_list, selected_event_list,
+    def __init__(self, id, process_num, init_client_num, client_class, init_event, run_event, stop_event,
+                 create_client_event, stop_event_list, selected_event_list,
                  client_staleness_list, index_list, client_config, client_dev):
         super().__init__()
         self.id = id
@@ -112,17 +118,25 @@ class MPMT(Process):
             i.join()
 
     def create_client(self):
+        mode, params = running_mode(GlobalVarGetter.get()['config'])
         self.client_list.append(
-            self.client_class(self.client_num*self.process_num+self.id, self.stop_event_list[self.client_num], self.selected_event_list[self.client_num], self.client_staleness_list[self.client_num],
-                              self.index_list[self.client_num], self.client_config, self.client_dev[self.client_num]))
+            ModeFactory.create_mode_instance(
+                self.client_class(self.client_num * self.process_num + self.id, self.stop_event_list[self.client_num],
+                                  self.selected_event_list[self.client_num],
+                                  self.client_staleness_list[self.client_num],
+                                  self.index_list[self.client_num], self.client_config,
+                                  self.client_dev[self.client_num]), mode, params))
         self.client_num += 1
         self.client_list[-1].start()
 
     def init(self):
+        mode, params = running_mode(GlobalVarGetter.get()['config'])
         for i in range(self.client_num):
             self.client_list.append(
-                self.client_class(i*self.process_num+self.id, self.stop_event_list[i], self.selected_event_list[i], self.client_staleness_list[i],
-                                  self.index_list[i], self.client_config, self.client_dev[i]))
+                ModeFactory.create_mode_instance(
+                    self.client_class(i * self.process_num + self.id, self.stop_event_list[i],
+                                      self.selected_event_list[i], self.client_staleness_list[i],
+                                      self.index_list[i], self.client_config, self.client_dev[i]), mode, params))
 
     def run_client(self):
         for i in self.client_list:

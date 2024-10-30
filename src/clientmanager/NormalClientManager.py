@@ -1,5 +1,5 @@
 from clientmanager.BaseClientManager import BaseClientManager
-from core.Runtime import CLIENT_STATUS
+from core.Runtime import CLIENT_STATUS, ModeFactory, running_mode
 from utils import ModuleFindTool
 from utils.GlobalVarGetter import GlobalVarGetter
 from core.MessageQueue import EventFactory
@@ -38,10 +38,11 @@ class NormalClientManager(BaseClientManager):
             self.client_status[i] = CLIENT_STATUS['active']
 
     def __init_clients(self):
+        mode, params = running_mode(self.global_var['config'])
         for i in range(self.client_num):
-            self.client_list.append(
+            self.client_list.append(ModeFactory.create_mode_instance(
                 self.client_class(i, self.stop_event_list[i], self.selected_event_list[i], self.client_staleness_list[i],
-                                  self.index_list[i], self.client_config, self.client_dev[i]))  # instance
+                                  self.index_list[i], self.client_config, self.client_dev[i]), mode, params))  # instance
             self.client_status.append(CLIENT_STATUS['created'])
             self.client_id_list.append(i)
 

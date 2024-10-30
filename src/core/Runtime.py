@@ -5,7 +5,6 @@ from multiprocessing import Process
 from threading import Thread
 
 from utils import ModuleFindTool
-from utils.GlobalVarGetter import GlobalVarGetter
 
 CLIENT_STATUS = {'created': 0, 'running': 1, 'stale': 2, 'exited': 3, 'active': 4}
 SERVER_STATUS = {'stale': 0, 'schedule': 1, 'aggregate': 2, 'exited': 3}
@@ -30,6 +29,38 @@ class Mode:
         pass
 
 
+class ClientProcessMode(Process):
+    def __init__(self, client):
+        Process.__init__(self)
+        self.client = client
+
+    def run(self):
+        self.client.run()
+
+
+class ClientThreadMode(Thread):
+    def __init__(self, client):
+        Thread.__init__(self)
+        self.client = client
+
+    def run(self):
+        self.client.run()
+
+
+class ModeFactory:
+    @staticmethod
+    def create_mode_instance(client, mode='thread', params=None):
+        with contextlib.redirect_stdout(open(os.devnull, 'w')):
+            if mode == "process":
+                return ClientProcessMode(client)
+            elif mode == "thread":
+                return ClientThreadMode(client)
+            else:
+                if params is None:
+                    params = {}
+                return ModuleFindTool.find_class_by_path(mode)(client, **params)
+
+
 def running_mode(config):
     """
     running_mode is a function that returns the running mode of the client.
@@ -37,39 +68,29 @@ def running_mode(config):
     Returns:
         The running mode of the client.
     """
-    # this condition is used to a new python environment, i.e., process
     if not config:
-        print("Running Mode: None")
-        return Process
+        print("Running Mode: None, Default(Thread)")
+        return "thread", {}
     if "mode" not in config['global']:
         print("Running Mode: Default(Thread)")
-        return Thread
+        return "thread", {}
     mode_config = config['global']['mode']
     if isinstance(mode_config, dict):
-        mode = ModuleFindTool.find_class_by_path(mode_config['path'])
         print(f"Running Mode: {mode_config['path']}")
-        return mode
+        if 'params' in mode_config:
+            params = mode_config['params']
+        else:
+            params = {}
+        return mode_config['path'], params
     elif isinstance(mode_config, str):
         if mode_config == 'thread':
             print("Running Mode: Thread")
-            return Thread
+            return "thread", {}
         elif mode_config == 'process':
             print("Running Mode: Process")
-            return Process
+            return "process", {}
         else:
             raise ValueError('if mode isinstance str, mode must be "thread" or "process"')
     else:
         raise ValueError('mode config must be a dict or a str')
 
-
-def running_mode_for_client():
-    global_var = GlobalVarGetter.get()
-    if global_var == "--multiprocessing-fork":
-        # this condition only exists in multiprocessing-fork process
-        # and client is the process
-        return Process
-    else:
-        config = global_var['config']
-    with contextlib.redirect_stdout(open(os.devnull, 'w')):
-        mode = running_mode(config)
-    return mode

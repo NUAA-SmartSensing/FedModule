@@ -66,7 +66,7 @@ class NormalClient(Client):
             # The client waits to be selected.
             else:
                 self.event.wait()
-        self.finsh_client()
+        self.finish_client()
 
     def local_run(self):
         """
@@ -99,10 +99,8 @@ class NormalClient(Client):
         """
         The detailed parameters uploaded to the server by Client.
         """
-        if "client_id" not in self.update_dict:
-            self.update_dict["client_id"] = self.client_id
-        if "time_stamp" not in self.update_dict:
-            self.update_dict["time_stamp"] = self.time_stamp
+        self.update_dict["client_id"] = self.client_id
+        self.update_dict["time_stamp"] = self.time_stamp
         for k, v in kwargs.items():
             self.upload_item(k, v)
         self.customize_upload()
