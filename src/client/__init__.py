@@ -10,4 +10,3 @@ from client import NovaClient
 from client import TWAFLClient
 from client import PFedMeClient
 from client import StreamClient
-from client import LargeScaleClient
