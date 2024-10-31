@@ -15,6 +15,8 @@ class Mode:
     [experimental]
     Mode is a class that simulates the running mode of the client.
     """
+    def __init__(self, client):
+        self.client = client
 
     @abstractmethod
     def run(self):
