@@ -9,9 +9,9 @@ import wandb
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from core.Runtime import running_mode
 from utils.GlobalVarGetter import GlobalVarGetter
-from core.MessageQueue import MessageQueueFactory, ManagerWrapper
+from core.MessageQueue import MessageQueueFactory
+from core.Runtime import running_mode
 from utils.Tools import *
 from utils import ModuleFindTool
 import argparse
