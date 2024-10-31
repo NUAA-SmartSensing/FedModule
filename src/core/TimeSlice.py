@@ -19,10 +19,6 @@ class TimeSlice(Mode):
     [experimental]
     TimeSlice is a class that uses time slices to simulate client work and server work.
     """
-
-    def __init__(self, client):
-        self.client = client
-
     def run(self):
         self.client.run()
 
