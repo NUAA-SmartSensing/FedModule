@@ -1,2 +1,0 @@
-from numgenerator import NumGeneratorFactory
-from numgenerator import StaticNumGenerator
