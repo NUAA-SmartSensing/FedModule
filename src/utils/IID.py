@@ -1,13 +1,34 @@
+import copy
 import random
+from collections import Counter
 
 import numpy as np
 
-from utils import Random
 from utils.Tools import dict_to_list
 
 
-def generate_iid_data(train_labels, clients_num):
-    class_idx = [np.argwhere(train_labels == y).flatten() for y in range(max(train_labels)-min(train_labels)+1)]
+def print_dist(index_list, labels):
+    for i, client_index_list in enumerate(index_list):
+        total = len(client_index_list)
+        print(f'({i}: {total},', end=' ')
+        counts = Counter(labels[client_index_list].tolist())
+        print(dict(counts))
+
+
+def generate_data(iid_config, labels, clients_num, train):
+    if isinstance(iid_config, bool):
+        print("generating iid data...")
+        index_list = generate_iid_data(labels, clients_num)
+    else:
+        print("generating non_iid data...")
+        index_list = generate_non_iid_data(iid_config, labels, clients_num, train)
+    print_dist(index_list, labels)
+    return index_list
+
+
+def generate_iid_data(labels, clients_num):
+    class_lst = set(labels)
+    class_idx = [np.argwhere(labels == y).flatten() for y in class_lst]
     client_idx = [[] for _ in range(clients_num + 1)]
     for c in class_idx:
         for i, idcs in enumerate(np.array_split(c, clients_num)):
@@ -16,23 +37,22 @@ def generate_iid_data(train_labels, clients_num):
     return client_idx
 
 
-def generate_non_iid_data(iid_config, train_labels, clients_num, train=True):
-    left = min(train_labels)
-    right = max(train_labels) + 1
+def generate_non_iid_data(iid_config, labels, clients_num, train=True):
+    classes = set(labels)
     if not train:
         if "for_test" in iid_config.keys() and iid_config["for_test"]:
             pass
         else:
-            return generate_iid_data(train_labels, clients_num)
+            return generate_iid_data(labels, clients_num)
     if "customize" in iid_config.keys() and iid_config["customize"]:
         label_config = iid_config['label']
         data_config = iid_config['data']
-        return customize_distribution(label_config, data_config, train_labels, clients_num, left, right)
+        return customize_distribution(label_config, data_config, labels, clients_num, classes)
     else:
-        return dirichlet_distribution(iid_config["beta"], train_labels, clients_num, left, right)
+        return dirichlet_distribution(iid_config["beta"], labels, clients_num, classes)
 
 
-def customize_distribution(label_config, data_config, train_labels, clients_num, left, right):
+def customize_distribution(label_config, data_config, labels, clients_num, classes):
     # 生成label lists
     # 洗牌算法
     label_lists = []
@@ -42,22 +62,22 @@ def customize_distribution(label_config, data_config, train_labels, clients_num,
     if isinstance(label_config, dict):
         # step
         if "step" in label_config.keys():
-            label_lists = generate_label_lists_by_step(label_config["step"], label_config["list"], left, right, shuffle)
+            label_lists = generate_label_lists_by_step(label_config["step"], label_config["list"], classes, shuffle)
         # {list:[]}
         elif "list" in label_config.keys():
-            label_lists = generate_label_lists(label_config["list"], left, right, shuffle)
+            label_lists = generate_label_lists(label_config["list"], classes, shuffle)
         # {[],[],[]}
         else:
             label_lists = dict_to_list(label_config)
     # 生成data lists
     # {}
     if len(data_config) == 0:
-        size = len(train_labels) // clients_num
+        size = len(labels) // clients_num
         data_lists = generate_data_lists(size, size, clients_num, label_lists)
     elif isinstance(data_config, dict):
         # max,min
         if "max" in data_config or "min" in data_config:
-            data_max = data_config["max"] if "max" in data_config else len(train_labels)
+            data_max = data_config["max"] if "max" in data_config else len(labels)
             data_min = data_config["min"] if "min" in data_config else 0
             data_lists = generate_data_lists(data_max, data_min, clients_num, label_lists)
         # step
@@ -75,13 +95,12 @@ def customize_distribution(label_config, data_config, train_labels, clients_num,
     else:
         raise ValueError("data_config error")
     # 生成序列
-    return generate_non_iid_dataset(train_labels, label_lists,
-                                    data_lists)
+    return generate_non_iid_dataset(labels, label_lists, data_lists)
 
 
-def dirichlet_distribution(beta, labels, clients_num, left, right):
-    label_distribution = np.random.dirichlet([beta] * clients_num, right - left)
-    class_idx = [np.argwhere(labels == y).flatten() for y in range(right - left)]
+def dirichlet_distribution(beta, labels, clients_num, classes):
+    label_distribution = np.random.dirichlet([beta] * clients_num, len(classes))
+    class_idx = [np.argwhere(labels == y).flatten() for y in classes]
     client_idx = [[] for _ in range(clients_num+1)]
     for c, fracs in zip(class_idx, label_distribution):
         # np.split按照比例将类别为k的样本划分为了N个子集
@@ -145,31 +164,31 @@ def generate_data_lists_by_step(step, num_list, label_lists, num_random=True, sh
     return data_lists
 
 
-def generate_label_lists(label_num_list, left, right, shuffle=False):
+def generate_label_lists(label_num_list, classes, shuffle=False):
     label_lists = []
+    classes_copy = copy.copy(list(classes))
     if shuffle:
-        label_total = 0
-        for label_num in label_num_list:
-            label_total = label_total + label_num
-        epoch = int(label_total // (right - left)) + 1
+        label_total = sum(label_num_list)
+        epoch = int(label_total // len(classes)) + 1
         label_all_list = []
         for i in range(epoch):
-            label_all_list = label_all_list + Random.shuffle_random(left, right)
+            random.shuffle(classes_copy)
+            label_all_list = label_all_list + classes_copy
         pos = 0
         for label_num in label_num_list:
             label_lists.append(label_all_list[pos: pos + label_num])
             pos += label_num
     else:
-        labels = range(left, right)
         for label_num in label_num_list:
-            label_list = np.random.choice(labels, label_num, replace=False)
+            label_list = np.random.choice(classes_copy, label_num, replace=False)
             label_lists.append(label_list.tolist())
     return label_lists
 
 
-def generate_label_lists_by_step(step, num_list, left, right, shuffle=False):
+def generate_label_lists_by_step(step, num_list, classes, shuffle=False):
     label_lists = []
     bound = 1
+    label_list = copy.copy(list(classes))
     if shuffle:
         label_total = 0
         label_all_lists = []
@@ -177,9 +196,10 @@ def generate_label_lists_by_step(step, num_list, left, right, shuffle=False):
             label_total += bound * i
             bound += step
         bound = 1
-        epoch = int(label_total // (right - left)) + 1
+        epoch = int(label_total // len(classes)) + 1
         for i in range(epoch):
-            label_all_lists += Random.shuffle_random(left, right)
+            random.shuffle(label_list)
+            label_all_lists += label_list
         pos = 0
         for i in range(len(num_list)):
             for j in range(num_list[i]):
@@ -187,10 +207,9 @@ def generate_label_lists_by_step(step, num_list, left, right, shuffle=False):
                 pos = pos + bound
             bound += step
     else:
-        labels = range(left, right)
         for i in range(len(num_list)):
             for j in range(num_list[i]):
-                s = np.random.choice(labels, bound, replace=False)
+                s = np.random.choice(label_list, bound, replace=False)
                 label_lists.append(s.tolist())
             bound += step
     return label_lists

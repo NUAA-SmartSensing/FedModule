@@ -3,7 +3,7 @@ import os
 import numpy as np
 
 from utils import ModuleFindTool
-from utils.IID import generate_iid_data, generate_non_iid_data
+from utils.IID import generate_iid_data, generate_non_iid_data, generate_data
 
 
 class BaseDataset:
@@ -53,17 +53,16 @@ class BaseDataset:
         return self.iid_config
 
     def generate_data(self, clients_num, labels, dataset, train=True, message="train_dataset"):
-        if isinstance(self.iid_config, bool):
-            print("generating iid data...")
-            index_list = generate_iid_data(labels, clients_num)
-        elif isinstance(self.iid_config, dict) and "path" in self.iid_config:
+        iid_config = self.iid_config
+        if isinstance(iid_config, dict) and "path" in iid_config:
             print("generate customize data distribution...")
             if self.data_distribution_generator is None:
-                self.data_distribution_generator = ModuleFindTool.find_class_by_path(self.iid_config["path"])(self.iid_config["params"])
-            index_list = self.data_distribution_generator.generate_data(self.iid_config, labels, clients_num, dataset, train)
+                self.data_distribution_generator = ModuleFindTool.find_class_by_path(self.iid_config["path"])(
+                    self.iid_config["params"])
+            index_list = self.data_distribution_generator.generate_data(self.iid_config, labels, clients_num, dataset,
+                                                                    train)
         else:
-            print("generating non_iid data...")
-            index_list = generate_non_iid_data(self.iid_config, labels, clients_num, train)
+            index_list = generate_data(iid_config, labels, clients_num, train)
         print(f"{message} data generation process completed")
         if train:
             return index_list

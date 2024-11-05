@@ -36,16 +36,6 @@ def generate_client_stale_list(global_config):
     return client_staleness_list
 
 
-def get_client_data_distri(index_lists, targets):
-    client_num = len(index_lists)
-    label_counts = [{i: 0 for i in range(10)} for _ in range(client_num)]
-    for i, index_list in enumerate(index_lists):
-        for index in index_list:
-            label_counts[i][int(targets[index])] += 1
-        print(f'({i}, {len(index_list)}, {label_counts[i]})')
-    return label_counts
-
-
 def main():
     parser = argparse.ArgumentParser(description='FedModule Framework')
     parser.add_argument('config_file', nargs='?', default='', help='config file path')
@@ -165,11 +155,6 @@ def main():
     client_manager = client_manager_class(config)
     client_manager.start_all_clients()
 
-    # 获取数据集分布
-    try:
-        label_counts = get_client_data_distri(index_list, train_dataset.targets)
-    except:
-        print("can't get the data distribution")
     # wandb启动配置植入update_config中
     server_config['updater']['enabled'] = wandb_config['enabled']
     server_class = ModuleFindTool.find_class_by_path(server_config["path"])
@@ -204,8 +189,6 @@ def main():
                              "loss.txt"), list(loss_list))
         saveAns(os.path.join(os.path.dirname(os.path.abspath(__file__)), "../results/", global_config["experiment"],
                              "time.txt"), end_time - start_time)
-        saveJson(os.path.join(os.path.dirname(os.path.abspath(__file__)), "../results/", global_config["experiment"],
-                              "data_distribution.json"), label_counts)
         result_to_markdown(
             os.path.join(os.path.dirname(os.path.abspath(__file__)), "../results/", global_config["experiment"],
                          "实验阐述.md"), config)
@@ -213,7 +196,6 @@ def main():
         saveAns(os.path.join(wandb.run.dir, "accuracy.txt"), list(accuracy_list))
         saveAns(os.path.join(wandb.run.dir, "loss.txt"), list(loss_list))
         saveAns(os.path.join(wandb.run.dir, "time.txt"), end_time - start_time)
-        saveJson(os.path.join(wandb.run.dir, "data_distribution.json"), label_counts)
         saveJson(os.path.join(wandb.run.dir, "config.json"), raw_config)
         result_to_markdown(os.path.join(wandb.run.dir, "实验阐述.md"), config)
 
