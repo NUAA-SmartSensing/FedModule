@@ -2,11 +2,9 @@ from copy import deepcopy
 
 import torch
 from torch.nn import functional as F
-from torch.utils.data import DataLoader
 
 from client.NormalClient import NormalClient
 from utils import ModuleFindTool
-from utils.DatasetUtils import FLDataset
 from utils.IID import generate_iid_data, generate_non_iid_data
 
 
