@@ -189,7 +189,8 @@ class NormalClient(Client):
         self.create_model()
 
         # optimizer
-        self.create_optimizer()
+        self.opti = self.create_optimizer()
+        self.lr_scheduler = self.create_scheduler()
 
         # loss function
         self.loss_func = LossFactory(config["loss"], self).create_loss()
@@ -203,13 +204,22 @@ class NormalClient(Client):
         for n, p in self.model.named_parameters():
             self.training_params[n] = p.requires_grad
 
-    def create_optimizer(self):
-        config = self.config
+    def create_optimizer(self, parameters=None):
+        if parameters is None:
+            parameters = self.model.parameters()
         opti_class = ModuleFindTool.find_class_by_path(self.optimizer_config["path"])
-        self.opti = opti_class(self.model.parameters(), **self.optimizer_config["params"])
+        opti = opti_class(parameters, **self.optimizer_config["params"])
+        return opti
+
+    def create_scheduler(self, opti=None):
+        if opti is None:
+            opti = self.opti
+        config = self.config
+        lr_scheduler = None
         if "scheduler" in config:
             scheduler_class = ModuleFindTool.find_class_by_path(config["scheduler"]["path"])
-            self.lr_scheduler = scheduler_class(self.opti, **config["scheduler"]["params"])
+            lr_scheduler = scheduler_class(opti, **config["scheduler"]["params"])
+        return lr_scheduler
 
     def delay_simulate(self, secs):
         """
