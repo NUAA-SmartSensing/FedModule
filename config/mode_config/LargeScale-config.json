@@ -19,7 +19,7 @@
     "save": false,
     "stale": false,
     "dataset": {
-      "path": "dataset.CIFAR100.CIFAR100",
+      "path": "dataset.FashionMNIST.FashionMNIST",
       "params": {}
     },
     "iid": false,
