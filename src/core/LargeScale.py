@@ -85,17 +85,20 @@ class ClientWrapper:
     def share_memory(self):
         for i, client_ins in enumerate(self.client_dict.values()):
             client_ins.dev = self.dev
-            client_ins.init_client()
             if i == 0:
+                client_ins.init_client()
                 self.model = client_ins.model
                 self.training_params = client_ins.training_params
+                GlobalVarGetter.get()['share_model'] = self.model
                 for k in self.shared_key:
                     self.shared_values[k] = getattr(client_ins, k)
                 eval(self.exchange_logic['init']) if 'init' in self.exchange_logic else None
             else:
-                del client_ins.model
-                client_ins.model = self.model
-                client_ins.create_optimizer()
+                def create_model():
+                    client_ins.model = GlobalVarGetter.get()['share_model']
+                    client_ins.training_params = self.training_params
+                client_ins.create_model = create_model
+                client_ins.init_client()
                 for k in self.shared_key:
                     setattr(client_ins, k, self.shared_values[k])
 
