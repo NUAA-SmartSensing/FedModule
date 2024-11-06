@@ -31,6 +31,8 @@ class ClientTaskPartition(_StreamData):
     def __init__(self, config):
         super().__init__(config)
         self.label_list = None
+        self.is_sort = self.config['sort'] if 'sort' in self.config else True
+        self.duplication = self.config['duplication'] if 'duplication' in self.config else False
 
     def generate_data(self, iid_config, labels, client_num, dataset, train=True):
         super().generate_data(iid_config, labels, client_num, dataset, train)
@@ -44,7 +46,7 @@ class ClientTaskPartition(_StreamData):
         class_num_per_task = self.class_num_per_task
         task_num = self.task_num
         classes = set(labels)
-        self.label_list = split_list(list(classes), class_num_per_task, task_num, is_sort=True, allow_duplicates=False)
+        self.label_list = split_list(list(classes), class_num_per_task, task_num, self.is_sort, self.duplication)
         index_list = split_data(self.config['iid'], labels, client_num)
         index_list_for_task = []
         for i in range(client_num):
@@ -106,7 +108,7 @@ class TaskClientPartition(ClientTaskPartition):
         class_num_per_task = self.class_num_per_task
         task_num = self.task_num
         classes = set(labels)
-        label_list_for_task = split_list(list(classes), class_num_per_task, task_num, is_sort=True, allow_duplicates=False)
+        label_list_for_task = split_list(list(classes), class_num_per_task, task_num, self.is_sort, self.duplication)
         self.label_list = label_list_for_task
         index_label_list_for_task = []
         for label_list in label_list_for_task:
