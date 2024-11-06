@@ -10,14 +10,14 @@ from utils.DatasetUtils import FLDataset
 from utils.IID import generate_iid_data, generate_non_iid_data
 
 
-class StreamClient(NormalClient):
+class SimpleStreamClient(NormalClient):
     """
     StreamClient is a class that inherits from NormalClient and is used to implement the stream data scenario.
     This class's data is divided into multiple tasks equally, and the model is trained on each task in turn.
     """
     def __init__(self, c_id, stop_event, selected_event, delay, index_list, config, dev):
         super().__init__(c_id, stop_event, selected_event, delay, index_list, config, dev)
-        self.task_num = config["task_num"]
+        self.task_num = config["task_num"] if "task_num" in config else 1
         self.task_interval = config["task_interval"] if "task_interval" in config else 1
         self.task_id = 0
         self.total_epoch = 0
@@ -37,11 +37,15 @@ class StreamClient(NormalClient):
         self.total_epoch += 1
 
 
-class StreamClientWithGlobal(StreamClient):
+class StreamClientWithGlobal(SimpleStreamClient):
     """
     StreamClientWithGlobal is a class that inherits from StreamClient and is used to implement the stream data
     scenario. This class's data is controlled by the server, and the model is trained on each task in turn.
     """
+    def __init__(self, c_id, stop_event, selected_event, delay, index_list, config, dev):
+        super().__init__(c_id, stop_event, selected_event, delay, index_list, config, dev)
+        self.task_num = len(index_list)
+
     def change_task(self):
         self.fl_train_ds.change_idxs(self.index_list[self.task_id])
         # self.fl_train_ds = FLDataset(self.train_ds, list(self.index_list[self.task_id]), self.transform,
@@ -50,7 +54,7 @@ class StreamClientWithGlobal(StreamClient):
         self.task_id = (self.task_id + 1) % self.task_num
 
 
-class StreamClientWithDir(StreamClient):
+class StreamClientWithDir(SimpleStreamClient):
     """
     StreamClientWithDir is a class that inherits from StreamClient and is used to implement the stream data
     scenario. This class's data is divided into multiple tasks which customized by the user, and the model is trained on
