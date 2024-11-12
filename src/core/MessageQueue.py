@@ -152,14 +152,21 @@ class MessageQueue:
                 return None
             if client_id in MessageQueue.downlink[key]:
                 return MessageQueue.downlink[key][client_id]
-            return None
+            elif 'all' in MessageQueue.downlink[key]:
+                MessageQueue.downlink[key][client_id] = MessageQueue.downlink[key]['all']
+            else:
+                return None
 
     @staticmethod
     def put_into_downlink(client_id, key, item):
         with MessageQueue.__downlink_lock:
             if key not in MessageQueue.downlink.keys():
                 MessageQueue.downlink[key] = {}
-            MessageQueue.downlink[key][client_id] = item
+            if client_id == 'all':
+                for k in MessageQueue.downlink[key].keys():
+                    MessageQueue.downlink[key][k] = item
+            else:
+                MessageQueue.downlink[key][client_id] = item
 
     @staticmethod
     def uplink_empty(key='update'):
