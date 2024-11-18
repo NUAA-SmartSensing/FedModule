@@ -1,7 +1,8 @@
 import wandb
 
-from core.Handler import HandlerChain, ClientUpdateGetter, Aggregation, GlobalModelOptimization, ModelEvaluator, \
-    DispatchContentFilter
+from core.handlers.Handler import HandlerChain
+from core.handlers.ModelEvaluateHandler import ModelEvaluateHandler
+from core.handlers.ServerHandler import Aggregation, GlobalModelOptimization, ClientUpdateGetter
 from updater.BaseUpdater import BaseUpdater
 from updater.mixin.MoreTest import TestEachClass, TestMultiTask
 
@@ -57,13 +58,15 @@ class SyncUpdaterWithTaskTest(TestMultiTask, SyncUpdater):
 class HandlerChainUpdater(BaseUpdater):
     def __init__(self, server_thread_lock, stop_event, config, mutex_sem, empty_sem, full_sem):
         BaseUpdater.__init__(self, server_thread_lock, stop_event, config)
+        self.handler_chain = None
         self.mutex_sem = mutex_sem
         self.empty_sem = empty_sem
         self.full_sem = full_sem
         self.model = self.server_network
-        self.handler_chain = self.create_handler_chain()
+        self.finals = []
 
     def run(self):
+        self.handler_chain = self.create_handler_chain()
         for _ in range(self.T):
             self.full_sem.acquire()
             self.mutex_sem.acquire()
@@ -76,13 +79,29 @@ class HandlerChainUpdater(BaseUpdater):
             self.current_time.time_add()
             self.mutex_sem.release()
             self.empty_sem.release()
+        self._final_callback()
 
     def create_handler_chain(self):
-        return HandlerChain(
-            ClientUpdateGetter(Aggregation(GlobalModelOptimization(DispatchContentFilter(ModelEvaluator())))))
+        chain = HandlerChain()
+        (chain.set_chain(ClientUpdateGetter())
+              .set_next(Aggregation())
+              .set_next(GlobalModelOptimization())
+              .set_next(ModelEvaluateHandler()))
+        return chain
 
     def execute_chain(self):
         epoch = self.current_time.get_time()
         request = {"epoch": epoch, "updater": self, "global_var": self.global_var,
                    'scheduler': self.global_var['scheduler']}
         self.handler_chain.handle(request)
+
+    def _final_callback(self):
+        for func, params in self.finals:
+            func(*params)
+
+    def add_final_callback(self, func, *params):
+        immutable_types = (int, float, str, tuple, bool, type(None))
+        for param in params:
+            if isinstance(param, immutable_types):
+                raise ValueError("params should be a mutable type")
+        self.finals.append((func, params))

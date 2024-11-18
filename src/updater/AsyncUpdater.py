@@ -1,4 +1,4 @@
-from core.Handler import Handler
+from core.handlers.Handler import Handler
 from numgenerator.NumGeneratorFactory import NumGeneratorFactory
 from updater.SyncUpdater import SyncUpdater
 from utils.GlobalVarGetter import GlobalVarGetter
@@ -30,7 +30,7 @@ class AsyncClientUpdateGetter(Handler):
         super().__init__()
         config = GlobalVarGetter.get()['config']['server']['updater']
         self.num_generator = NumGeneratorFactory(config['num_generator']).create_num_generator()
-        self.sum_delay = 0
+        self.sum_delay = [0]
 
     def _handle(self, request):
         epoch = request.get('epoch')
@@ -42,8 +42,12 @@ class AsyncClientUpdateGetter(Handler):
             update_list.append(queue_manager.get())
             c_id = update_list[i]["client_id"]
             time_stamp = update_list[i]["time_stamp"]
-            self.sum_delay += (epoch - time_stamp)
+            self.sum_delay[0] += (epoch - time_stamp)
             print("Updater received data from client", c_id, "| staleness =", time_stamp, "-",
                   epoch, "| queue size = ", queue_manager.size())
         request['update_list'] = update_list
         return request
+
+    def run_once(self, request):
+        updater = request.get('updater')
+        updater.add_final_callback(self.sum_delay, lambda x: print("Average staleness:", x[0] / updater.T))
