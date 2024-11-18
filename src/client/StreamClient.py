@@ -8,11 +8,12 @@ from utils import ModuleFindTool
 from utils.IID import generate_iid_data, generate_non_iid_data
 
 
-class SimpleStreamClient(NormalClient):
+class SelfStreamClient(NormalClient):
     """
     StreamClient is a class that inherits from NormalClient and is used to implement the stream data scenario.
     This class's data is divided into multiple tasks equally, and the model is trained on each task in turn.
     """
+
     def __init__(self, c_id, stop_event, selected_event, delay, index_list, config, dev):
         super().__init__(c_id, stop_event, selected_event, delay, index_list, config, dev)
         self.task_num = config["task_num"] if "task_num" in config else 1
@@ -22,24 +23,47 @@ class SimpleStreamClient(NormalClient):
 
     def change_task(self):
         self.fl_train_ds.change_idxs(list(self.index_list)[self.task_id::self.task_num])
-        # self.fl_train_ds = FLDataset(self.train_ds, list(self.index_list)[self.task_id::self.task_num], self.transform,
-        #                              self.target_transform)
-        # self.train_dl = DataLoader(self.fl_train_ds, batch_size=self.batch_size, shuffle=True, drop_last=True)
         self.task_id = (self.task_id + 1) % self.task_num
 
     def local_task(self):
-        if self.total_epoch % self.task_interval == 0:
-            print(f"Client {self.client_id} change task to {self.task_id}")
-            self.change_task()
+        self._check_and_change_task()
         super().local_task()
+        self._increment_epoch_count()
+
+    def _check_and_change_task(self):
+        if self.total_epoch % self.task_interval == 0:
+            print(f"Client {self.client_id} changed task to {self.task_id}")
+            self.change_task()
+
+    def _increment_epoch_count(self):
         self.total_epoch += 1
 
 
-class StreamClientWithGlobal(SimpleStreamClient):
+class StreamClient(NormalClient):
+    def __init__(self, c_id, stop_event, selected_event, delay, index_list, config, dev):
+        super().__init__(c_id, stop_event, selected_event, delay, index_list, config, dev)
+        self.task_id = 0
+        self.total_epoch = 0
+        self.task_num = config["task_num"] if "task_num" in config else 1
+
+    def change_task(self):
+        self.fl_train_ds.change_idxs(list(self.index_list)[self.task_id::self.task_num])
+
+    def receive_notify(self):
+        super().receive_notify()
+        task_id = self.message_queue.get_from_downlink(self.client_id, "task_id")
+        if task_id != self.task_id:
+            self.task_id = task_id
+            print(f"Client {self.client_id} changed task to {self.task_id}")
+            self.change_task()
+
+
+class StreamClientWithGlobal(StreamClient):
     """
     StreamClientWithGlobal is a class that inherits from StreamClient and is used to implement the stream data
     scenario. This class's data is controlled by the server, and the model is trained on each task in turn.
     """
+
     def __init__(self, c_id, stop_event, selected_event, delay, index_list, config, dev):
         super().__init__(c_id, stop_event, selected_event, delay, index_list, config, dev)
         self.task_num = len(index_list)
@@ -52,12 +76,13 @@ class StreamClientWithGlobal(SimpleStreamClient):
         self.task_id = (self.task_id + 1) % self.task_num
 
 
-class StreamClientWithDir(SimpleStreamClient):
+class StreamClientWithDir(StreamClient):
     """
     StreamClientWithDir is a class that inherits from StreamClient and is used to implement the stream data
     scenario. This class's data is divided into multiple tasks which customized by the user, and the model is trained on
     each task in turn.
     """
+
     def __init__(self, c_id, stop_event, selected_event, delay, index_list, config, dev):
         super().__init__(c_id, stop_event, selected_event, delay, index_list, config, dev)
         self.task_index_list = [[] for _ in range(self.task_num)]
@@ -97,6 +122,7 @@ class ContinualClient(StreamClientWithGlobal):
     ContinualClient is a class that inherits from StreamClientWithGlobal and is used to implement the continual learning
     scenario. In this scenario, client trains on different independent datasets in sequence.
     """
+
     def __init__(self, c_id, stop_event, selected_event, delay, index_list, config, dev):
         super().__init__(c_id, stop_event, selected_event, delay, index_list, config, dev)
         self.label_mapping = None
@@ -142,6 +168,7 @@ class ContinualClientWithEWC(ContinualClient):
     """
     ContinualClientWithEWC is a class that inherits from ContinualClient and is used to implement the EWC loss.
     """
+
     def __init__(self, c_id, stop_event, selected_event, delay, index_list, config, dev):
         super().__init__(c_id, stop_event, selected_event, delay, index_list, config, dev)
         self.previous_model = None
