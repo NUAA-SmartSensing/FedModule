@@ -154,6 +154,7 @@ class MessageQueue:
                 return MessageQueue.downlink[key][client_id]
             elif 'all' in MessageQueue.downlink[key]:
                 MessageQueue.downlink[key][client_id] = MessageQueue.downlink[key]['all']
+                return MessageQueue.downlink[key][client_id]
             else:
                 return None
 
@@ -164,7 +165,9 @@ class MessageQueue:
                 MessageQueue.downlink[key] = {}
             if client_id == 'all':
                 for k in MessageQueue.downlink[key].keys():
-                    MessageQueue.downlink[key][k] = item
+                    if k != 'all':
+                        MessageQueue.downlink[key][k] = item
+                MessageQueue.downlink[key]['all'] = item
             else:
                 MessageQueue.downlink[key][client_id] = item
 
