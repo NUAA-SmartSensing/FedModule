@@ -22,6 +22,7 @@ class BaseUpdater(threading.Thread):
         random_seed_set(self.global_var['global_config']['seed'])
 
         self.T = self.global_var['T']
+        self.dev = 'cuda' if torch.cuda.is_available() else 'cpu'
         self.current_time = self.global_var['current_t']
         self.schedule_t = self.global_var['schedule_t']
         self.server_network = self.global_var['server_network']
