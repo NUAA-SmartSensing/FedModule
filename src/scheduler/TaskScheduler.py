@@ -8,6 +8,7 @@ class GlobalTaskScheduler(HandlerChainScheduler):
     def create_handler_chain(self):
         chain = super().create_handler_chain()
         chain.add_handler_before(TaskHandler(), ClientSelector)
+        return chain
 
 
 class TaskHandler(Handler):
@@ -24,5 +25,6 @@ class TaskHandler(Handler):
         if self.total_epoch % self.task_interval == 0:
             print(f"Global changes task to {self.task_id}")
             scheduler.message_queue.put_into_downlink("all", "task_id", self.task_id)
+            self.task_id = (self.task_id + 1) % self.task_num
         self.total_epoch += 1
         return request
