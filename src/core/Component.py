@@ -1,6 +1,5 @@
 from abc import abstractmethod
 
-from core.handlers.Handler import HandlerChain
 from utils.GlobalVarGetter import GlobalVarGetter
 
 
@@ -9,35 +8,33 @@ class Component:
         self.finals = []
         self.handler_chain = None
         self.global_var = GlobalVarGetter.get()
+        self.create_handler_chain()
 
     def run(self) -> None:
         self.init()
-        self.handler_chain = self.create_handler_chain()
         self._run_iteration()
-        self._final_output()
+        self._final_callback()
         self.finish()
 
-    @abstractmethod
     def init(self) -> None:
         pass
 
-    @abstractmethod
     def finish(self) -> None:
         pass
 
     @abstractmethod
-    def create_handler_chain(self) -> "HandlerChain":
+    def create_handler_chain(self):
         pass
 
     @abstractmethod
     def _run_iteration(self) -> None:
         pass
 
-    def _final_output(self) -> None:
+    def _final_callback(self) -> None:
         for func, params in self.finals:
             func(*params)
 
-    def add_final_output(self, func, *params) -> None:
+    def add_final_callback(self, func, *params) -> None:
         immutable_types = (int, float, str, tuple, bool, type(None))
         for param in params:
             if isinstance(param, immutable_types):
