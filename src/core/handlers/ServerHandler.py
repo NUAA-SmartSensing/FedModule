@@ -26,6 +26,8 @@ class Aggregation(Handler):
         global_model, delivery_weights = updater.update_caller.update_server_weights(epoch, update_list)
         request['weights'] = global_model
         request['delivery_weights'] = delivery_weights
+        global_var = request.get('global_var')
+        global_var['delivery_weights'] = delivery_weights
         return request
 
 
@@ -75,17 +77,30 @@ class ClientSelector(Handler):
 class ContentDispatcher(Handler):
     def _handle(self, request):
         scheduler = request.get('scheduler')
+        self.handle_weights(request, scheduler)
         self.handle_download(request, scheduler)
         scheduler.notify_client()
         self.handle_selected_event(request, scheduler)
         return request
 
-    def handle_selected_event(self, request, scheduler):
+    @staticmethod
+    def handle_weights(request, scheduler):
+        global_var = request.get('global_var')
+        updater = global_var['updater']
+        delivery_weights = global_var['delivery_weights']
+        if delivery_weights is not None and len(delivery_weights) > 0:
+            scheduler.download_item('all', 'weights_buffer', delivery_weights)
+        else:
+            scheduler.download_item('all', 'weights_buffer', to_cpu(updater.model.state_dict()))
+
+    @staticmethod
+    def handle_selected_event(request, scheduler):
         selected_clients = request.get('selected_clients')
         for client_id in selected_clients:
             scheduler.selected_event_list[client_id].set()
 
-    def handle_download(self, request, scheduler):
+    @staticmethod
+    def handle_download(request, scheduler):
         selected_clients = request.get('selected_clients')
         current_time = scheduler.current_t.get_time()
         schedule_time = scheduler.schedule_t.get_time()
@@ -94,12 +109,6 @@ class ContentDispatcher(Handler):
         for client_id in selected_clients:
             scheduler.download_item(client_id, 'received_weights', True)
             scheduler.download_item(client_id, 'received_time_stamp', True)
-
-    def run_once(self, request):
-        # first dispatch the server model to all clients
-        # then the updater will generate the new model and send it to the clients
-        scheduler = request.get('scheduler')
-        scheduler.download_item('all', 'weights_buffer', to_cpu(scheduler.server_weights))
 
 
 class UpdateWaiter(Handler):
