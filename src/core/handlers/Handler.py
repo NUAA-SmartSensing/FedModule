@@ -1,5 +1,5 @@
 import warnings
-from abc import abstractmethod
+from abc import abstractmethod, ABC
 from typing import Optional
 
 
@@ -42,6 +42,17 @@ class Handler:
 
     def __call__(self, *args, **kwargs):
         return self.handle(*args, **kwargs)
+
+
+class Filter(Handler, ABC):
+    def __init__(self, handler=None):
+        super().__init__(handler)
+
+    def handle(self, request):
+        if self._handle(request):
+            return self.next_handler.handle(request)
+        else:
+            return request
 
 
 class HandlerChain(Handler):
