@@ -3,7 +3,7 @@ import os
 import numpy as np
 
 from utils import ModuleFindTool
-from utils.IID import generate_iid_data, generate_non_iid_data, generate_data
+from utils.IID import generate_data
 
 
 class BaseDataset:
@@ -11,10 +11,8 @@ class BaseDataset:
         self.data_distribution_generator = None
         self.index_list = None
         self.test_index_list = None
-        self.label_min = None
-        self.label_max = None
         self.datasets = []
-        self.iid_config = iid_config
+        self.config = iid_config
         self.train_data_size = None
         self.test_data = None
         self.train_data = None
@@ -30,8 +28,6 @@ class BaseDataset:
         self.test_labels = np.array(test_dataset.targets)
         self.train_data = train_dataset.data
         self.test_data = test_dataset.data
-        self.label_max = self.train_labels.max()
-        self.label_min = self.train_labels.min()
 
         self.train_data_size = self.train_data.shape[0]
         self.index_list = self.generate_data(clients, self.train_labels,train_dataset)
@@ -50,21 +46,28 @@ class BaseDataset:
         return self.train_dataset
 
     def get_config(self):
-        return self.iid_config
+        return self.config
 
     def generate_data(self, clients_num, labels, dataset, train=True, message="train_dataset"):
-        iid_config = self.iid_config
-        if isinstance(iid_config, dict) and "path" in iid_config:
+        if train:
+            config = self.config
+            index_list = self._generate_data(config, labels, clients_num, dataset)
+            print(f"{message} data generation process completed")
+        else:
+            if isinstance(self.config, dict) and 'test' in self.config:
+                test_config = self.config['test']
+                index_list = self._generate_data(test_config, labels, 1, dataset)[0]
+            else:
+                index_list = list(range(len(labels)))
+        return index_list
+
+    def _generate_data(self, config, labels, clients_num, dataset):
+        if isinstance(config, dict) and "path" in config:
             print("generate customize data distribution...")
             if self.data_distribution_generator is None:
-                self.data_distribution_generator = ModuleFindTool.find_class_by_path(self.iid_config["path"])(
-                    self.iid_config["params"])
-            index_list = self.data_distribution_generator.generate_data(self.iid_config, labels, clients_num, dataset,
-                                                                    train)
+                self.data_distribution_generator = ModuleFindTool.find_class_by_path(self.config["path"])(
+                    self.config["params"])
+            index_list = self.data_distribution_generator.generate_data(self.config, labels, clients_num, dataset)
         else:
-            index_list = generate_data(iid_config, labels, clients_num, train)
-        print(f"{message} data generation process completed")
-        if train:
-            return index_list
-        else:
-            return index_list[0]
+            index_list = generate_data(config, labels, clients_num)
+        return index_list

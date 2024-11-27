@@ -15,13 +15,13 @@ def print_dist(index_list, labels):
         print(dict(counts))
 
 
-def generate_data(iid_config, labels, clients_num, train):
+def generate_data(iid_config, labels, clients_num):
     if isinstance(iid_config, bool):
         print("generating iid data...")
         index_list = generate_iid_data(labels, clients_num)
     else:
         print("generating non_iid data...")
-        index_list = generate_non_iid_data(iid_config, labels, clients_num, train)
+        index_list = generate_non_iid_data(iid_config, labels, clients_num)
     print_dist(index_list, labels)
     return index_list
 
@@ -37,13 +37,8 @@ def generate_iid_data(labels, clients_num):
     return client_idx
 
 
-def generate_non_iid_data(iid_config, labels, clients_num, train=True):
+def generate_non_iid_data(iid_config, labels, clients_num):
     classes = set(labels)
-    if not train:
-        if "for_test" in iid_config.keys() and iid_config["for_test"]:
-            pass
-        else:
-            return generate_iid_data(labels, clients_num)
     if "customize" in iid_config.keys() and iid_config["customize"]:
         label_config = iid_config['label']
         data_config = iid_config['data']
