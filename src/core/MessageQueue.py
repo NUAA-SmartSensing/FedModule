@@ -116,8 +116,7 @@ class MessageQueue:
     __uplink_lock = mp.Lock()
     __downlink_lock = mp.Lock()
     uplink = {'update': Queue()}
-    downlink = {'received_weights': {}, 'received_time_stamp': {}, 'time_stamp_buffer': {}, 'weights_buffer': {},
-                'schedule_time_stamp_buffer': {}, 'group_id': {}}
+    downlink = {'time_stamp': {}, 'weights': {}, 'schedule_time_stamp': {}, 'group_id': {}}
     training_status = {}
     config = {}
     latest_model = None
