@@ -35,8 +35,4 @@ class Component:
             func(*params)
 
     def add_final_callback(self, func, *params) -> None:
-        immutable_types = (int, float, str, tuple, bool, type(None))
-        for param in params:
-            if isinstance(param, immutable_types):
-                raise ValueError("params should be a mutable type")
         self.finals.append((func, params))

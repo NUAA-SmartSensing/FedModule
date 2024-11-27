@@ -63,6 +63,7 @@ class ClientTaskPartition(_StreamData):
         index_label_list_for_task = []
         for label_list in self.label_list:
             index_label_list_for_task.append([i for i, label in enumerate(labels) if label in label_list])
+        print_dist([index_label_list_for_task], labels)
         return [index_label_list_for_task]
 
 
