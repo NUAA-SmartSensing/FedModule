@@ -3,6 +3,14 @@ from abc import abstractmethod, ABC
 from typing import Optional
 
 
+def _function_wrapper(handler):
+    if callable(handler):
+        new_handler = FunctionHandler(handler)
+    else:
+        new_handler = handler
+    return new_handler
+
+
 class Handler:
     """抽象处理程序"""
 
@@ -44,6 +52,15 @@ class Handler:
         return self.handle(*args, **kwargs)
 
 
+class FunctionHandler(Handler):
+    def __init__(self, handler: callable):
+        super().__init__()
+        self.handle_func = handler
+
+    def _handle(self, request):
+        return self.handle_func(request)
+
+
 class Filter(Handler, ABC):
     def __init__(self, handler=None):
         super().__init__(handler)
@@ -61,6 +78,8 @@ class HandlerChain(Handler):
         self._head = chain
 
     def add_handler_after(self, handler, target_cls):
+        handler = _function_wrapper(handler)
+
         if self._head is None:
             warnings.warn("The head is None, the handler will be set as the head.")
             self._head = handler
@@ -70,8 +89,11 @@ class HandlerChain(Handler):
                 if isinstance(it, target_cls):
                     it.insert_next(handler)
                     break
+                it = it.next_handler
 
     def add_handler_before(self, handler, target_cls):
+        handler = _function_wrapper(handler)
+
         if self._head is None:
             warnings.warn("The head is None, the handler will be set as the head.")
             self._head = handler
@@ -89,6 +111,7 @@ class HandlerChain(Handler):
                     it = it.next_handler
 
     def exchange_handler(self, handler, target_cls):
+        handler = _function_wrapper(handler)
         if self._head is None:
             warnings.warn("The head is None, the handler will be set as the head.")
             self._head = handler
@@ -120,6 +143,7 @@ class HandlerChain(Handler):
                     it = it.next_handler
 
     def add_handler(self, handler):
+        handler = _function_wrapper(handler)
         if self._head is None:
             self._head = handler
         else:
