@@ -2,19 +2,19 @@ import random
 from collections import Counter
 
 from core.MessageQueue import MessageQueueFactory
-from data_dist_generator.AbstractDataGen import AbstractDataGen
+from partitioner.AbstractPartitioner import AbstractPartitioner
 from utils.GlobalVarGetter import GlobalVarGetter
 from utils.IID import generate_iid_data, generate_non_iid_data
 
 
-class _StreamData(AbstractDataGen):
+class _StreamData(AbstractPartitioner):
     def __init__(self, config):
         super().__init__(config)
         self.class_num_per_task = self.config['class_num'] if 'class_num' in self.config else 2
         self.task_num = self.config['task_num'] if 'task_num' in self.config else 0
         self.random = self.config['random'] if 'random' in self.config else True
 
-    def generate_data(self, iid_config, labels, client_num, dataset, train=True):
+    def generate_data(self, iid_config, labels, client_num, dataset):
         if self.task_num == 0:
             self.task_num = len(set(labels)) // self.class_num_per_task
 
@@ -34,12 +34,9 @@ class ClientTaskPartition(_StreamData):
         self.is_sort = self.config['sort'] if 'sort' in self.config else True
         self.duplication = self.config['duplication'] if 'duplication' in self.config else False
 
-    def generate_data(self, iid_config, labels, client_num, dataset, train=True):
-        super().generate_data(iid_config, labels, client_num, dataset, train)
-        if train:
-            index_list = self.generate_data_for_training(labels, client_num)
-        else:
-            index_list = self.generate_data_for_test(labels)
+    def generate_data(self, iid_config, labels, client_num, dataset):
+        super().generate_data(iid_config, labels, client_num, dataset)
+        index_list = self.generate_data_for_training(labels, client_num)
         return index_list
 
     def generate_data_for_training(self, labels, client_num):
@@ -57,15 +54,6 @@ class ClientTaskPartition(_StreamData):
         print_dist(index_list_for_task, labels)
         return index_list_for_task
 
-    def generate_data_for_test(self, labels):
-        if self.label_list is None:
-            raise Exception("The label list is None, please generate the training data first.")
-        index_label_list_for_task = []
-        for label_list in self.label_list:
-            index_label_list_for_task.append([i for i, label in enumerate(labels) if label in label_list])
-        print_dist([index_label_list_for_task], labels)
-        return [index_label_list_for_task]
-
 
 class ClientTaskPartitionWithMapping(ClientTaskPartition):
     r"""
@@ -82,16 +70,13 @@ class ClientTaskPartitionWithMapping(ClientTaskPartition):
         super().__init__(config)
         self.label_mapping = None
 
-    def generate_data(self, iid_config, labels, client_num, dataset, train=True):
-        _StreamData.generate_data(self,iid_config, labels, client_num, dataset, train)
-        if train:
-            index_list, label_mapping = self.generate_data_for_training(labels, client_num)
-            mq = MessageQueueFactory.create_message_queue()
-            for i in range(client_num):
-                mq.put_into_downlink(i, "label_mapping", label_mapping)
-            GlobalVarGetter.get()["label_mapping"] = label_mapping
-        else:
-            index_list = self.generate_data_for_test(labels)
+    def generate_data(self, iid_config, labels, client_num, dataset):
+        _StreamData.generate_data(self,iid_config, labels, client_num, dataset)
+        index_list, label_mapping = self.generate_data_for_training(labels, client_num)
+        mq = MessageQueueFactory.create_message_queue()
+        for i in range(client_num):
+            mq.put_into_downlink(i, "label_mapping", label_mapping)
+        GlobalVarGetter.get()["label_mapping"] = label_mapping
         return index_list
 
     def generate_data_for_training(self, labels, client_num):
@@ -129,16 +114,13 @@ class TaskClientPartitionWithMapping(TaskClientPartition):
         super().__init__(config)
         self.label_mapping = None
 
-    def generate_data(self, iid_config, labels, client_num, dataset, train=True):
-        _StreamData.generate_data(self, iid_config, labels, client_num, dataset, train)
-        if train:
-            index_list, label_mapping = self.generate_data_for_training(labels, client_num)
-            mq = MessageQueueFactory.create_message_queue()
-            for i in range(client_num):
-                mq.put_into_downlink(i, "label_mapping", label_mapping)
-            GlobalVarGetter.get()["label_mapping"] = label_mapping
-        else:
-            index_list = self.generate_data_for_test(labels)
+    def generate_data(self, iid_config, labels, client_num, dataset):
+        _StreamData.generate_data(self, iid_config, labels, client_num, dataset)
+        index_list, label_mapping = self.generate_data_for_training(labels, client_num)
+        mq = MessageQueueFactory.create_message_queue()
+        for i in range(client_num):
+            mq.put_into_downlink(i, "label_mapping", label_mapping)
+        GlobalVarGetter.get()["label_mapping"] = label_mapping
         return index_list
 
     def generate_data_for_training(self, labels, client_num):
