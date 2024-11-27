@@ -95,13 +95,13 @@ class HandlerChain(Handler):
         else:
             it = self._head
             if isinstance(it, target_cls):
-                handler.insert_next(it.next_handler)
+                handler.set_next(it.next_handler)
                 self._head = handler
             else:
                 while it.next_handler is not None:
                     if isinstance(it.next_handler, target_cls):
-                        handler.insert_next(it.next_handler.next_handler)
-                        it.insert_next(handler)
+                        handler.set_next(it.next_handler.next_handler)
+                        it.set_next(handler)
                         break
                     it = it.next_handler
 
@@ -115,7 +115,7 @@ class HandlerChain(Handler):
             else:
                 while it.next_handler is not None:
                     if isinstance(it.next_handler, target_cls):
-                        it.insert_next(it.next_handler.next_handler)
+                        it.set_next(it.next_handler.next_handler)
                         break
                     it = it.next_handler
 
