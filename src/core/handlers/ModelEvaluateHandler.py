@@ -5,6 +5,7 @@ import torch
 import wandb
 from torch.utils.data import DataLoader
 
+from core.Component import Component
 from core.handlers.Handler import Handler
 from utils import ModuleFindTool
 from utils.DatasetUtils import FLDataset
@@ -48,11 +49,12 @@ class ModelEvaluateHandler(Handler):
     def run_once(self, request):
         experiment = request.get('global_var')['config']['global']['experiment']
         if 'updater' in request:
-            self.test_method.callback(f'../results/{experiment}/accuracy.txt')
+            updater: Component = request.get('updater')
+            updater.add_final_callback(self.test_method.callback, f'../results/{experiment}/accuracy.txt')
         else:
             client = request.get('client')
             client_id = client.client_id
-            self.test_method.callback(f'../results/{experiment}/{client_id}_accuracy.txt')
+            client.add_final_callback(self.test_method.callback, f'../results/{experiment}/{client_id}_accuracy.txt')
             if not hasattr(client, 'test_data'):
                 test_size = client.config['test_size'] if 'test_size' in client.config else 0.1
                 split_data = self.__split_test_data(client.train_data, test_size)
@@ -95,7 +97,7 @@ class _DefaultTest(_AbstractTest):
             self.loss_list.append(loss)
             self.accuracy_list.append(accuracy)
             if self.cloud_enabled:
-                wandb.log({'accuracy': accuracy, 'loss': loss})
+                wandb.log({'accuracy': accuracy, 'loss': loss}, step=epoch)
             print('Epoch(t):', epoch, 'accuracy:', accuracy, 'loss', loss)
 
     def callback(self, path):
