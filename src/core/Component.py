@@ -8,9 +8,9 @@ class Component:
         self.finals = []
         self.handler_chain = None
         self.global_var = GlobalVarGetter.get()
-        self.create_handler_chain()
 
     def run(self) -> None:
+        self.create_handler_chain()
         self.init()
         self._run_iteration()
         self._final_callback()
