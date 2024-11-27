@@ -3,7 +3,7 @@ import os
 import numpy as np
 
 from utils import ModuleFindTool
-from utils.IID import generate_data
+from utils.IID import generate_data, print_dist
 
 
 class BaseDataset:
@@ -30,8 +30,8 @@ class BaseDataset:
         self.test_data = test_dataset.data
 
         self.train_data_size = self.train_data.shape[0]
-        self.index_list = self.generate_data(clients, self.train_labels,train_dataset)
-        self.test_index_list = self.generate_data(1, self.test_labels,test_dataset, train=False, message="test_dataset")
+        self.index_list = self.generate_data(clients, self.train_labels, train_dataset)
+        self.test_index_list = self.generate_data(1, self.test_labels,test_dataset, train=False)
 
     def get_test_dataset(self):
         return self.test_dataset
@@ -48,17 +48,19 @@ class BaseDataset:
     def get_config(self):
         return self.config
 
-    def generate_data(self, clients_num, labels, dataset, train=True, message="train_dataset"):
+    def generate_data(self, clients_num, labels, dataset, train=True):
         if train:
             config = self.config
             index_list = self._generate_data(config, labels, clients_num, dataset)
-            print(f"{message} data generation process completed")
+            print(f"train data generation process completed")
         else:
             if isinstance(self.config, dict) and 'test' in self.config:
                 test_config = self.config['test']
                 index_list = self._generate_data(test_config, labels, 1, dataset)[0]
             else:
                 index_list = list(range(len(labels)))
+                print_dist([index_list], labels)
+            print(f"non-train data generation process completed")
         return index_list
 
     def _generate_data(self, config, labels, clients_num, dataset):
