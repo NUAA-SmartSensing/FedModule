@@ -1,24 +1,24 @@
+from typing import Dict, Any, Callable, Union, Optional
+
+from loss.AbstractLoss import AbstractLoss
 from utils import ModuleFindTool
 
 
 class LossFactory:
-    def __init__(self, config, belong_object=None):
-        self.config = config
-        self.belong_object = belong_object
+    @staticmethod
+    def create_loss(config: Union[str, Dict[str, Any]], belong_object: Optional[Any] = None, *args, **kwargs) -> Callable:
+        # Check if the config is a string, indicating a direct class path
+        if isinstance(config, str):
+            loss_class = ModuleFindTool.find_class_by_path(config)
+            return loss_class
 
-    def create_loss(self, *args, **kwargs):
-        if isinstance(self.config, str):
-            loss_func = ModuleFindTool.find_class_by_path(self.config)
+        # Extract loss path and parameters from the config dictionary
+        loss_path = config.get('path')
+        loss_params = config.get('params', {})
+
+        # Find the loss class using the provided path
+        loss_class = ModuleFindTool.find_class_by_path(loss_path)
+        if isinstance(loss_class, AbstractLoss):
+            return loss_class(belong_object, loss_params)
         else:
-            if self.config['path'] == 'loss.FedLC.FedLC':
-                return ModuleFindTool.find_class_by_path(self.config['path'])(self.config['params'], self.belong_object)
-            if 'type' in self.config:
-                if self.config['type'] == 'func':
-                    loss_func = ModuleFindTool.find_class_by_path(self.config['path'])(**self.config['params'])
-                else:
-                    loss_class = ModuleFindTool.find_class_by_path(self.config['path'])
-                    loss_func = loss_class(self.config['params'], *args, **kwargs)
-            else:
-                loss_class = ModuleFindTool.find_class_by_path(self.config['path'])
-                loss_func = loss_class(self.config['params'], *args, **kwargs)
-        return loss_func
+            return loss_class(*args, **loss_params, **kwargs)
