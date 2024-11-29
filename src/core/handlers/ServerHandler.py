@@ -89,9 +89,9 @@ class ContentDispatcher(Handler):
         updater = global_var['updater']
         delivery_weights = global_var['delivery_weights']
         if delivery_weights is not None and len(delivery_weights) > 0:
-            scheduler.download_item('all', 'weights_buffer', delivery_weights)
+            scheduler.download_item('all', 'weights', delivery_weights)
         else:
-            scheduler.download_item('all', 'weights_buffer', to_cpu(updater.model.state_dict()))
+            scheduler.download_item('all', 'weights', to_cpu(updater.model.state_dict()))
 
     @staticmethod
     def handle_selected_event(request, scheduler):
@@ -104,11 +104,8 @@ class ContentDispatcher(Handler):
         selected_clients = request.get('selected_clients')
         current_time = scheduler.current_t.get_time()
         schedule_time = scheduler.schedule_t.get_time()
-        scheduler.download_item('all', 'time_stamp_buffer', current_time)
-        scheduler.download_item('all', 'schedule_time_stamp_buffer', schedule_time)
-        for client_id in selected_clients:
-            scheduler.download_item(client_id, 'received_weights', True)
-            scheduler.download_item(client_id, 'received_time_stamp', True)
+        scheduler.download_item('all', 'time_stamp', current_time)
+        scheduler.download_item('all', 'schedule_time_stamp', schedule_time)
 
 
 class UpdateWaiter(Handler):
