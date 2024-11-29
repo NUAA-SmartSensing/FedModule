@@ -11,25 +11,28 @@ class ClientTrainHandler(Handler):
         config = client.config
         if 'train_func' in config:
             train_func = ModuleFindTool.find_class_by_path(config['train_func'])
+        elif hasattr(client, 'train_one_epoch'):
+            request['train_res'] = client.train_one_epoch()
+            return request
         else:
             train_func = BasicTrain
         request['train_res'] = train_func(client.train_dl, client.model, client.loss_func, client.optimizer, client.epoch,
                                           client.dev,
-                                          client.lr_scheduler, client.mu)
+                                          client.lr_scheduler, client.mu, client)
         return request
 
 
 class PostTrainHandler(Handler):
     def _handle(self, request):
         client = request.get('client')
-        weights, data_sum = request.get('train_res')
+        data_sum, weights = request.get('train_res')
         client.model.load_state_dict(weights)
         client.upload_item('weights', to_cpu(weights))
         client.upload_item('data_sum', data_sum)
         return request
 
 
-def BasicTrain(train_dl, model, loss_func, opti, epoch, dev, lr_scheduler=None, mu=0):
+def BasicTrain(train_dl, model, loss_func, opti, epoch, dev, lr_scheduler=None, mu=0, obj=None):
     raw_model = copy.deepcopy(model)
     model.train()
     data_sum = 0
@@ -50,4 +53,4 @@ def BasicTrain(train_dl, model, loss_func, opti, epoch, dev, lr_scheduler=None, 
         if lr_scheduler:
             lr_scheduler.step()
     weights = model.state_dict()
-    return weights, data_sum
+    return data_sum, weights
