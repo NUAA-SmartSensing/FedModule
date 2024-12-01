@@ -3,7 +3,6 @@ import random
 import numpy as np
 import torch
 import wandb
-from torch.utils.data import DataLoader
 
 from core.Component import Component
 from core.handlers.Handler import Handler
@@ -11,6 +10,38 @@ from utils import ModuleFindTool
 from utils.DatasetUtils import FLDataset
 from utils.GlobalVarGetter import GlobalVarGetter
 from utils.Tools import saveAns
+
+
+class ClientEvaluateHandler(Handler):
+    def __init__(self):
+        super().__init__()
+        global_var = GlobalVarGetter.get()
+        cloud_enabled = global_var['config']['wandb']['enabled']
+        file_enabled = global_var['config']['global']['save']
+        client_config = global_var['config']['client']
+        if 'test' in client_config:
+            self.tester = ModuleFindTool.find_class_by_path(client_config['test'])(file_enabled, cloud_enabled)
+        else:
+            self.tester = BasicTest(file_enabled, cloud_enabled)
+
+    def _handle(self, request):
+        client = request.get('client')
+        config = client.config
+        if 'test' not in config:
+            if hasattr(client, 'test'):
+                request['test_res'] = client.test()
+                return request
+        else:
+            test_func = self.tester.test
+        request['test_res'] = test_func(client.test_dl, client.model, client.loss_func, client.dev, client)
+        return request
+
+
+class ClientPostTestHandler(Handler):
+    def _handle(self, request):
+        acc, loss = request.get('test_res')
+        client = request.get('client')
+        print("Client", client.client_id, "tested, accuracy:", acc, 'loss', loss)
 
 
 class ModelEvaluateHandler(Handler):
@@ -67,38 +98,41 @@ class _AbstractTest:
         self.file_enabled = file_enabled
         self.cloud_enabled = cloud_enabled
 
-    def test(self, test_data, model, loss_func, dev, epoch):
+    def test(self, test_dl, model, loss_func, dev, epoch, client):
         pass
 
     def callback(self, path):
         pass
 
 
-class _DefaultTest(_AbstractTest):
+class BasicTest(_AbstractTest):
     def __init__(self, file_enabled, cloud_enabled):
         super().__init__(file_enabled, cloud_enabled)
         self.accuracy_list = []
         self.loss_list = []
 
-    def test(self, test_data, model, loss_func, dev, epoch):
-        dl = DataLoader(test_data, batch_size=100, shuffle=True, drop_last=True)
+    def test(self, test_dl, model, loss_func, dev, epoch, client):
+        acc, loss = self._test(test_dl, model, loss_func, dev, epoch, client)
+        self.log(acc, loss, epoch)
+
+    def _test(self, test_dl, model, loss_func, dev, epoch, client):
         test_correct = 0
         test_loss = 0
         with torch.no_grad():
-            for data in dl:
+            for data in test_dl:
                 inputs, labels = data
                 inputs, labels = inputs.to(dev), labels.to(dev)
                 outputs = model(inputs)
                 _, id = torch.max(outputs.data, 1)
-                test_loss += loss_func(outputs, labels).detach().item()
                 test_correct += torch.sum(id == labels.data).cpu().numpy()
-            accuracy = test_correct / len(dl)
-            loss = test_loss / len(dl)
-            self.loss_list.append(loss)
-            self.accuracy_list.append(accuracy)
-            if self.cloud_enabled:
-                wandb.log({'accuracy': accuracy, 'loss': loss}, step=epoch)
-            print('Epoch(t):', epoch, 'accuracy:', accuracy, 'loss', loss)
+                test_loss += loss_func(outputs, labels).detach().item()
+        accuracy = (test_correct * 100) / (len(test_dl) * test_dl.batch_size)
+        loss = test_loss / len(test_dl)
+        return accuracy, loss
+
+    def log(self, acc, loss, epoch):
+        if self.cloud_enabled:
+            wandb.log({'accuracy': acc, 'loss': loss}, step=epoch)
 
     def callback(self, path):
         if self.file_enabled:

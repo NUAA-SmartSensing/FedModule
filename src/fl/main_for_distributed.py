@@ -122,7 +122,7 @@ def main():
     global_var['test_index_list'] = []
 
     if "message_queue" in global_config:
-        mask_list = global_config['message_queue']["mask_list"] if "mask_list" in global_config['message_queue'] else []
+        mask_list = global_config['message_queue'].get('mask_list', [])
         if "train_dataset" in mask_list or "test_dataset" in mask_list:
             dataset_class = ModuleFindTool.find_class_by_path(global_config["dataset"]["path"])
             dataset = dataset_class(global_config["client_num"], global_config["iid"],
