@@ -20,14 +20,13 @@ class ClientTestHandler(Handler):
         if epoch % self.test_every != 0:
             return request
         config = client.config
-        if 'test_func' not in config:
-            if hasattr(client, 'test_func'):
-                request['test_res'] = client.test()
-                return request
-            else:
-                test_func = BasicTest
-        else:
+        if 'test_func' in config:
             test_func = ModuleFindTool.find_class_by_path(config['test'])
+        elif hasattr(client, 'test'):
+            request['test_res'] = client.test()
+            return request
+        else:
+            test_func = BasicTest
         request['test_res'] = test_func(client.test_dl, client.model, client.loss_func, client.dev, epoch, client)
         return request
 
@@ -68,14 +67,13 @@ class ServerTestHandler(Handler):
         updater = request.get('updater')
         epoch = request.get('epoch')
         config = updater.config
-        if 'test_func' not in config:
-            if hasattr(updater, 'test_func'):
-                request['test_res'] = updater.test()
-                return request
-            else:
-                test_func = BasicTest
-        else:
+        if 'test_func' in config:
             test_func = ModuleFindTool.find_class_by_path(config['test'])
+        elif hasattr(updater, 'test'):
+            request['test_res'] = updater.test()
+            return request
+        else:
+            test_func = BasicTest
         request['test_res'] = test_func(updater.test_dl, updater.model, updater.loss_func, updater.dev, epoch, updater)
         return request
 
