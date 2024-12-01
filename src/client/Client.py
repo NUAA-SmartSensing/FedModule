@@ -1,9 +1,10 @@
-from abc import abstractmethod
+from abc import ABC
 
+from core.Component import Component
 from core.MessageQueue import MessageQueueFactory
 
 
-class Client:
+class Client(Component, ABC):
     def __init__(self, c_id, stop_event, selected_event, delay, index_list, dev):
         super().__init__()
         self.model = None
@@ -23,22 +24,3 @@ class Client:
         self.train_ds = None
         self.transform = None
         self.target_transform = None
-
-    @abstractmethod
-    def run(self):
-        pass
-
-    @abstractmethod
-    def train_one_epoch(self):
-        pass
-
-    @abstractmethod
-    def receive_notify(self):
-        pass
-
-    @abstractmethod
-    def delay_simulate(self, secs):
-        """
-        to simulate the delay of the network and computation
-        """
-        pass

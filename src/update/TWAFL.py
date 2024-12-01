@@ -20,7 +20,7 @@ class TWAFL(AbstractUpdate):
                     self.items.append(k)
         self.flag = epoch % 15 in [11, 13, 14, 12, 0]
         if self.flag:
-            server_weights = copy.deepcopy(self.global_var['updater'].server_network.state_dict())
+            server_weights = copy.deepcopy(self.global_var['updater'].model.state_dict())
         total_nums = 0
         for update_dict in update_list:
             total_nums += update_dict["data_sum"]

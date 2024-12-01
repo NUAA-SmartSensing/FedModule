@@ -1,10 +1,10 @@
 from core.handlers.Handler import Handler
 from core.handlers.ServerHandler import ClientSelector
-from scheduler.SyncScheduler import HandlerChainScheduler
+from scheduler.SyncScheduler import SyncScheduler
 from utils.GlobalVarGetter import GlobalVarGetter
 
 
-class GlobalTaskScheduler(HandlerChainScheduler):
+class GlobalTaskScheduler(SyncScheduler):
     def create_handler_chain(self):
         chain = super().create_handler_chain()
         chain.add_handler_before(TaskHandler(), ClientSelector)
@@ -15,8 +15,8 @@ class TaskHandler(Handler):
     def __init__(self):
         super().__init__()
         config = GlobalVarGetter.get()['config']['server']['scheduler']
-        self.task_num = config["task_num"] if "task_num" in config else 1
-        self.task_interval = config["task_interval"] if "task_interval" in config else 1
+        self.task_num = config.get("task_num", 1)
+        self.task_interval = config.get("task_interval", 1)
         self.task_id = 0
         self.total_epoch = 0
 

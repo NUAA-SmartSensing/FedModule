@@ -1,140 +1,201 @@
-import random
-
 import numpy as np
 import torch
 import wandb
 
-from core.Component import Component
 from core.handlers.Handler import Handler
 from utils import ModuleFindTool
-from utils.DatasetUtils import FLDataset
 from utils.GlobalVarGetter import GlobalVarGetter
 from utils.Tools import saveAns
 
 
-class ClientEvaluateHandler(Handler):
+class ClientTestHandler(Handler):
     def __init__(self):
         super().__init__()
         global_var = GlobalVarGetter.get()
-        cloud_enabled = global_var['config']['wandb']['enabled']
-        file_enabled = global_var['config']['global']['save']
-        client_config = global_var['config']['client']
-        if 'test' in client_config:
-            self.tester = ModuleFindTool.find_class_by_path(client_config['test'])(file_enabled, cloud_enabled)
-        else:
-            self.tester = BasicTest(file_enabled, cloud_enabled)
+        self.test_every = global_var['config']['client'].get('test_every', 1)
 
     def _handle(self, request):
         client = request.get('client')
+        epoch = request.get('epoch')
+        if epoch % self.test_every != 0:
+            return request
         config = client.config
-        if 'test' not in config:
-            if hasattr(client, 'test'):
+        if 'test_func' not in config:
+            if hasattr(client, 'test_func'):
                 request['test_res'] = client.test()
                 return request
+            else:
+                test_func = BasicTest
         else:
-            test_func = self.tester.test
-        request['test_res'] = test_func(client.test_dl, client.model, client.loss_func, client.dev, client)
+            test_func = ModuleFindTool.find_class_by_path(config['test'])
+        request['test_res'] = test_func(client.test_dl, client.model, client.loss_func, client.dev, epoch, client)
         return request
 
 
 class ClientPostTestHandler(Handler):
-    def _handle(self, request):
-        acc, loss = request.get('test_res')
-        client = request.get('client')
-        print("Client", client.client_id, "tested, accuracy:", acc, 'loss', loss)
-
-
-class ModelEvaluateHandler(Handler):
     def __init__(self):
         super().__init__()
         global_var = GlobalVarGetter.get()
-        cloud_enabled = global_var['config']['wandb']['enabled']
-        file_enabled = global_var['config']['global']['save']
-        path = global_var['config']['global']['test_method'] if 'test_method' in global_var['config']['global'] else 'core.handlers.ModelEvaluateHandler._DefaultTest'
-        self.test_method = ModuleFindTool.find_class_by_path(path)(file_enabled, cloud_enabled)
-        self.loss_list = []
+        self.cloud_enabled = global_var['config']['wandb']['enabled']
+        self.file_enabled = global_var['config']['global']['save']
         self.accuracy_list = []
-
-    def __split_test_data(self, lst, length):
-        random.shuffle(lst)
-        lst = np.array(lst)
-        return np.split(lst, length)
+        self.loss_list = []
 
     def _handle(self, request):
-        if 'updater' in request:
-            updater = request.get('updater')
-            test_data = updater.test_data
-            dev = updater.dev
-            model = updater.model
-            loss_func = updater.loss_func
-        else:
-            client = request.get('client')
-            dev = client.dev
-            model = client.model
-            loss_func = client.loss_func
-            test_data = client.test_data
+        if 'test_res' not in request:
+            return request
+        acc, loss = request.get('test_res')
         epoch = request.get('epoch')
-        self.test_method.test(test_data, model, loss_func, dev, epoch)
+        client = request.get('client')
+        print('Client', client.client_id, 'tested, accuracy:', acc, 'loss', loss)
+        if self.cloud_enabled:
+            wandb.log({'client_id': client.client_id, 'accuracy': acc, 'loss': loss}, step=epoch)
+        self.accuracy_list.append(acc)
+        self.loss_list.append(loss)
         return request
 
     def run_once(self, request):
-        experiment = request.get('global_var')['config']['global']['experiment']
-        if 'updater' in request:
-            updater: Component = request.get('updater')
-            updater.add_final_callback(self.test_method.callback, f'../results/{experiment}/accuracy.txt')
-        else:
+        if self.file_enabled:
             client = request.get('client')
+            experiment = request.get('global_var')['config']['global']['experiment']
             client_id = client.client_id
-            client.add_final_callback(self.test_method.callback, f'../results/{experiment}/{client_id}_accuracy.txt')
-            if not hasattr(client, 'test_data'):
-                test_size = client.config['test_size'] if 'test_size' in client.config else 0.1
-                split_data = self.__split_test_data(client.train_data, test_size)
-                test_data = FLDataset(client.train_ds, list(split_data), client.transform, client.target_transform)
-                client.test_data = test_data
+            client.add_final_callback(saveAns, f'../results/{experiment}/{client_id}_accuracy.txt', self.accuracy_list)
+            client.add_final_callback(saveAns, f'../results/{experiment}/{client_id}_loss.txt', self.loss_list)
 
 
-class _AbstractTest:
-    def __init__(self, file_enabled, cloud_enabled):
-        self.file_enabled = file_enabled
-        self.cloud_enabled = cloud_enabled
+class ServerTestHandler(Handler):
+    def _handle(self, request):
+        updater = request.get('updater')
+        epoch = request.get('epoch')
+        config = updater.config
+        if 'test_func' not in config:
+            if hasattr(updater, 'test_func'):
+                request['test_res'] = updater.test()
+                return request
+            else:
+                test_func = BasicTest
+        else:
+            test_func = ModuleFindTool.find_class_by_path(config['test'])
+        request['test_res'] = test_func(updater.test_dl, updater.model, updater.loss_func, updater.dev, epoch, updater)
+        return request
 
-    def test(self, test_dl, model, loss_func, dev, epoch, client):
-        pass
 
-    def callback(self, path):
-        pass
-
-
-class BasicTest(_AbstractTest):
-    def __init__(self, file_enabled, cloud_enabled):
-        super().__init__(file_enabled, cloud_enabled)
+class ServerPostTestHandler(Handler):
+    def __init__(self):
+        super().__init__()
+        global_var = GlobalVarGetter.get()
+        self.cloud_enabled = global_var['config']['wandb']['enabled']
+        self.file_enabled = global_var['config']['global']['save']
         self.accuracy_list = []
         self.loss_list = []
 
-    def test(self, test_dl, model, loss_func, dev, epoch, client):
-        acc, loss = self._test(test_dl, model, loss_func, dev, epoch, client)
-        self.log(acc, loss, epoch)
-
-    def _test(self, test_dl, model, loss_func, dev, epoch, client):
-        test_correct = 0
-        test_loss = 0
-        with torch.no_grad():
-            for data in test_dl:
-                inputs, labels = data
-                inputs, labels = inputs.to(dev), labels.to(dev)
-                outputs = model(inputs)
-                _, id = torch.max(outputs.data, 1)
-                test_correct += torch.sum(id == labels.data).cpu().numpy()
-                test_loss += loss_func(outputs, labels).detach().item()
-        accuracy = (test_correct * 100) / (len(test_dl) * test_dl.batch_size)
-        loss = test_loss / len(test_dl)
-        return accuracy, loss
-
-    def log(self, acc, loss, epoch):
+    def _handle(self, request):
+        if 'test_res' not in request:
+            return request
+        acc, loss = request.get('test_res')
+        epoch = request.get('epoch')
+        print('Epoch', epoch, 'tested, accuracy:', acc, 'loss', loss)
         if self.cloud_enabled:
             wandb.log({'accuracy': acc, 'loss': loss}, step=epoch)
+        self.accuracy_list.append(acc)
+        self.loss_list.append(loss)
+        return request
 
-    def callback(self, path):
+    def run_once(self, request):
         if self.file_enabled:
-            saveAns(path, list(self.accuracy_list))
-            saveAns(path, list(self.loss_list))
+            updater = request.get('updater')
+            experiment = request.get('global_var')['config']['global']['experiment']
+            updater.add_final_callback(saveAns, f'../results/{experiment}/accuracy.txt', self.accuracy_list)
+            updater.add_final_callback(saveAns, f'../results/{experiment}/loss.txt', self.loss_list)
+
+
+def BasicTest(test_dl, model, loss_func, dev, epoch, obj=None):
+    test_correct = 0
+    test_loss = 0
+    with torch.no_grad():
+        for data in test_dl:
+            inputs, labels = data
+            inputs, labels = inputs.to(dev), labels.to(dev)
+            outputs = model(inputs)
+            _, id = torch.max(outputs.data, 1)
+            test_correct += torch.sum(id == labels.data).cpu().numpy()
+            test_loss += loss_func(outputs, labels).detach().item()
+    accuracy = (test_correct * 100) / (len(test_dl) * test_dl.batch_size)
+    loss = test_loss / len(test_dl)
+    return accuracy, loss
+
+
+def TestEachClass(test_dl, model, loss_func, dev, epoch, obj=None):
+    test_correct = 0
+    test_loss = 0
+    num_classes = len(set(obj.test_data.targets.data.numpy()))
+    class_accuracies = np.zeros(num_classes)
+    class_total = np.zeros(num_classes)
+    with torch.no_grad():
+        for data in test_dl:
+            inputs, labels = data
+            inputs, labels = inputs.to(dev), labels.to(dev)
+            outputs = model(inputs)
+            _, id = torch.max(outputs.data, 1)
+            test_loss += loss_func(outputs, labels).detach().item()
+            test_correct += torch.sum(id == labels.data).cpu().numpy()
+            c = (id == labels).squeeze()
+            for i in range(len(labels)):
+                label = labels[i]
+                class_accuracies[label] += c[i].item()
+                class_total[label] += 1
+        accuracy = test_correct / len(test_dl)
+        loss = test_loss / len(test_dl)
+        detail_acc = {}
+        for i in range(num_classes):
+            acc = class_accuracies[i] / class_total[i]
+            detail_acc[i] = acc
+            print(f"acc on class {i}: {acc:.4f}")
+    return [accuracy, detail_acc], loss
+
+
+def TestMultiTask(test_dl, model, loss_func, dev, epoch, obj=None):
+    avg_acc, avg_loss = 0, 0
+    total_acc = [avg_acc]
+    total_loss = [avg_loss]
+
+    for task, task_list in enumerate(obj.test_index_list):
+        acc, loss = _sub_test_for_multi_task(test_dl, model, loss_func, dev, epoch, task, obj)
+        total_acc.append(acc)
+        total_loss.append(loss)
+        avg_acc += acc / len(obj.test_index_list)
+        avg_loss += loss / len(obj.test_index_list)
+    return total_acc, total_loss
+
+
+def _sub_test_for_multi_task(test_dl, model, loss_func, dev, epoch, task, obj=None):
+    test_correct = 0
+    test_loss = 0
+    classes = set(obj.test_data.targets.data.numpy())
+    if obj.label_mapping is not None:
+        num_classes = len(set(obj.label_mapping[i] for i in classes))
+    else:
+        num_classes = len(set(obj.test_data.targets.data.numpy()))
+    class_accuracies = np.zeros(num_classes)
+    class_total = np.zeros(num_classes)
+    with torch.no_grad():
+        for inputs, labels in test_dl:
+            if obj.label_mapping is not None:
+                labels = torch.LongTensor([obj.label_mapping[i.item()] for i in labels])
+            inputs, labels = inputs.to(dev), labels.to(dev)
+            outputs = model(inputs)
+            _, id = torch.max(outputs.data, 1)
+            test_loss += loss_func(outputs, labels).detach().item()
+            test_correct += torch.sum(id == labels.data).cpu().numpy()
+            c = (id == labels).squeeze()
+            for i in range(len(labels)):
+                label = labels[i]
+                class_accuracies[label] += c[i].item()
+                class_total[label] += 1
+        accuracy = test_correct / len(test_dl)
+        loss = test_loss / len(test_dl)
+        print(f'Epoch(t): {epoch}-{task} accuracy: {accuracy} {loss}')
+        for i in range(num_classes):
+            print(f"acc on class {i}: {class_accuracies[i] / class_total[i]:.4f}")
+    return accuracy, loss
+

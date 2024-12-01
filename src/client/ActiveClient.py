@@ -1,6 +1,8 @@
 import time
 
 from client.NormalClient import NormalClient
+from client.mixin.ClientHandler import UpdateReceiver
+from core.handlers.Handler import Handler
 
 
 class ActiveClient(NormalClient):
@@ -9,24 +11,26 @@ class ActiveClient(NormalClient):
         self.group_id = None
         self.acquire_model_delay = config['acquire_model_delay']
 
-    def local_run(self):
-        """
-        The run function of Client runs the main body, suitable for use as a target parameter of process.
-        """
-        self.message_queue.set_training_status(self.client_id, True)
-        self.local_task()
-        # get the latest global model
-        self.delay_simulate(self.acquire_model_delay)
+    def create_handler_chain(self):
+        super().create_handler_chain()
+        self.handler_chain.add_handler_before(ActiveReceiver(), UpdateReceiver)
+
+    def delay_simulate(self):
+        time.sleep(self.acquire_model_delay + self.delay)
+
+
+class ActiveReceiver(Handler):
+    def _handle(self, request):
+        client = request.get('client')
         while True:
-            if self.stop_event.is_set():
+            if client.stop_event.is_set():
                 break
-            latest_model, time_stamp = self.message_queue.get_latest_model()
-            if latest_model is not None and time_stamp != self.time_stamp:
+            latest_model, time_stamp = client.message_queue.get_latest_model()
+            if latest_model is not None and time_stamp != client.time_stamp:
                 break
             else:
                 time.sleep(0.01)
-        latest_model, time_stamp = self.message_queue.get_latest_model()
-        self.model.load_state_dict(latest_model)
-        self.time_stamp = time_stamp
-        self.message_queue.set_training_status(self.client_id, False)
-
+        latest_model, time_stamp = client.message_queue.get_latest_model()
+        client.model.load_state_dict(latest_model)
+        client.time_stamp = time_stamp
+        return request

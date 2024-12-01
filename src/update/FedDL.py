@@ -12,14 +12,14 @@ class FedDL(AbstractUpdate):
     def __init__(self, config):
         self.config = config
         self.global_var = GlobalVarGetter.get()
-        self.client_weights = {'global': copy.deepcopy(self.global_var['server_network'].state_dict())}
+        self.client_weights = {'global': copy.deepcopy(self.global_var['global_model'].state_dict())}
         self.global_var['scheduler'].server_weights = self.client_weights
         self.clusterer = KMeans(n_clusters=self.config['n_clusters'], n_init="auto", random_state=0)
         self.updater_thread = None
 
     def update_server_weights(self, epoch, update_list):
         self.updater_thread = self.global_var['updater']
-        self.client_weights = {'global': copy.deepcopy(self.updater_thread.server_network.state_dict())}
+        self.client_weights = {'global': copy.deepcopy(self.updater_thread.model.state_dict())}
         cluster_group = {}
         # 计算kld
         clusters = {0: [k["client_id"] for k in update_list]}
@@ -47,7 +47,7 @@ class FedDL(AbstractUpdate):
                         self.client_weights[i] = {}
                     self.client_weights[i][key] = updated_parameter.clone()
 
-        return self.updater_thread.server_network.state_dict(), self.client_weights
+        return self.updater_thread.model.state_dict(), self.client_weights
 
     def kld_cluster(self, key, update_list, clusters: dict, id_update_idx_map):
         label = 0

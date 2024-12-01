@@ -17,7 +17,7 @@ class FedNova(AbstractUpdate):
             total_nums += update_dict["data_sum"]
             total_tau += update_dict["data_sum"] * update_dict["tau"]
         pre_param = total_tau / total_nums
-        server_weights = copy.deepcopy(self.global_var['updater'].server_network.state_dict())
+        server_weights = copy.deepcopy(self.global_var['updater'].model.state_dict())
         updated_parameters = {}
         for key, var in update_list[0]["weights"].items():
             updated_parameters[key] = update_list[0]["weights"][key] * update_list[0]["data_sum"] / (total_nums * update_list[0]["tau"])

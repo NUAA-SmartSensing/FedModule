@@ -24,28 +24,24 @@ class BaseServer:
         self.global_var = GlobalVarGetter.get()
         self.global_var['server'] = self
 
-        # 数据集
-        self.train_ds = self.message_queue.get_train_dataset()
-        self.fl_train_ds = FLDataset(self.train_ds, range(len(self.train_ds)))
-
         # 全局模型
         if isinstance(self.server_config["model"], dict):
             model_class = ModuleFindTool.find_class_by_path(self.server_config["model"]["path"])
             for k, v in self.server_config["model"]["params"].items():
                 if isinstance(v, str):
                     self.server_config["model"]["params"][k] = eval(v)
-            self.server_network = model_class(**self.server_config["model"]["params"])
+            self.model = model_class(**self.server_config["model"]["params"])
         elif isinstance(self.server_config["model"], str):
-            self.server_network = torch.load(self.server_config["model"])
+            self.model = torch.load(self.server_config["model"])
         else:
             raise ValueError("model config error")
         self.dev = 'cuda' if torch.cuda.is_available() else 'cpu'
-        self.server_network = self.server_network.to(self.dev)
-        self.global_var['server_network'] = self.server_network
+        self.model = self.model.to(self.dev)
+        self.global_var['global_model'] = self.model
 
         # 对模型非更新参数进行检测
-        training_params = {k: False for k in self.server_network.state_dict()}
-        for n, p in self.server_network.named_parameters():
+        training_params = {k: False for k in self.model.state_dict()}
+        for n, p in self.model.named_parameters():
             training_params[n] = p.requires_grad
         self.global_var['training_params'] = training_params
 
@@ -57,9 +53,6 @@ class BaseServer:
         self.global_var['schedule_t'] = self.schedule_t
         self.global_var['T'] = self.T
 
-        # 运行时变量
-        self.accuracy_list = []
-        self.loss_list = []
         # process event
         self.stop_event = Event()
         self.stop_event.clear()
@@ -91,16 +84,12 @@ class BaseServer:
 
         # 队列报告
         self.queue_manager.stop()
-        self.accuracy_list, self.loss_list = self.updater_thread.get_accuracy_and_loss_list()
         # save model
         if "save_model" in self.server_config and self.server_config["save_model"]:
-            torch.save(self.server_network.state_dict(), os.path.join(os.path.dirname(os.path.abspath(__file__)), "../results/", self.global_config["experiment"], "model.pth"))
+            torch.save(self.model.state_dict(), os.path.join(os.path.dirname(os.path.abspath(__file__)), "../results/", self.global_config["experiment"], "model.pth"))
         # 结束主类
         self.kill_main_class()
         print("End!")
-
-    def get_accuracy_and_loss_list(self):
-        return self.accuracy_list, self.loss_list
 
     def get_config(self):
         return self.config

@@ -11,18 +11,19 @@ class ClientTrainHandler(Handler):
         config = client.config
         if 'train_func' in config:
             train_func = ModuleFindTool.find_class_by_path(config['train_func'])
-        elif hasattr(client, 'train_one_epoch'):
-            request['train_res'] = client.train_one_epoch()
+        elif hasattr(client, 'train'):
+            request['train_res'] = client.train()
             return request
         else:
             train_func = BasicTrain
-        request['train_res'] = train_func(client.train_dl, client.model, client.loss_func, client.optimizer, client.epoch,
+        request['train_res'] = train_func(client.train_dl, client.model, client.loss_func, client.optimizer,
+                                          client.epoch,
                                           client.dev,
                                           client.lr_scheduler, client.mu, client)
         return request
 
 
-class PostTrainHandler(Handler):
+class ClientPostTrainHandler(Handler):
     def _handle(self, request):
         client = request.get('client')
         data_sum, weights = request.get('train_res')
@@ -32,13 +33,13 @@ class PostTrainHandler(Handler):
         return request
 
 
-def BasicTrain(train_dl, model, loss_func, opti, epoch, dev, lr_scheduler=None, mu=0, obj=None):
+def BasicTrain(train_dl, model, loss_func, optimizer, epoch, dev, lr_scheduler=None, mu=0, obj=None):
     raw_model = copy.deepcopy(model)
     model.train()
     data_sum = 0
     for epoch in range(epoch):
         for data, label in train_dl:
-            opti.zero_grad()
+            optimizer.zero_grad()
             data, label = data.to(dev), label.to(dev)
             preds = model(data)
             loss = loss_func(preds, label)
@@ -49,7 +50,7 @@ def BasicTrain(train_dl, model, loss_func, opti, epoch, dev, lr_scheduler=None, 
                     proximal_term += (w - w_t).norm(2)
                 loss = loss + (mu / 2) * proximal_term
             loss.backward()
-            opti.step()
+            optimizer.step()
         if lr_scheduler:
             lr_scheduler.step()
     weights = model.state_dict()

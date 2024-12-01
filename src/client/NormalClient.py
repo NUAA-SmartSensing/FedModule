@@ -1,14 +1,9 @@
-import copy
-import time
-
-import torch
-from torch.utils.data import DataLoader
-
 from client.Client import Client
-from loss.LossFactory import LossFactory
-from utils import ModuleFindTool
-from utils.DatasetUtils import FLDataset
-from utils.Tools import to_cpu, random_seed_set
+from client.mixin.ClientHandler import UpdateReceiver, DelaySimulator, UpdateSender
+from client.mixin.InitHandler import InitHandler
+from core.handlers.Handler import HandlerChain
+from core.handlers.ModelTrainHandler import ClientTrainHandler, ClientPostTrainHandler
+from utils.GlobalVarGetter import GlobalVarGetter
 
 
 class NormalClient(Client):
@@ -39,61 +34,56 @@ class NormalClient(Client):
     """
 
     def __init__(self, c_id, stop_event, selected_event, delay, index_list, config, dev):
-        Client.__init__(self, c_id, stop_event, selected_event, delay, index_list, dev)
+        super().__init__(c_id, stop_event, selected_event, delay, index_list, dev)
+        self.init_chain = HandlerChain()
         self.update_dict = {}
         self.lr_scheduler = None
         self.fl_train_ds = None
-        self.opti = None
+        self.optimizer = None
         self.loss_func = None
         self.train_dl = None
-        self.batch_size = config["batch_size"]
+        self.batch_size = config.get("batch_size", 64)
         self.epoch = config["epochs"]
         self.optimizer_config = config["optimizer"]
-        self.mu = config["mu"]
+        self.mu = config.get("mu", 0)
         self.config = config
+        self.global_var = GlobalVarGetter.get()
 
-    def run(self):
-        """
-        The primary running function of Client is used for clients with a base class of process,
-        which executes before being woken up by the server.
-        """
-        self.init_client()
+    def _run_iteration(self):
         while not self.stop_event.is_set():
-            # The client is selected and starts local training.
             if self.event.is_set():
                 self.event.clear()
                 self.local_run()
-            # The client waits to be selected.
             else:
                 self.event.wait()
-        self.finish_client()
 
     def local_run(self):
         """
         The run function of Client runs the main body, suitable for use as a target parameter of process.
         """
         self.message_queue.set_training_status(self.client_id, True)
-        self.receive_notify()
-        self.local_task()
+        self.execute_chain()
         self.message_queue.set_training_status(self.client_id, False)
 
-    def local_task(self):
-        """
-        The local task of Client, namely, the detailed process of training a model.
-        """
-        # The client performs training.
-        data_sum, weights = self.train()
-        print("Client", self.client_id, "trained")
+    def execute_chain(self):
+        request = {"global_var": self.global_var, "client": self}
+        self.handler_chain.handle(request)
 
-        # Information transmitted from the client to the server has latency.
-        self.delay_simulate(self.delay)
+    def init(self):
+        request = {"global_var": self.global_var, "client": self, "config": self.config}
+        self.init_chain.handle(request)
 
-        # upload its updates
-        self.upload(data_sum=data_sum, weights=weights)
+    def create_handler_chain(self):
+        self.init_chain = HandlerChain(InitHandler())
+        self.handler_chain = HandlerChain()
+        (self.handler_chain.set_chain(UpdateReceiver())
+         .set_next(ClientTrainHandler())
+         .set_next(ClientPostTrainHandler())
+         .set_next(DelaySimulator())
+         .set_next(UpdateSender()))
 
-    def train(self):
-        data_sum, weights = self.train_one_epoch()
-        return data_sum, to_cpu(weights)
+    def finish(self):
+        pass
 
     def upload(self, **kwargs):
         """
@@ -116,145 +106,6 @@ class NormalClient(Client):
         """
         pass
 
-    def train_one_epoch(self):
-        """
-        The training function of Client, used for model training.
-        """
-        if self.mu != 0:
-            global_model = copy.deepcopy(self.model)
-        data_sum = 0
-        for epoch in range(self.epoch):
-            for data, label in self.train_dl:
-                data, label = data.to(self.dev), label.to(self.dev)
-                preds = self.model(data)
-                # Calculate the loss function
-                loss = self.loss_func(preds, label)
-                data_sum += label.size(0)
-                # proximal term
-                if self.mu != 0:
-                    proximal_term = 0.0
-                    for w, w_t in zip(self.model.parameters(), global_model.parameters()):
-                        proximal_term += (w - w_t).norm(2)
-                    loss = loss + (self.mu / 2) * proximal_term
-                # backpropagate
-                loss.backward()
-                # Update the gradient
-                self.opti.step()
-                if self.lr_scheduler:
-                    self.lr_scheduler.step()
-                # Zero out the gradient and initialize the gradient.
-                self.opti.zero_grad()
-        # Return the updated model parameters obtained by training on the client's own data.
-        weights = self.model.state_dict()
-        torch.cuda.empty_cache()
-        return data_sum, weights
-
-    def receive_notify(self):
-        """
-        Receive server notifications,
-        including whether model parameters are received and timestamp information, etc.
-        """
-        received_weights = False
-        received_time_stamp = False
-        while not received_weights:
-            received_weights = self.message_queue.get_from_downlink(self.client_id, 'received_weights')
-            time.sleep(0.1)
-        self.message_queue.put_into_downlink(self.client_id, 'received_weights', False)
-        weights_buffer = self.message_queue.get_from_downlink(self.client_id, 'weights_buffer')
-        state_dict = self.model.state_dict()
-        for k in weights_buffer:
-            if self.training_params[k]:
-                state_dict[k] = copy.deepcopy(weights_buffer[k])
-        del weights_buffer
-        self.model.load_state_dict(state_dict)
-        while not received_time_stamp:
-            received_time_stamp = self.message_queue.get_from_downlink(self.client_id, 'received_time_stamp')
-            time.sleep(0.1)
-        self.message_queue.put_into_downlink(self.client_id, 'received_time_stamp', False)
-        self.time_stamp = self.message_queue.get_from_downlink(self.client_id, 'time_stamp_buffer')
-        self.schedule_t = self.message_queue.get_from_downlink(self.client_id, 'schedule_time_stamp_buffer')
-
-    def finish_client(self):
-        pass
-
-    def init_client(self):
-        config = self.config
-        random_seed_set(config["seed"])
-
-        self.train_ds = self.message_queue.get_train_dataset()
-
-        self.transform, self.target_transform = self._get_transform(config)
-        self.fl_train_ds = FLDataset(self.train_ds, list(self.index_list), self.transform, self.target_transform)
-
-        self.create_model()
-
-        # optimizer
-        self.opti = self.create_optimizer()
-        self.lr_scheduler = self.create_scheduler()
-
-        # loss function
-        self.loss_func = LossFactory(config["loss"], self).create_loss()
-        self.train_dl = DataLoader(self.fl_train_ds, batch_size=self.batch_size, shuffle=True, drop_last=True)
-        self.message_queue.set_training_status(self.client_id, False)
-
-    def create_model(self):
-        self.model = self._get_model(self.config)
-        self.model = self.model.to(self.dev)
-        self.training_params = {k: False for k in self.model.state_dict()}
-        for n, p in self.model.named_parameters():
-            self.training_params[n] = p.requires_grad
-
-    def create_optimizer(self, parameters=None):
-        if parameters is None:
-            parameters = self.model.parameters()
-        opti_class = ModuleFindTool.find_class_by_path(self.optimizer_config["path"])
-        opti = opti_class(parameters, **self.optimizer_config["params"])
-        return opti
-
-    def create_scheduler(self, opti=None):
-        if opti is None:
-            opti = self.opti
-        config = self.config
-        lr_scheduler = None
-        if "scheduler" in config:
-            scheduler_class = ModuleFindTool.find_class_by_path(config["scheduler"]["path"])
-            lr_scheduler = scheduler_class(opti, **config["scheduler"]["params"])
-        return lr_scheduler
-
-    def delay_simulate(self, secs):
-        """
-        Simulate network and computation delays.
-
-        Parameters:
-            secs: int
-                Delay time
-        """
-        time.sleep(secs)
-
-    def _get_transform(self, config):
-        transform, target_transform = None, None
-        if "transform" in config:
-            transform_func = ModuleFindTool.find_class_by_path(config["transform"]["path"])
-            transform = transform_func(**config["transform"]["params"])
-        if "target_transform" in config:
-            target_transform_func = ModuleFindTool.find_class_by_path(config["target_transform"]["path"])
-            target_transform = target_transform_func(**config["target_transform"]["params"])
-        return transform, target_transform
-
-    def _get_model(self, config):
-        # local model
-        if isinstance(config["model"], dict):
-            model_class = ModuleFindTool.find_class_by_path(config["model"]["path"])
-            for k, v in config["model"]["params"].items():
-                if isinstance(v, str):
-                    config["model"]["params"][k] = eval(v)
-            model = model_class(**config["model"]["params"])
-        elif isinstance(config["model"], str):
-            model = torch.load(config["model"])
-        else:
-            raise ValueError("model config error")
-        return model
-
 
 class NormalClientWithDelta(NormalClient):
     """
@@ -263,70 +114,15 @@ class NormalClientWithDelta(NormalClient):
     uploads $delta = w_i^t - w^t$, where $w_i^t$ is the model parameter updated by the client locally,
     and $w^t$ is the model parameter before local iteration.
     """
-
-    def train_one_epoch(self):
-        """
-        The training function of Client, used for model training.
-
-        Returns:
-            data_sum: int
-                Total number of local training data
-            weights: dict
-                Local training-derived model parameter differences $weights = w_i^t - w^t$
-        """
-        global_model = copy.deepcopy(self.model.state_dict())
-        data_sum, weights = super().train_one_epoch()
-        for k in weights:
-            weights[k] = weights[k] - global_model[k]
-        torch.cuda.empty_cache()
-        return data_sum, weights
+    def __init__(self, c_id, stop_event, selected_event, delay, index_list, config, dev):
+        super().__init__(c_id, stop_event, selected_event, delay, index_list, config, dev)
+        self.config['train_func'] = 'core.handlers.ModelTrainHandler.TrainWithDelta'
 
 
 class NormalClientWithGrad(NormalClient):
     """
     This class inherits from NormalClient and implements the cumulative gradient upload after training.
     """
-
-    def init_client(self):
-        super().init_client()
-        del self.opti
-
-    def train_one_epoch(self):
-        """
-        The train function of the client, used for training models.
-
-        Returns:
-            data_sum: int
-                Total number of local training data
-            accumulated_grads: list
-                Accumulated gradients
-        """
-        if self.mu != 0:
-            global_model = copy.deepcopy(self.model)
-        data_sum = 0
-        accumulated_grads = []  # Initialize the list of accumulated gradients
-
-        # Traverse the training data.
-        for data, label in self.train_dl:
-            data, label = data.to(self.dev), label.to(self.dev)
-            preds = self.model(data)
-            # Calculate the loss function
-            loss = self.loss_func(preds, label)
-            data_sum += label.size(0)
-            # Proximal term
-            if self.mu != 0:
-                proximal_term = 0.0
-                for w, w_t in zip(self.model.parameters(), global_model.parameters()):
-                    proximal_term += (w - w_t).norm(2)
-                loss = loss + (self.mu / 2) * proximal_term
-            # Backpropagate, but do not execute optimization steps.
-            loss.backward()
-            # Accumulate gradients.
-            accumulated_grads = [None if acc_grad is None else acc_grad + param.grad
-                                 for acc_grad, param in zip(accumulated_grads, self.model.parameters())]
-
-            # Zero out the gradient to prepare for the next iteration.
-            self.model.zero_grad()
-        # return accumulate gradients.
-        torch.cuda.empty_cache()
-        return data_sum, accumulated_grads
+    def __init__(self, c_id, stop_event, selected_event, delay, index_list, config, dev):
+        super().__init__(c_id, stop_event, selected_event, delay, index_list, config, dev)
+        self.config['train_func'] = 'core.handlers.ModelTrainHandler.TrainWithGrad'

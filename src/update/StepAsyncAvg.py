@@ -16,7 +16,7 @@ class StepAsyncAvg(AbstractUpdate):
         rho = self.config["rho"]
         self.sum_cnt += len(update_list)
         alpha = self.config["alpha"]
-        server_weights = self.global_var['updater'].server_network.state_dict()
+        server_weights = self.global_var['updater'].model.state_dict()
 
         # 求每个客户端的上传频率q
         q = []

@@ -10,7 +10,7 @@ class NovaClient(NormalClient):
         NormalClient.__init__(self, c_id, stop_event, selected_event, delay, index_list, config, dev)
         self.tau = 0
 
-    def train_one_epoch(self):
+    def train(self):
         self.tau = 0
         global_model = copy.deepcopy(self.model.state_dict())
         data_sum = len(self.train_dl)
@@ -30,11 +30,11 @@ class NovaClient(NormalClient):
                 # backpropagate
                 loss.backward()
                 # Update the gradient
-                self.opti.step()
+                self.optimizer.step()
                 if self.lr_scheduler:
                     self.lr_scheduler.step()
                 # Zero out the gradient and initialize the gradient.
-                self.opti.zero_grad()
+                self.optimizer.zero_grad()
         # return the delta weights
         weights = copy.deepcopy(self.model.state_dict())
         for k, v in weights.items():
@@ -46,7 +46,7 @@ class NovaClient(NormalClient):
 
 
 class NovaClientWithGrad(NovaClient):
-    def train_one_epoch(self):
+    def train(self):
         self.tau = 0
         if self.mu != 0:
             global_model = copy.deepcopy(self.model)

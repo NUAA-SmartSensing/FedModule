@@ -1,6 +1,7 @@
 import time
 from queue import Queue
 
+from core.handlers.Handler import Handler
 from scheduler.AsyncScheduler import AsyncScheduler
 from utils.Structures import BidirectionalMappedList
 
@@ -48,3 +49,11 @@ class GroupScheduler(AsyncScheduler):
                 time.sleep(0.01)
             else:
                 time.sleep(0.01)
+
+
+class GroupClientSelector(Handler):
+    def __init__(self):
+        super().__init__()
+        self.last_s_time = -1
+    def _handle(self, request):
+        pass

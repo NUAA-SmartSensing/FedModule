@@ -34,7 +34,7 @@ class LargeScale(Mode):
         if LargeScale.c_num == LargeScale.total_num:
             id_list = np.array_split(list(range(LargeScale.total_num)), true_num)
             if isinstance(real_mode, dict):
-                real_params = real_mode['params'] if 'params' in real_mode else {}
+                real_params = real_mode.get('params', {})
                 real_mode = real_mode['path']
             else:
                 real_params = None

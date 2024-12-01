@@ -1,3 +1,6 @@
+import random
+
+import numpy as np
 import torch
 from torch.utils.data import DataLoader
 
@@ -13,13 +16,18 @@ class InitHandler(HandlerChain):
         super().__init__()
         self._head = RandomSeedInit()
         (self._head.set_next(TrainDatasetInit())
-         .set_next(TestDatasetInit())
          .set_next(ModelInit())
          .set_next(LossInit())
          .set_next(OptimizerInit())
          .set_next(SchedulerInit())
          .set_next(RegisterHandler())
          )
+
+
+class InitHandlerWithTest(InitHandler):
+    def __init__(self):
+        super().__init__()
+        self._head.insert_next(TestDatasetInit())
 
 
 class RandomSeedInit(Handler):
@@ -52,7 +60,21 @@ class TrainDatasetInit(Handler):
 
 class TestDatasetInit(Handler):
     def _handle(self, request):
+        client = request.get('client')
+        config = request.get('config')
+        test_size = config.get("test_size", 0.1)
+        test_batch_size = config.get("test_batch_size", 64)
+        n1 = int(len(client.index_list) * test_size)
+        client.test_index_list, client.index_list = self.__split_list(client.index_list, [n1])
+        client.fl_test_ds = FLDataset(client.train_ds, list(client.test_index_list), client.test_transform, client.test_target_transform)
+        client.test_dl = DataLoader(client.fl_test_ds, batch_size=test_batch_size, shuffle=True, drop_last=True)
         return request
+
+    @staticmethod
+    def __split_list(lst, length):
+        random.shuffle(lst)
+        lst = np.array(lst)
+        return np.split(lst, length)
 
 
 class ModelInit(Handler):

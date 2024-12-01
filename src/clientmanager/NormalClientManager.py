@@ -15,7 +15,7 @@ class NormalClientManager(BaseClientManager):
         config = whole_config["client_manager"]
         self.multi_gpu = whole_config["global"]["multi_gpu"]
         self.total_client_num = whole_config["global"]["client_num"]
-        self.client_num = config["init_client_num"] if "init_client_num" in config else self.total_client_num
+        self.client_num = config.get("init_client_num", self.total_client_num)
         self.client_staleness_list = config["stale_list"]
         self.index_list = config["index_list"]  # each client's index list
         self.client_config = whole_config["client"]

@@ -294,8 +294,8 @@ class TimeSliceRunner(Process):
         self.stop_event = stop_event
         self.selected_event_list = [SelectedEvent(e) for e in selected_event_list]
         self.config = config
-        self.server_delay = config['client_manager']['server_delay'] if 'server_delay' in config['client_manager'] else 0
-        self.client_delay = config['client_manager']['client_delay'] if 'client_delay' in config['client_manager'] else 0
+        self.server_delay = config['client_manager'].get('server_delay', 0)
+        self.client_delay = config['client_manager'].get('client_delay', 0)
 
     def run(self):
         # process should initlize itself before running

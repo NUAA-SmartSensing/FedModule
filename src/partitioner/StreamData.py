@@ -10,9 +10,9 @@ from utils.IID import generate_iid_data, generate_non_iid_data
 class _StreamData(AbstractPartitioner):
     def __init__(self, config):
         super().__init__(config)
-        self.class_num_per_task = self.config['class_num'] if 'class_num' in self.config else 2
-        self.task_num = self.config['task_num'] if 'task_num' in self.config else 0
-        self.random = self.config['random'] if 'random' in self.config else True
+        self.class_num_per_task = self.config.get('class_num', 2)
+        self.task_num = self.config.get('task_num', 0)
+        self.random = self.config.get('random', True)
 
     def generate_data(self, iid_config, labels, client_num, dataset):
         if self.task_num == 0:
@@ -31,8 +31,8 @@ class ClientTaskPartition(_StreamData):
     def __init__(self, config):
         super().__init__(config)
         self.label_list = None
-        self.is_sort = self.config['sort'] if 'sort' in self.config else True
-        self.duplication = self.config['duplication'] if 'duplication' in self.config else False
+        self.is_sort = self.config.get('sort', True)
+        self.duplication = self.config.get('duplication', False)
 
     def generate_data(self, iid_config, labels, client_num, dataset):
         super().generate_data(iid_config, labels, client_num, dataset)
