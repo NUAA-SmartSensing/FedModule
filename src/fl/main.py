@@ -161,9 +161,6 @@ def main():
     server = server_class(config)
     server.run()
 
-    accuracy_list, loss_list = server.get_accuracy_and_loss_list()
-    config = server.get_config()
-
     # 终止所有client线程
     client_manager.stop_all_clients()
     client_manager.client_join()
@@ -181,20 +178,12 @@ def main():
         raw_config['global']['stale'] = client_staleness_list
         saveJson(os.path.join(os.path.dirname(os.path.abspath(__file__)), "../results/", global_config["experiment"],
                               "config.json"), raw_config)
-
-        # 保存结果
-        saveAns(os.path.join(os.path.dirname(os.path.abspath(__file__)), "../results/", global_config["experiment"],
-                             "accuracy.txt"), list(accuracy_list))
-        saveAns(os.path.join(os.path.dirname(os.path.abspath(__file__)), "../results/", global_config["experiment"],
-                             "loss.txt"), list(loss_list))
         saveAns(os.path.join(os.path.dirname(os.path.abspath(__file__)), "../results/", global_config["experiment"],
                              "time.txt"), end_time - start_time)
         result_to_markdown(
             os.path.join(os.path.dirname(os.path.abspath(__file__)), "../results/", global_config["experiment"],
                          "实验阐述.md"), config)
     if wandb_config['enabled']:
-        saveAns(os.path.join(wandb.run.dir, "accuracy.txt"), list(accuracy_list))
-        saveAns(os.path.join(wandb.run.dir, "loss.txt"), list(loss_list))
         saveAns(os.path.join(wandb.run.dir, "time.txt"), end_time - start_time)
         saveJson(os.path.join(wandb.run.dir, "config.json"), raw_config)
         result_to_markdown(os.path.join(wandb.run.dir, "实验阐述.md"), config)
