@@ -60,7 +60,6 @@ class StreamClient(NormalClient):
     def __init__(self, c_id, stop_event, selected_event, delay, index_list, config, dev):
         super().__init__(c_id, stop_event, selected_event, delay, index_list, config, dev)
         self.task_id = -1
-        self.total_epoch = 0
         self.task_num = config.get("task_num", 1)
 
     def change_task(self):

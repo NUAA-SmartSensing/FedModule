@@ -15,7 +15,8 @@ class InitHandler(HandlerChain):
     def __init__(self):
         super().__init__()
         self._head = RandomSeedInit()
-        (self._head.set_next(TrainDatasetInit())
+        (self._head.set_next(DatasetLoader())
+         .set_next(TrainDatasetInit())
          .set_next(ModelInit())
          .set_next(LossInit())
          .set_next(OptimizerInit())
@@ -27,7 +28,7 @@ class InitHandler(HandlerChain):
 class InitHandlerWithTest(InitHandler):
     def __init__(self):
         super().__init__()
-        self._head.insert_next(TestDatasetInit())
+        self.add_handler_after(TestDatasetInit(), DatasetLoader)
 
 
 class RandomSeedInit(Handler):
@@ -37,11 +38,17 @@ class RandomSeedInit(Handler):
         return request
 
 
+class DatasetLoader(Handler):
+    def _handle(self, request):
+        client = request.get('client')
+        client.train_ds = client.message_queue.get_train_dataset()
+        return request
+
+
 class TrainDatasetInit(Handler):
     def _handle(self, request):
         config = request.get('config')
         client = request.get('client')
-        client.train_ds = client.message_queue.get_train_dataset()
         transform, target_transform = self._get_transform(config)
         client.fl_train_ds = FLDataset(client.train_ds, list(client.index_list), transform, target_transform)
         client.train_dl = DataLoader(client.fl_train_ds, batch_size=client.batch_size, shuffle=True, drop_last=True)
@@ -66,7 +73,11 @@ class TestDatasetInit(Handler):
         test_batch_size = config.get("test_batch_size", 64)
         n1 = int(len(client.index_list) * test_size)
         client.test_index_list, client.index_list = self.__split_list(client.index_list, [n1])
-        client.fl_test_ds = FLDataset(client.train_ds, list(client.test_index_list), client.test_transform, client.test_target_transform)
+        test_transform = client.test_transform if hasattr(client, 'test_transform') else client.transform
+        test_target_transform = client.test_target_transform if hasattr(client,
+                                                                        'test_target_transform') else client.target_transform
+        client.fl_test_ds = FLDataset(client.train_ds, list(client.test_index_list), test_transform,
+                                      test_target_transform)
         client.test_dl = DataLoader(client.fl_test_ds, batch_size=test_batch_size, shuffle=True, drop_last=True)
         return request
 

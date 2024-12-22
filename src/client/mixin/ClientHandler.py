@@ -23,8 +23,7 @@ class UpdateReceiver(Handler):
         client.model.load_state_dict(state_dict)
         client.time_stamp = client.message_queue.get_from_downlink(client.client_id, 'time_stamp')
         client.schedule_t = client.message_queue.get_from_downlink(client.client_id, 'schedule_time_stamp')
-        if hasattr(client, 'receive_notify'):
-            client.receive_notify()
+        client.receive_notify()
         return request
 
 

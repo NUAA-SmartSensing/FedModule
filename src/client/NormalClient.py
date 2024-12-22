@@ -66,12 +66,15 @@ class NormalClient(Client):
         self.message_queue.set_training_status(self.client_id, False)
 
     def execute_chain(self):
-        request = {"global_var": self.global_var, "client": self}
+        request = {"global_var": self.global_var, "client": self, 'epoch': self.time_stamp}
         self.handler_chain.handle(request)
 
     def init(self):
         request = {"global_var": self.global_var, "client": self, "config": self.config}
         self.init_chain.handle(request)
+
+    def receive_notify(self):
+        pass
 
     def create_handler_chain(self):
         self.init_chain = HandlerChain(InitHandler())
