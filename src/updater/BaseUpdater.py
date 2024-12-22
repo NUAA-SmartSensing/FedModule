@@ -1,12 +1,14 @@
 from abc import ABC
 
 import torch.utils.data
+from torch.utils.data import DataLoader
 
 from core.Component import Component
 from core.MessageQueue import MessageQueueFactory
 from loss.LossFactory import LossFactory
 from update.UpdateCaller import UpdateCaller
 from utils import ModuleFindTool
+from utils.DatasetUtils import FLDataset
 from utils.Tools import random_seed_set
 
 
@@ -24,7 +26,10 @@ class BaseUpdater(Component, ABC):
         self.model = self.global_var['global_model']
 
         self.message_queue = MessageQueueFactory.create_message_queue()
-        self.test_data = self.message_queue.get_test_dataset()
+        self.test_ds = self.message_queue.get_test_dataset()
+        self.test_index_list = self.global_var['test_index_list']
+        self.fl_test_ds = FLDataset(self.test_ds, self.test_index_list)
+        self.test_dl = DataLoader(self.fl_test_ds, batch_size=128, drop_last=True)
 
         # loss function
         self.loss_func = LossFactory.create_loss(config['loss'])

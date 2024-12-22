@@ -20,7 +20,7 @@ class ClientTestHandler(Handler):
         if epoch % self.test_every != 0:
             return request
         config = client.config
-        if 'test_func' in config:
+        if 'test' in config:
             test_func = ModuleFindTool.find_class_by_path(config['test'])
         elif hasattr(client, 'test'):
             request['test_res'] = client.test()
@@ -67,7 +67,7 @@ class ServerTestHandler(Handler):
         updater = request.get('updater')
         epoch = request.get('epoch')
         config = updater.config
-        if 'test_func' in config:
+        if 'test' in config:
             test_func = ModuleFindTool.find_class_by_path(config['test'])
         elif hasattr(updater, 'test'):
             request['test_res'] = updater.test()
@@ -126,7 +126,7 @@ def BasicTest(test_dl, model, loss_func, dev, epoch, obj=None):
 def TestEachClass(test_dl, model, loss_func, dev, epoch, obj=None):
     test_correct = 0
     test_loss = 0
-    num_classes = len(set(obj.test_data.targets.data.numpy()))
+    num_classes = len(set(obj.test_ds.targets.data.numpy()))
     class_accuracies = np.zeros(num_classes)
     class_total = np.zeros(num_classes)
     with torch.no_grad():
@@ -147,9 +147,9 @@ def TestEachClass(test_dl, model, loss_func, dev, epoch, obj=None):
         detail_acc = {}
         for i in range(num_classes):
             acc = class_accuracies[i] / class_total[i]
-            detail_acc[i] = acc
+            detail_acc[i] = float(acc)
             print(f"acc on class {i}: {acc:.4f}")
-    return [accuracy, detail_acc], loss
+    return [float(accuracy), detail_acc], loss
 
 
 def TestMultiTask(test_dl, model, loss_func, dev, epoch, obj=None):
@@ -159,8 +159,8 @@ def TestMultiTask(test_dl, model, loss_func, dev, epoch, obj=None):
 
     for task, task_list in enumerate(obj.test_index_list):
         acc, loss = _sub_test_for_multi_task(test_dl, model, loss_func, dev, epoch, task, obj)
-        total_acc.append(acc)
-        total_loss.append(loss)
+        total_acc.append(float(acc))
+        total_loss.append(float(loss))
         avg_acc += acc / len(obj.test_index_list)
         avg_loss += loss / len(obj.test_index_list)
     return total_acc, total_loss
@@ -169,11 +169,11 @@ def TestMultiTask(test_dl, model, loss_func, dev, epoch, obj=None):
 def _sub_test_for_multi_task(test_dl, model, loss_func, dev, epoch, task, obj=None):
     test_correct = 0
     test_loss = 0
-    classes = set(obj.test_data.targets.data.numpy())
+    classes = set(obj.test_ds.targets.data.numpy())
     if obj.label_mapping is not None:
         num_classes = len(set(obj.label_mapping[i] for i in classes))
     else:
-        num_classes = len(set(obj.test_data.targets.data.numpy()))
+        num_classes = len(set(obj.test_ds.targets.data.numpy()))
     class_accuracies = np.zeros(num_classes)
     class_total = np.zeros(num_classes)
     with torch.no_grad():

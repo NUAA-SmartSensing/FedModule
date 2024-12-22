@@ -40,14 +40,14 @@ class SyncUpdater(BaseUpdater):
                    'scheduler': self.global_var['scheduler']}
         self.handler_chain.handle(request)
 
-#
-# class SyncUpdaterWithDetailedTest(TestEachClass, SyncUpdater):
-#     def __init__(self, server_thread_lock, stop_event, config, mutex_sem, empty_sem, full_sem):
-#         TestEachClass.__init__(self)
-#         SyncUpdater.__init__(self, server_thread_lock, stop_event, config, mutex_sem, empty_sem, full_sem)
-#
-#
-# class SyncUpdaterWithTaskTest(TestMultiTask, SyncUpdater):
-#     def __init__(self, server_thread_lock, stop_event, config, mutex_sem, empty_sem, full_sem):
-#         TestMultiTask.__init__(self)
-#         SyncUpdater.__init__(self, server_thread_lock, stop_event, config, mutex_sem, empty_sem, full_sem)
+
+class SyncUpdaterWithDetailedTest(SyncUpdater):
+    def __init__(self, server_thread_lock, config, mutex_sem, empty_sem, full_sem):
+        super().__init__(server_thread_lock, config, mutex_sem, empty_sem, full_sem)
+        config['test'] = 'core.handlers.ModelTestHandler.TestEachClass'
+
+
+class SyncUpdaterWithTaskTest(SyncUpdater):
+    def __init__(self, server_thread_lock, config, mutex_sem, empty_sem, full_sem):
+        super().__init__(server_thread_lock, config, mutex_sem, empty_sem, full_sem)
+        config['test'] = 'core.handlers.ModelTestHandler.TestMultiTask'

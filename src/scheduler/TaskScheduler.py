@@ -6,9 +6,8 @@ from utils.GlobalVarGetter import GlobalVarGetter
 
 class GlobalTaskScheduler(SyncScheduler):
     def create_handler_chain(self):
-        chain = super().create_handler_chain()
-        chain.add_handler_before(TaskHandler(), ClientSelector)
-        return chain
+        super().create_handler_chain()
+        self.handler_chain.add_handler_before(TaskHandler(), ClientSelector)
 
 
 class TaskHandler(Handler):
