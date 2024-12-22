@@ -166,10 +166,13 @@ def split_data(iid_config, labels, nums):
 def print_dist(index_lists, labels):
     for i, client_index_list in enumerate(index_lists):
         total = sum([len(index_list) for index_list in client_index_list])
-        print(f'({i}: {total},', end=' ')
+        print(f'({i}: {total}, ', end='')
+        print('{', end='')
         for task_id, index_list in enumerate(client_index_list):
             print(f"task{task_id}: ", end='')
             counts = Counter(labels[index_list])
-            print(dict(counts), end='')
+            counts = dict(counts)
+            for k, v in counts.items():
+                print(f" {k}: {v}",end=',')
             print(end=' | ')
-        print()
+        print('}')
