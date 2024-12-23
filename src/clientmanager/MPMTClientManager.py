@@ -3,7 +3,6 @@ from multiprocessing import Process, Event
 from clientmanager.ClientFactroy import ClientFactory
 from clientmanager.NormalClientManager import NormalClientManager
 from core.MessageQueue import MessageQueueFactory
-from core.Runtime import running_mode
 from utils import ModuleFindTool
 from utils.GlobalVarGetter import GlobalVarGetter
 
@@ -132,7 +131,6 @@ class MPMT(Process):
         self.client_list[-1].start()
 
     def init(self):
-        mode, params = running_mode(GlobalVarGetter.get()['config'])
         client_id_list = list(range(self.id, self.id+self.client_num*self.process_num, self.process_num))
         self.client_list = self.client_factory.create_clients(client_id_list, self.stop_event_list,
                                                               self.selected_event_list, self.client_staleness_list,
