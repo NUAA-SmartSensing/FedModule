@@ -3,7 +3,6 @@ from client.mixin.ClientHandler import UpdateReceiver, DelaySimulator, UpdateSen
 from client.mixin.InitHandler import InitHandler
 from core.handlers.Handler import HandlerChain
 from core.handlers.ModelTrainHandler import ClientTrainHandler, ClientPostTrainHandler
-from utils.GlobalVarGetter import GlobalVarGetter
 
 
 class NormalClient(Client):
@@ -47,7 +46,7 @@ class NormalClient(Client):
         self.optimizer_config = config["optimizer"]
         self.mu = config.get("mu", 0)
         self.config = config
-        self.global_var = GlobalVarGetter.get()
+        self.global_var = None
 
     def _run_iteration(self):
         while not self.stop_event.is_set():

@@ -1,13 +1,13 @@
-from abc import abstractmethod
+from abc import abstractmethod, ABC
 
 from utils.GlobalVarGetter import GlobalVarGetter
 
 
-class Component:
+class ComponentForClient:
     def __init__(self):
         self.finals = []
         self.handler_chain = None
-        self.global_var = GlobalVarGetter.get()
+        self.global_var = {'config': GlobalVarGetter.get()}
 
     def run(self) -> None:
         self.create_handler_chain()
@@ -36,3 +36,9 @@ class Component:
 
     def add_final_callback(self, func, *params) -> None:
         self.finals.append((func, params))
+
+
+class Component(ComponentForClient, ABC):
+    def __init__(self):
+        super().__init__()
+        self.global_var = GlobalVarGetter.get()

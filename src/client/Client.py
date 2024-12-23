@@ -1,10 +1,10 @@
 from abc import ABC
 
-from core.Component import Component
+from core.Component import ComponentForClient
 from core.MessageQueue import MessageQueueFactory
 
 
-class Client(Component, ABC):
+class Client(ComponentForClient, ABC):
     def __init__(self, c_id, stop_event, selected_event, delay, index_list, dev):
         super().__init__()
         self.model = None
