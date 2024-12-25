@@ -1,5 +1,4 @@
 from receiver.NoneReceiver import NoneReceiver
-from receiver.TimeSliceReceiverWrapper import TimeSliceReceiverWrapper
 
 
 class ReceiverCaller:
