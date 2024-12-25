@@ -39,7 +39,7 @@
     "updater": {
       "path": "updater.SemiAsyncUpdater.SemiAsyncUpdater",
       "update": {
-        "path": "update.FedAT.FedAT",
+        "path": "update.FedAvg.FedAvg",
         "params": {
         }
       },
@@ -47,7 +47,7 @@
       "params": {
       },
       "group": {
-        "path": "update.FedAvg.FedAvg",
+        "path": "update.FedAT.FedAT",
         "params": {
         }
       }

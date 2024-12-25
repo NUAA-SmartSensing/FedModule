@@ -11,6 +11,8 @@ class MultiQueueReceiver(AbstractReceiver):
         # 第i组/层全都上传完成
         while True:
             for i in range(len(nums)):
+                if nums[i] == 0:
+                    continue
                 if queue[i].qsize() == nums[i]:
                     return i
             time.sleep(0.1)
