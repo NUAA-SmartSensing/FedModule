@@ -35,3 +35,16 @@ class FedAvgWithPrevious(FedAvg):
         for key, var in updated_parameters.items():
             updated_parameters[key] = self.beta * global_model[key] + (1 - self.beta) * updated_parameters[key]
         return updated_parameters, None
+
+
+class FedAvgForGradient(FedAvg):
+    def __init__(self, config):
+        super().__init__(config)
+        self.lr = config.get("lr", 0.01)
+
+    def update_server_weights(self, epoch, update_list):
+        global_model = self.global_var["global_model"].state_dict()
+        updated_parameters, _ = super().update_server_weights(epoch, update_list)
+        for key, var in global_model.items():
+            updated_parameters[key] = var - self.lr * updated_parameters[key]
+        return updated_parameters, None
