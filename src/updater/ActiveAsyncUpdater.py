@@ -24,3 +24,4 @@ class ActiveModelSender(Handler):
     def _handle(self, request):
         updater = request.get("updater")
         self.message_queue.put_into_downlink("all", "weights", to_cpu(updater.model.state_dict()))
+        return request
