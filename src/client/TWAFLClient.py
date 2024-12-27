@@ -1,3 +1,5 @@
+from time import sleep
+
 from client.NormalClient import NormalClient
 from client.mixin.ClientHandler import DelaySimulator
 from core.handlers.Handler import Handler
@@ -18,7 +20,7 @@ class TWAFLDelay(Handler):
         client = request.get('client')
         flag = client.time_stamp % 15 in [11, 13, 14, 12, 0]
         if flag:
-            client.delay_simulate(client.delay)
+            sleep(client.delay)
         else:
-            client.delay_simulate(client.new_delay)
+            sleep(client.new_delay)
         return request
