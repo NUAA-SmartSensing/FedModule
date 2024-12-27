@@ -46,6 +46,8 @@ class ClientPostTestHandler(Handler):
         acc, loss = request.get('test_res')
         epoch = request.get('epoch')
         client = request.get('client')
+        client.upload_item('accuracy', acc)
+        client.upload_item('loss', loss)
         print('Client', client.client_id, 'tested, accuracy:', acc, 'loss', loss)
         if self.cloud_enabled:
             wandb.log({'client_id': client.client_id, 'accuracy': acc, 'loss': loss}, step=epoch)
