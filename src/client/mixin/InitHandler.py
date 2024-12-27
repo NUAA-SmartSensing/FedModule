@@ -70,8 +70,8 @@ class TestDatasetInit(Handler):
         client = request.get('client')
         config = request.get('config')
         test_size = config.get("test_size", 0.1)
-        test_batch_size = config.get("test_batch_size", 64)
         n1 = int(len(client.index_list) * test_size)
+        test_batch_size = min(config.get("test_batch_size", 32), n1)
         client.test_index_list, client.index_list = self.__split_list(client.index_list, [n1])
         test_transform = client.test_transform if hasattr(client, 'test_transform') else client.transform
         test_target_transform = client.test_target_transform if hasattr(client,
