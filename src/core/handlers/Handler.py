@@ -64,11 +64,22 @@ class FunctionHandler(Handler):
 class Filter(Handler, ABC):
     def __init__(self, handler=None):
         super().__init__(handler)
+        self.real_next = self.next_handler
+
+    def set_next(self, handler: "Handler") -> "Handler":
+        self.real_next = handler
+        return super().set_next(handler)
+
+    def insert_next(self, handler):
+        self.real_next = handler
+        super().insert_next(handler)
 
     def handle(self, request):
         if self._handle(request):
-            return self.next_handler.handle(request)
+            self.next_handler = self.real_next
+            return request
         else:
+            self.next_handler = None
             return request
 
 
