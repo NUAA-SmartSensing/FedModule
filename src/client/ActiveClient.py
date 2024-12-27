@@ -1,8 +1,6 @@
 import time
 
 from client.NormalClient import NormalClient
-from client.mixin.ClientHandler import UpdateReceiver
-from core.handlers.Handler import Handler
 
 
 class ActiveClient(NormalClient):
