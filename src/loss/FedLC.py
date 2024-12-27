@@ -8,9 +8,9 @@ class FedLC(AbstractLoss):
     def __init__(self, belong_object, config):
         super().__init__(belong_object, config)
         self.dev = belong_object.dev
-        dataset = self.belong_obj.fl_train_ds
+        dataset = self.belong_obj.fl_train_ds.dataset
         self.z = torch.from_numpy(np.bincount(dataset.targets))
-        self.tau = config['tau']
+        self.tau = config.get('tau', 0.6)
 
     def forward(self, x, y, reduction="mean"):
         # reduction = "mean" or "sum"
