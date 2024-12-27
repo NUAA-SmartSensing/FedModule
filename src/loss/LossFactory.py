@@ -1,6 +1,5 @@
 from typing import Dict, Any, Callable, Union, Optional
 
-from loss.AbstractLoss import AbstractLoss
 from utils import ModuleFindTool
 
 
@@ -18,7 +17,8 @@ class LossFactory:
 
         # Find the loss class using the provided path
         loss_class = ModuleFindTool.find_class_by_path(loss_path)
-        if isinstance(loss_class, AbstractLoss):
+        from loss.AbstractLoss import AbstractLoss
+        if issubclass(loss_class, AbstractLoss):
             return loss_class(belong_object, loss_params)
         else:
             return loss_class(*args, **loss_params, **kwargs)
