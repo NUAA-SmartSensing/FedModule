@@ -1,4 +1,5 @@
 import copy
+from collections import OrderedDict
 
 from core.handlers.Handler import Handler
 from utils import ModuleFindTool
@@ -55,3 +56,30 @@ def BasicTrain(train_dl, model, loss_func, optimizer, epoch, dev, lr_scheduler=N
             lr_scheduler.step()
     weights = model.state_dict()
     return data_sum, weights
+
+
+def TrainWithGrad(train_dl, model, loss_func, optimizer, epoch, dev, lr_scheduler=None, mu=0, obj=None):
+    model.train()
+    data_sum = 0
+    for data, label in train_dl:
+        optimizer.zero_grad()
+        data, label = data.to(dev), label.to(dev)
+        preds = model(data)
+        loss = loss_func(preds, label)
+        data_sum += label.size(0)
+        loss.backward()
+        break
+    gradients = OrderedDict()
+    for name, param in model.named_parameters():
+        if param.requires_grad and param.grad is not None:
+            gradients[name] = param.grad.clone().detach()
+    return data_sum, gradients
+
+
+def TrainWithDelta(train_dl, model, loss_func, optimizer, epoch, dev, lr_scheduler=None, mu=0, obj=None):
+    raw_model = copy.deepcopy(model.state_dict())
+    data_sum, weights = BasicTrain(train_dl, model, loss_func, optimizer, epoch, dev, lr_scheduler, mu, obj)
+    delta = OrderedDict()
+    for name, param in raw_model.items():
+        delta[name] = weights[name] - param
+    return data_sum, delta
