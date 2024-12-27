@@ -76,7 +76,7 @@
     },
     "loss": "torch.nn.functional.cross_entropy",
     "transform": {
-      "path": "transforms.Transforms.TransformForCIFARFactory",
+      "path": "transforms.Transforms.TransformForCIFARFactory.createTransform",
       "params": {}
     },
     "mu": 0,
