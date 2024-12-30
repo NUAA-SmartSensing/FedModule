@@ -7,7 +7,7 @@ class ComponentForClient:
     def __init__(self):
         self.finals = []
         self.handler_chain = None
-        self.global_var = {'config': GlobalVarGetter.get()}
+        self.global_var = {'config': GlobalVarGetter.get()['config']}
 
     def run(self) -> None:
         self.create_handler_chain()

@@ -46,7 +46,6 @@ class NormalClient(Client):
         self.optimizer_config = config["optimizer"]
         self.mu = config.get("mu", 0)
         self.config = config
-        self.global_var = None
 
     def _run_iteration(self):
         while not self.stop_event.is_set():
