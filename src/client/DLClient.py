@@ -1,32 +1,43 @@
+import copy
+
 import torch
 
 from client.TestClient import TestClient
+from client.mixin.ClientHandler import UpdateReceiver
+from core.handlers.Handler import Handler
 
 
 class DLClient(TestClient):
-    def __init__(self, c_id, stop_event, selected_event, delay, index_list, config, dev):
-        TestClient.__init__(self, c_id, stop_event, selected_event, delay, index_list, config, dev)
+    def create_handler_chain(self):
+        super().create_handler_chain()
+        self.handler_chain.exchange_handler(PersonalUpdateReceiver(), UpdateReceiver)
+
+
+class PersonalUpdateReceiver(Handler):
+    def __init__(self):
+        super().__init__()
         self.is_init = False
 
-    def receive_notify(self):
-        if self.message_queue.get_from_downlink(self.client_id, 'received_weights'):
-            self.message_queue.put_into_downlink(self.client_id, 'received_weights', False)
-            weights_buffer = self.message_queue.get_from_downlink(self.client_id, 'weights_buffer')
-            # 更新模型参数
-            if self.is_init:
-                if self.client_id in weights_buffer.keys():
-                    for key, var in self.model.state_dict().items():
-                        if self.training_params[key]:
-                            if torch.cuda.is_available():
-                                weights_buffer[self.client_id][key] = weights_buffer[self.client_id][key].to(
-                                    self.dev)
-                            weights_buffer[self.client_id][key] = self.config['alpha'] * var + (
-                                    1 - self.config['alpha']) * weights_buffer[self.client_id][key]
-                    self.model.load_state_dict(weights_buffer[self.client_id], strict=True)
+    def _handle(self, request):
+        client = request.get('client')
+        weights_buffer = client.message_queue.get_from_downlink(client.client_id, 'weights')
+        if self.is_init:
+            if client.client_id in weights_buffer.keys():
+                for key, var in client.model.state_dict().items():
+                    if client.training_params[key]:
+                        if torch.cuda.is_available():
+                            weights_buffer[client.client_id][key] = weights_buffer[client.client_id][key].to(
+                                client.dev)
+                        weights_buffer[client.client_id][key] = client.config['alpha'] * var + (
+                                1 - client.config['alpha']) * weights_buffer[client.client_id][key]
+                client.model.load_state_dict(weights_buffer[client.client_id], strict=True)
+        else:
+            if 'global' in weights_buffer.keys():
+                client.model.load_state_dict(weights_buffer['global'], strict=True)
             else:
-                self.model.load_state_dict(weights_buffer['global'], strict=True)
-                self.is_init = True
-        if self.message_queue.get_from_downlink(self.client_id, 'received_time_stamp'):
-            self.message_queue.put_into_downlink(self.client_id, 'received_time_stamp', False)
-            self.time_stamp = self.message_queue.get_from_downlink(self.client_id, 'time_stamp_buffer')
-            self.schedule_t = self.message_queue.get_from_downlink(self.client_id, 'schedule_time_stamp_buffer')
+                client.model.load_state_dict(weights_buffer, strict=True)
+            self.is_init = True
+        del weights_buffer
+        client.time_stamp = client.message_queue.get_from_downlink(client.client_id, 'time_stamp')
+        client.schedule_t = client.message_queue.get_from_downlink(client.client_id, 'schedule_time_stamp')
+        return request
