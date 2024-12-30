@@ -1,4 +1,7 @@
 import kmeans1d
+
+from core.handlers.Handler import Handler
+from core.handlers.ServerHandler import ClientSelector
 from scheduler.SyncScheduler import SyncScheduler
 
 
@@ -10,33 +13,28 @@ class VDAScheduler(SyncScheduler):
         self.clusters = []
         self.fixed_time_window = config["time_window"] if "time_window" in config else None
 
-    def schedule(self):
-        r"""
-            schedule the clients
-        """
-        current_time = self.current_t.get_time()
-        schedule_time = self.schedule_t.get_time()
-        if current_time > self.T:
-            return
-        selected_client = self.client_select()
-        self.queue_manager.set_version(current_time, len(selected_client), self.server_weights)
-        self.queue_manager.set_time_window(self.time_window)
-        self.notify_client(selected_client, current_time, schedule_time)
-        # Waiting for all clients to upload their updates.
-        self.queue_manager.receive(self.normal_client_num)
+    def create_handler_chain(self):
+        super().create_handler_chain()
+        self.handler_chain.add_handler_after(PostClientSelection(), ClientSelector)
 
-    def client_select(self, *args, **kwargs):
-        selected_clients = super().client_select(*args, **kwargs)
-        stale_list = [self.global_var["client_staleness_list"][stale] for stale in selected_clients]
-        if self.fixed_time_window:
-            self.normal_client_num = sum(1 for i in stale_list if i <= self.fixed_time_window)
-            self.time_window = self.fixed_time_window
+
+class PostClientSelection(Handler):
+    def _handle(self, request):
+        selected_clients = request.get('selected_clients')
+        scheduler = request.get('scheduler')
+        epoch = request.get('epoch')
+        stale_list = [scheduler.global_var["client_staleness_list"][stale] for stale in selected_clients]
+        if scheduler.fixed_time_window:
+            scheduler.normal_client_num = sum(1 for i in stale_list if i <= scheduler.fixed_time_window)
+            scheduler.time_window = scheduler.fixed_time_window
         else:
-            self.clusters, centroids = kmeans1d.cluster(stale_list, 2)
-            if centroids[0] < centroids[1] and self.clusters.count(0) != 0:
-                self.normal_client_num = self.clusters.count(0)
-                self.time_window = max(stale for i, stale in enumerate(stale_list) if self.clusters[i] == 0)
+            scheduler.clusters, centroids = kmeans1d.cluster(stale_list, 2)
+            if centroids[0] < centroids[1] and scheduler.clusters.count(0) != 0:
+                scheduler.normal_client_num = scheduler.clusters.count(0)
+                scheduler.time_window = max(stale for i, stale in enumerate(stale_list) if scheduler.clusters[i] == 0)
             else:
-                self.normal_client_num = self.clusters.count(1)
-                self.time_window = max(stale for i, stale in enumerate(stale_list) if self.clusters[i] == 1)
-        return selected_clients
+                scheduler.normal_client_num = scheduler.clusters.count(1)
+                scheduler.time_window = max(stale for i, stale in enumerate(stale_list) if scheduler.clusters[i] == 1)
+        scheduler.queue_manager.set_version(epoch, len(selected_clients), scheduler.server_weights)
+        scheduler.queue_manager.set_time_window(scheduler.time_window)
+        return request
