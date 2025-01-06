@@ -171,3 +171,17 @@ class HandlerChain(Handler):
     def set_chain(self, handler) -> "Handler":
         self._head = handler
         return handler
+
+
+class TreeFilter(Handler, ABC):
+    def __init__(self, handler=None):
+        super().__init__(handler)
+        self.children = []
+
+    def add_child(self, child):
+        self.children.append(child)
+
+    def handle(self, request):
+        res = self._handle(request)
+        return self.children[res].handle(request)
+

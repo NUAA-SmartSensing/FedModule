@@ -61,12 +61,15 @@ class ClientSelector(Handler):
     def _handle(self, request):
         global_var = request.get('global_var')
         scheduler = global_var['scheduler']
-        client_list = global_var['client_id_list']
         epoch = request.get('epoch')
-        training_status = scheduler.message_queue.get_training_status()
-        client_list = [client_id for client_id in client_list if
-                       client_id not in training_status or not training_status[client_id]]
-        selected_clients = scheduler.schedule_caller.schedule(client_list)
+        if hasattr(scheduler, 'client_select'):
+            selected_clients = scheduler.client_select()
+        else:
+            client_list = global_var['client_id_list']
+            training_status = scheduler.message_queue.get_training_status()
+            client_list = [client_id for client_id in client_list if
+                           client_id not in training_status or not training_status[client_id]]
+            selected_clients = scheduler.schedule_caller.schedule(client_list)
         request['selected_clients'] = selected_clients
         global_var['selected_clients'] = selected_clients
         print(f"| current_epoch {epoch}, schedule_epoch {scheduler.schedule_t.get_time()} |")
@@ -101,7 +104,6 @@ class ContentDispatcher(Handler):
 
     @staticmethod
     def handle_download(request, scheduler):
-        selected_clients = request.get('selected_clients')
         current_time = scheduler.current_t.get_time()
         schedule_time = scheduler.schedule_t.get_time()
         scheduler.download_item('all', 'time_stamp', current_time)
@@ -111,6 +113,9 @@ class ContentDispatcher(Handler):
 class UpdateWaiter(Handler):
     def _handle(self, request):
         scheduler = request.get('scheduler')
-        update_num = len(request.get('selected_clients'))
-        scheduler.queue_manager.receive(update_num)
+        if hasattr(scheduler, 'wait'):
+            scheduler.wait()
+        else:
+            update_num = len(request.get('selected_clients'))
+            scheduler.queue_manager.receive(update_num)
         return request
