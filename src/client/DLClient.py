@@ -1,5 +1,3 @@
-import copy
-
 import torch
 
 from client.TestClient import TestClient
@@ -22,20 +20,16 @@ class PersonalUpdateReceiver(Handler):
         client = request.get('client')
         weights_buffer = client.message_queue.get_from_downlink(client.client_id, 'weights')
         if self.is_init:
-            if client.client_id in weights_buffer.keys():
-                for key, var in client.model.state_dict().items():
-                    if client.training_params[key]:
-                        if torch.cuda.is_available():
-                            weights_buffer[client.client_id][key] = weights_buffer[client.client_id][key].to(
-                                client.dev)
-                        weights_buffer[client.client_id][key] = client.config['alpha'] * var + (
-                                1 - client.config['alpha']) * weights_buffer[client.client_id][key]
-                client.model.load_state_dict(weights_buffer[client.client_id], strict=True)
+            for key, var in client.model.state_dict().items():
+                if client.training_params[key]:
+                    if torch.cuda.is_available():
+                        weights_buffer[key] = weights_buffer[key].to(
+                            client.dev)
+                    weights_buffer[key] = client.config['alpha'] * var + (
+                            1 - client.config['alpha']) * weights_buffer[key]
+            client.model.load_state_dict(weights_buffer, strict=True)
         else:
-            if 'global' in weights_buffer.keys():
-                client.model.load_state_dict(weights_buffer['global'], strict=True)
-            else:
-                client.model.load_state_dict(weights_buffer, strict=True)
+            client.model.load_state_dict(weights_buffer, strict=True)
             self.is_init = True
         del weights_buffer
         client.time_stamp = client.message_queue.get_from_downlink(client.client_id, 'time_stamp')
