@@ -1,3 +1,4 @@
+from collections import Counter
 from copy import deepcopy
 
 import torch
@@ -88,7 +89,7 @@ class DataPartitionerHandler(Handler):
     def _handle(self, request):
         client = request.get("client")
         iid_config = client.config["iid"]
-        train_labels = client.train_ds.targets[client.index_list]
+        train_labels = client.train_ds.targets[client.index_list].numpy()
         if isinstance(iid_config, bool):
             index_list = generate_iid_data(train_labels, client.task_num)
         elif isinstance(iid_config, dict) and "path" in iid_config:
@@ -120,16 +121,16 @@ class StreamClientWithDir(StreamClient):
 
     def print_data_distribution(self):
         for i in range(self.task_num):
-            labels = self.train_ds.targets[self.index_list]
-            label_counts = torch.bincount(labels[self.task_index_list[i]])
-            print(f"Client {self.client_id}, Task {i}: {len(self.task_index_list[i])}, {label_counts}")
+            labels = self.train_ds.targets[self.index_list].numpy()
+            total = len(labels[self.task_index_list[i]])
+            counts = Counter(labels[self.task_index_list[i]])
+            print(f"Client {self.client_id}, Task {i}: {total}, ", end='')
+            for k, v in counts.items():
+                print(f" {k}: {v}",end=',')
+            print()
 
     def change_task(self):
         self.fl_train_ds.change_idxs(self.index_list[self.task_index_list[self.task_id]])
-        # self.fl_train_ds = FLDataset(self.train_ds, self.index_list[self.task_index_list[self.task_id]], self.transform,
-        #                              self.target_transform)
-        # self.train_dl = DataLoader(self.fl_train_ds, batch_size=self.batch_size, shuffle=True, drop_last=True)
-        self.task_id = (self.task_id + 1) % self.task_num
 
 
 class LabelMappingHandler(Handler):
