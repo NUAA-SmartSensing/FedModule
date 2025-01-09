@@ -89,12 +89,19 @@ class ContentDispatcher(Handler):
     @staticmethod
     def handle_weights(request, scheduler):
         global_var = request.get('global_var')
-        updater = global_var['updater']
+        selected_clients = request['selected_clients']
         delivery_weights = global_var['delivery_weights']
+        updater = global_var['updater']
+        weights = request.get('weights', updater.model.state_dict())
         if delivery_weights is not None and len(delivery_weights) > 0:
-            scheduler.download_item('all', 'weights', delivery_weights)
+            for client_id in selected_clients:
+                if client_id in delivery_weights:
+                    scheduler.download_item(client_id, 'weights', delivery_weights[client_id])
+                else:
+                    scheduler.download_item(client_id, 'weights', weights)
         else:
-            scheduler.download_item('all', 'weights', to_cpu(updater.model.state_dict()))
+            for client_id in selected_clients:
+                scheduler.download_item(client_id, 'weights', weights)
 
     @staticmethod
     def handle_selected_event(request, scheduler):
