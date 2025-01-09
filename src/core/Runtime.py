@@ -6,9 +6,6 @@ from threading import Thread
 
 from utils import ModuleFindTool
 
-CLIENT_STATUS = {'created': 0, 'running': 1, 'stale': 2, 'exited': 3, 'active': 4}
-SERVER_STATUS = {'stale': 0, 'schedule': 1, 'aggregate': 2, 'exited': 3}
-
 
 class Mode:
     """
