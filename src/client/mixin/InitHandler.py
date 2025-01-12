@@ -8,6 +8,7 @@ from core.handlers.Handler import HandlerChain, Handler
 from loss.LossFactory import LossFactory
 from utils import ModuleFindTool
 from utils.DatasetUtils import FLDataset
+from utils.ModuleFindTool import load_model_from_config
 from utils.Tools import random_seed_set
 
 
@@ -92,27 +93,12 @@ class ModelInit(Handler):
     def _handle(self, request):
         config = request.get('config')
         client = request.get('client')
-        client.model = self._get_model(config)
+        client.model = load_model_from_config(config.get('model'))
         client.model = client.model.to(client.dev)
         client.training_params = {k: False for k in client.model.state_dict()}
         for n, p in client.model.named_parameters():
             client.training_params[n] = p.requires_grad
         return request
-
-    @staticmethod
-    def _get_model(config):
-        # local model
-        if isinstance(config["model"], dict):
-            model_class = ModuleFindTool.find_class_by_path(config["model"]["path"])
-            for k, v in config["model"]["params"].items():
-                if isinstance(v, str):
-                    config["model"]["params"][k] = eval(v)
-            model = model_class(**config["model"]["params"])
-        elif isinstance(config["model"], str):
-            model = torch.load(config["model"])
-        else:
-            raise ValueError("model config error")
-        return model
 
 
 class LossInit(Handler):

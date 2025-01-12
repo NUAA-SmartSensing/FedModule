@@ -8,6 +8,7 @@ from utils import ModuleFindTool, Time
 from utils.DatasetUtils import FLDataset
 from utils.GlobalVarGetter import GlobalVarGetter
 from core.MessageQueue import DataGetter, MessageQueueFactory
+from utils.ModuleFindTool import load_model_from_config
 
 
 class BaseServer:
@@ -25,16 +26,7 @@ class BaseServer:
         self.global_var['server'] = self
 
         # 全局模型
-        if isinstance(self.server_config["model"], dict):
-            model_class = ModuleFindTool.find_class_by_path(self.server_config["model"]["path"])
-            for k, v in self.server_config["model"]["params"].items():
-                if isinstance(v, str):
-                    self.server_config["model"]["params"][k] = eval(v)
-            self.model = model_class(**self.server_config["model"]["params"])
-        elif isinstance(self.server_config["model"], str):
-            self.model = torch.load(self.server_config["model"])
-        else:
-            raise ValueError("model config error")
+        self.model = load_model_from_config(self.server_config.get('model'))
         self.dev = 'cuda' if torch.cuda.is_available() else 'cpu'
         self.model = self.model.to(self.dev)
         self.global_var['global_model'] = self.model
