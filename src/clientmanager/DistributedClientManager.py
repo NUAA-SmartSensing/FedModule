@@ -1,15 +1,13 @@
 import pickle
 import warnings
 from abc import abstractmethod
-from collections import defaultdict
 from multiprocessing import Event
-from threading import Thread
 from time import sleep
 
 from clientmanager.BaseClientManager import BaseClientManager
+from clientmanager.ClientFactroy import ClientFactory
 from clientmanager.NormalClientManager import NormalClientManager
 from core.MessageQueue import MessageQueueFactory
-from core.Runtime import running_mode, ModeFactory
 from utils import ModuleFindTool
 from utils.GlobalVarGetter import GlobalVarGetter
 from utils.MQTT import MQTTClientSingleton
@@ -17,9 +15,7 @@ from utils.MQTT import MQTTClientSingleton
 
 def create_event(config, client_id, event_name="select"):
     if "type" in config:
-        if config["type"] == "polling":
-            return PollingDistributedEvent(config, client_id, event_name)
-        elif config["type"] == "mqtt":
+        if config["type"] == "mqtt":
             return MQTTDistributedEvent(config, client_id, event_name)
         else:
             raise Exception("Unsupported event type")
@@ -181,7 +177,9 @@ class SubNormalClientManager(NormalClientManager):
         self.selected_event_list = create_event_list(self.config["event"], self.client_id_list)
 
         self.communication_proxy = create_communication_proxy(
-            self.config["communication_proxy"] if "communication_proxy" in self.config else None)
+            self.config.get("communication_proxy", None))
+        self.client_factory = ModuleFindTool.find_class_by_path(
+            self.config['client_factory']['path']) if 'client_factory' in self.config else ClientFactory
         self.init_event = Event()
         self.connect_to_server()
 
@@ -224,28 +222,24 @@ class SubNormalClientManager(NormalClientManager):
         self.selected_event_list[client_id - self.start_id].set()
 
     def __init_clients(self):
-        mode, params = running_mode(self.global_var['config'])
-        for i in range(self.client_num):
-            uid = self.start_id + i
-            self.client_list.append(
-                ModeFactory.create_mode_instance(
-                    self.client_class(uid, self.stop_event_list[uid - self.start_id],
-                                      self.selected_event_list[uid - self.start_id],
-                                      self.client_staleness_list[uid],
-                                      self.index_list[uid], self.client_config,
-                                      self.client_dev[uid - self.start_id]), mode, params))  # instance
+        self.client_id_list = list(range(self.start_id, self.start_id + self.client_num))
+        self.client_list = self.client_factory.create_clients(self.client_id_list, self.stop_event_list,
+                                                              self.selected_event_list,
+                                                              self.client_staleness_list, self.index_list,
+                                                              self.client_config,
+                                                              self.client_dev, self.global_var['config'])
 
     def create_and_start_new_client(self, dev='cpu'):
         # client_id 如何生成
         client_id = self.start_id + self.client_num
         self.selected_event_list.append(create_event(self.config, client_id))
         self.stop_event_list.append(create_event(self.config, client_id, event_name="stop"))
-        mode, params = running_mode(self.global_var['config'])
-        self.client_list.append(
-            ModeFactory.create_mode_instance(
-                self.client_class(client_id, self.stop_event_list[client_id], self.selected_event_list[client_id],
-                                  self.client_staleness_list[client_id], self.index_list[client_id], self.client_config,
-                                  self.client_dev[client_id]), mode, params))  # instance
+        self.client_list.append(self.client_factory.create_client(client_id, self.stop_event_list[client_id],
+                                                                  self.selected_event_list[client_id],
+                                                                  self.client_staleness_list[client_id],
+                                                                  self.index_list[client_id],
+                                                                  self.client_config, self.client_dev[client_id],
+                                                                  self.global_var['config']))  # instance
         self.client_id_list.append(client_id)
         self.client_list[client_id].start()
         self.client_num += 1
@@ -270,45 +264,6 @@ class DistributedEvent:
     @abstractmethod
     def wait(self):
         pass
-
-
-class PollingDistributedEvent(DistributedEvent):
-    message_queue = None
-    events = defaultdict(lambda: defaultdict(Event))
-
-    def __new__(cls, *args, **kwargs):
-        if cls.message_queue is None:
-            cls.message_queue = MessageQueueFactory.create_message_queue()
-        return super().__new__(cls)
-
-    def __init__(self, config, id, event_name):
-        super().__init__(config)
-        self.id = id
-        self.event_name = event_name
-
-    def set(self):
-        PollingDistributedEvent.events[self.event_name][self.id].set()
-        self.message_queue.put_into_downlink(self.id, self.event_name, True)
-
-    def clear(self):
-        PollingDistributedEvent.events[self.event_name][self.id].clear()
-        self.message_queue.put_into_downlink(self.id, self.event_name, False)
-
-    def is_set(self):
-        is_set = self.message_queue.get_from_downlink(self.id, self.event_name)
-        if is_set ^ PollingDistributedEvent.events[self.event_name][self.id].is_set():
-            if is_set:
-                PollingDistributedEvent.events[self.event_name][self.id].set()
-            else:
-                PollingDistributedEvent.events[self.event_name][self.id].clear()
-        return is_set
-
-    def wait(self):
-        is_set = False
-        while not is_set:
-            is_set = self.message_queue.get_from_downlink(self.id, self.event_name)
-            sleep(0.1)
-        PollingDistributedEvent.events[self.event_name][self.id].set()
 
 
 class MQTTDistributedEvent(DistributedEvent):
@@ -355,11 +310,9 @@ class MQTTDistributedEvent(DistributedEvent):
 
 def create_communication_proxy(config):
     if config is None:
-        return MessageQueueCommunicationProxy()
+        return MQTTCommunicationProxy()
     if "type" in config:
-        if config["type"] == "mq":
-            return MessageQueueCommunicationProxy()
-        elif config["type"] == "mqtt":
+        if config["type"] == "mqtt":
             return MQTTCommunicationProxy(config)
     elif "path" in config:
         return ModuleFindTool.find_class_by_path(config["path"])(config["params"])
@@ -381,20 +334,6 @@ class BlockProxy(Proxy):
 
 class NoBlockProxy(Proxy):
     pass
-
-
-class MessageQueueCommunicationProxy(NoBlockProxy):
-    communication_thread = Thread()
-
-    def __init__(self):
-        self.on_message = None
-        self.message_queue = MessageQueueFactory.create_message_queue()
-
-    def send(self, uid, topic, msg):
-        self.message_queue.put_into_downlink(uid, topic, msg)
-
-    def get(self, uid, topic, callback):
-        self.on_message = callback
 
 
 class MQTTCommunicationProxy(NoBlockProxy):

@@ -3,6 +3,7 @@ import multiprocessing as mp
 import pickle
 import sys
 import threading
+from copy import deepcopy
 from multiprocessing.managers import SyncManager
 from queue import Queue
 from threading import Thread
@@ -125,7 +126,7 @@ class MessageQueue:
     @staticmethod
     def get_from_uplink(key='update'):
         with MessageQueue.__uplink_lock:
-            return MessageQueue.uplink[key].get()
+            return deepcopy(MessageQueue.uplink[key].get())
 
     @staticmethod
     def put_into_uplink(item, key='update'):
@@ -150,10 +151,10 @@ class MessageQueue:
             if key not in MessageQueue.downlink:
                 return None
             if client_id in MessageQueue.downlink[key]:
-                return MessageQueue.downlink[key][client_id]
+                return deepcopy(MessageQueue.downlink[key][client_id])
             elif 'all' in MessageQueue.downlink[key]:
                 MessageQueue.downlink[key][client_id] = MessageQueue.downlink[key]['all']
-                return MessageQueue.downlink[key][client_id]
+                return deepcopy(MessageQueue.downlink[key][client_id])
             else:
                 return None
 
@@ -295,7 +296,10 @@ class MessageQueueWrapperForMQTT:
                 else:
                     topic, client_id = topic.split('/')[-2:]
                     key, item = msg
-                    cls.message_queue.put_into_downlink(int(client_id), key, item)
+                    if client_id != 'all':
+                        cls.message_queue.put_into_downlink(int(client_id), key, item)
+                    else:
+                        cls.message_queue.put_into_downlink('all', key, item)
 
             # sub_manager
             if "manager_id" in global_var["config"]["client_manager"]:
@@ -314,6 +318,7 @@ class MessageQueueWrapperForMQTT:
                 cls.__id_init = True
                 for cid in global_var['client_id_list']:
                     cls.client.subscribe(f'{cls.uid}/mq/downlink/{cid}')
+                cls.client.subscribe(f'{cls.uid}/mq/downlink/all')
         return super().__new__(cls)
 
     @staticmethod
