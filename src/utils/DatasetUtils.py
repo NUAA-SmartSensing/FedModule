@@ -49,6 +49,8 @@ class FLDataset(Dataset):
         self.idxs = idxs
         self.transform = transform
         self.target_transform = target_transform
+        self.data = self.dataset.data
+        self.targets = self.dataset.targets
 
     def __len__(self):
         return len(self.idxs)
