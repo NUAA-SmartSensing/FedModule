@@ -165,3 +165,15 @@ def send_dataset(train_dataset, test_dataset, message_queue, global_config):
         message_queue.set_train_dataset(train_dataset)
         message_queue.set_test_dataset(test_dataset)
     return train_dataset, test_dataset
+
+
+class DictToObject:
+    def __init__(self, dictionary):
+        for key, value in dictionary.items():
+            if isinstance(value, dict):
+                # 递归转换嵌套的字典
+                value = DictToObject(value)
+            setattr(self, key, value)
+
+    def __repr__(self):
+        return f"{self.__dict__}"
