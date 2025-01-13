@@ -34,7 +34,7 @@ def generate_object_by_path(path: str, params: dict, else_params=None):
     return target_object
 
 
-def load_model_from_config(config: Dict[str, Any]) -> nn.Module:
+def load_model_from_config(config: Dict[str, Any], src_obj=None) -> nn.Module:
     """
     从配置字典中加载模型。
 
@@ -53,7 +53,7 @@ def load_model_from_config(config: Dict[str, Any]) -> nn.Module:
     if custom_create_fn:
         # 使用用户自定义的创建函数
         create_fn: Callable = find_class_by_path(custom_create_fn)
-        model = create_fn(**params)
+        model = create_fn(src_obj, **params)
     else:
         if not path:
             raise ValueError("模型路径 'model.path' 不能为空。")

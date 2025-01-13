@@ -93,7 +93,7 @@ class ModelInit(Handler):
     def _handle(self, request):
         config = request.get('config')
         client = request.get('client')
-        client.model = load_model_from_config(config.get('model'))
+        client.model = load_model_from_config(config.get('model'), client)
         client.model = client.model.to(client.dev)
         client.training_params = {k: False for k in client.model.state_dict()}
         for n, p in client.model.named_parameters():

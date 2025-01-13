@@ -26,7 +26,7 @@ class BaseServer:
         self.global_var['server'] = self
 
         # 全局模型
-        self.model = load_model_from_config(self.server_config.get('model'))
+        self.model = load_model_from_config(self.server_config.get('model'), self)
         self.dev = 'cuda' if torch.cuda.is_available() else 'cpu'
         self.model = self.model.to(self.dev)
         self.global_var['global_model'] = self.model
