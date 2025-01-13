@@ -27,8 +27,13 @@ class ClientTrainHandler(Handler):
 class ClientPostTrainHandler(Handler):
     def _handle(self, request):
         client = request.get('client')
-        data_sum, weights = request.get('train_res')
-        client.model.load_state_dict(weights)
+        train_res = request.get('train_res')
+        if len(train_res) >= 2:
+            data_sum, weights, *others = train_res
+            if others:  # 如果others不为空
+                client.upload_item('others', others)
+        else:
+            raise ValueError("train_res must contain at least 2 elements")
         client.upload_item('weights', to_cpu(weights))
         client.upload_item('data_sum', data_sum)
         return request
@@ -38,7 +43,7 @@ def BasicTrain(train_dl, model, loss_func, optimizer, epoch, dev, lr_scheduler=N
     raw_model = copy.deepcopy(model)
     model.train()
     data_sum = 0
-    for epoch in range(epoch):
+    for _ in range(epoch):
         for data, label in train_dl:
             optimizer.zero_grad()
             data, label = data.to(dev), label.to(dev)
