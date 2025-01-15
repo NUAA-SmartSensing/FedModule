@@ -5,7 +5,6 @@
     "name": "5"
   },
   "global": {
-    "mode": "process",
     "dataset_pre_load": true,
     "use_file_system": false,
     "multi_gpu": true,
@@ -26,7 +25,7 @@
     "model": {
       "path": "model.HAR.cnn.CNN",
       "params": {
-        "train_shape": "self.train_ds.data.shape",
+        "train_shape": "src_obj.train_ds.data.shape",
         "category": 12
       }
     },
@@ -72,7 +71,7 @@
     "model": {
       "path": "model.HAR.cnn.CNN",
       "params": {
-        "train_shape": "self.train_ds.data.shape",
+        "train_shape": "src_obj.train_ds.data.shape",
         "category": 12
       }
     },
