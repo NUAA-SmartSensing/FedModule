@@ -4,10 +4,9 @@ import threading
 import torch.cuda
 from torch.multiprocessing import Event
 
-from utils import ModuleFindTool, Time
-from utils.DatasetUtils import FLDataset
-from utils.GlobalVarGetter import GlobalVarGetter
 from core.MessageQueue import DataGetter, MessageQueueFactory
+from utils import Time
+from utils.GlobalVarGetter import GlobalVarGetter
 from utils.ModuleFindTool import load_model_from_config
 
 
@@ -26,6 +25,7 @@ class BaseServer:
         self.global_var['server'] = self
 
         # 全局模型
+        self.train_ds = self.message_queue.get_train_dataset()
         self.model = load_model_from_config(self.server_config.get('model'), self)
         self.dev = 'cuda' if torch.cuda.is_available() else 'cpu'
         self.model = self.model.to(self.dev)
