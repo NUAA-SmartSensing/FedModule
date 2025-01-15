@@ -31,7 +31,7 @@
 
 ## 简介
 
-一份代码适配多种运行模式：[`thread`](https://github.com/NUAA-SmartSensing/async-FL/wiki/mode#thread), [`process`](https://github.com/NUAA-SmartSensing/async-FL/wiki/mode#process),  [`timeslice`](https://github.com/NUAA-SmartSensing/async-FL/wiki/mode#timeslice), [`distributed`](https://github.com/NUAA-SmartSensing/async-FL/wiki/mode#distributed)。
+一份代码适配多种运行模式：[`thread`](https://github.com/NUAA-SmartSensing/async-FL/wiki/mode#thread), [`process`](https://github.com/NUAA-SmartSensing/async-FL/wiki/mode#process),  [`MPMT`](https://github.com/NUAA-SmartSensing/FedModule/wiki/mode#mpmt), [`distributed`](https://github.com/NUAA-SmartSensing/async-FL/wiki/mode#distributed)。
 
 一键启动，更改实验环境无需修改代码。
 
