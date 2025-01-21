@@ -7,12 +7,13 @@ from utils.IID import generate_iid_data, generate_non_iid_data
 
 
 class BaseDataset:
-    def __init__(self, iid_config):
+    def __init__(self, config):
         self.index_list = None
         self.label_min = None
         self.label_max = None
         self.datasets = []
-        self.iid_config = iid_config
+        self.config = config
+        self.iid_config = config['global']['iid']
         self.train_data_size = None
         self.test_data = None
         self.train_data = None
@@ -22,7 +23,7 @@ class BaseDataset:
         self.train_dataset = None
         self.path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../data/')
 
-    def init(self, clients, train_dataset, test_dataset):
+    def init(self, clients, train_dataset, test_dataset): # clients: number of clients
         self.raw_data = train_dataset.data
         self.train_labels = np.array(train_dataset.targets)
         self.train_data = train_dataset.data
@@ -55,6 +56,6 @@ class BaseDataset:
             self.index_list = data_distribution_generator.generate_data(self.iid_config, self, train_dataset)
         else:
             print("generating non_iid data...")
-            self.index_list = generate_non_iid_data(self.iid_config, self, clients, self.label_min, self.label_max + 1,
+            self.index_list = generate_non_iid_data(self.config, self, clients, self.label_min, self.label_max + 1,
                                                     train_dataset)
         print("data generation process completed")

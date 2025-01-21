@@ -4,8 +4,8 @@ from dataset.BaseDataset import BaseDataset
 
 
 class CIFAR10(BaseDataset):
-    def __init__(self, clients, iid_config, params):
-        BaseDataset.__init__(self, iid_config)
+    def __init__(self, clients, config, params):
+        BaseDataset.__init__(self, config)
         mean, std = [0.4914, 0.4822, 0.4465], [0.247, 0.243, 0.261]
         # These values are mostly used by researchers as found to very useful in fast convergence
         # img_size=224

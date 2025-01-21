@@ -1,6 +1,6 @@
 {
 	"wandb": {
-		"enabled": true,
+		"enabled": false,
 		"use_step": true,
 		"project": "LeoSync",
 		"name": "FedAvg-baseline-iid"
@@ -16,7 +16,10 @@
 			"path": "dataset.CIFAR10.CIFAR10",
 			"params": {}
 		},
-		"iid": true,
+		"iid": {
+			"group_similarity": true,
+			"beta": 1000000
+		},
 		"client_num": 100
 	},
 	"server": {

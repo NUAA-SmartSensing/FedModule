@@ -86,7 +86,7 @@ def main():
     debug_mode  = False
     # 配置文件读取
     if len(sys.argv) < 2:
-        config_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../../config/FedLeo/resnet18-baseline.json")
+        config_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../../config/LeoSync/FedAvg-baseline.json")
         debug_mode = True
     else:
         config_file = sys.argv[1]
@@ -164,7 +164,7 @@ def main():
 
     # 生成dataset
     dataset_class = ModuleFindTool.find_class_by_path(global_config["dataset"]["path"])
-    dataset = dataset_class(global_config["client_num"], global_config["iid"], global_config["dataset"]["params"])
+    dataset = dataset_class(global_config["client_num"], config, global_config["dataset"]["params"])
     train_dataset = dataset.get_train_dataset()
     test_dataset = dataset.get_test_dataset()
     send_dataset(train_dataset, test_dataset, message_queue, global_config)
