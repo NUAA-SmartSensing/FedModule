@@ -1,3 +1,5 @@
+import os.path
+
 import numpy as np
 import torch
 import wandb
@@ -60,8 +62,10 @@ class ClientPostTestHandler(Handler):
             client = request.get('client')
             experiment = request.get('global_var')['config']['global']['experiment']
             client_id = client.client_id
-            client.add_final_callback(saveAns, f'../results/{experiment}/{client_id}_accuracy.txt', self.accuracy_list)
-            client.add_final_callback(saveAns, f'../results/{experiment}/{client_id}_loss.txt', self.loss_list)
+            path1 = os.path.join('../results', experiment, f'{client_id}_accuracy.txt')
+            path2 = os.path.join('../results', experiment, f'{client_id}_loss.txt')
+            client.add_final_callback(saveAns, path1, self.accuracy_list)
+            client.add_final_callback(saveAns, path2, self.loss_list)
 
 
 class ServerTestHandler(Handler):
@@ -105,8 +109,10 @@ class ServerPostTestHandler(Handler):
         if self.file_enabled:
             updater = request.get('updater')
             experiment = request.get('global_var')['config']['global']['experiment']
-            updater.add_final_callback(saveAns, f'../results/{experiment}/accuracy.txt', self.accuracy_list)
-            updater.add_final_callback(saveAns, f'../results/{experiment}/loss.txt', self.loss_list)
+            path1 = os.path.join('../results', experiment, f'accuracy.txt')
+            path2 = os.path.join('../results', experiment, f'loss.txt')
+            updater.add_final_callback(saveAns, path1, self.accuracy_list)
+            updater.add_final_callback(saveAns, path2, self.loss_list)
 
 
 def BasicTest(test_dl, model, loss_func, dev, epoch, obj=None):
