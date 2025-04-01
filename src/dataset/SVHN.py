@@ -15,4 +15,6 @@ class SVHN(BaseDataset):
         # 获取数据集
         self.train_dataset = datasets.SVHN(root=self.path, transform=transformer, download=True)
         self.test_dataset = datasets.SVHN(root=self.path, transform=transformer, download=True)
+        self.train_dataset.targets = self.train_dataset.labels
+        self.test_dataset.targets = self.test_dataset.labels
         self.init(clients, self.train_dataset, self.test_dataset)
