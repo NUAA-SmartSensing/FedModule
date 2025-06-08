@@ -118,6 +118,7 @@ class ServerPostTestHandler(Handler):
 def BasicTest(test_dl, model, loss_func, dev, epoch, obj=None):
     test_correct = 0
     test_loss = 0
+    total_samples = 0  # 添加样本计数
     with torch.no_grad():
         for data in test_dl:
             inputs, labels = data
@@ -126,7 +127,8 @@ def BasicTest(test_dl, model, loss_func, dev, epoch, obj=None):
             _, id = torch.max(outputs.data, 1)
             test_correct += torch.sum(id == labels.data).cpu().numpy()
             test_loss += loss_func(outputs, labels).detach().item()
-    accuracy = (test_correct * 100) / (len(test_dl) * test_dl.batch_size)
+            total_samples += labels.size(0)  # 累加每个批次的实际样本数
+    accuracy = (test_correct * 100) / total_samples
     loss = test_loss / len(test_dl)
     return accuracy, loss
 
@@ -134,6 +136,7 @@ def BasicTest(test_dl, model, loss_func, dev, epoch, obj=None):
 def TestEachClass(test_dl, model, loss_func, dev, epoch, obj=None):
     test_correct = 0
     test_loss = 0
+    total_samples = 0  # 添加样本计数
     num_classes = len(set(obj.test_ds.targets.data.numpy()))
     class_accuracies = np.zeros(num_classes)
     class_total = np.zeros(num_classes)
@@ -150,7 +153,8 @@ def TestEachClass(test_dl, model, loss_func, dev, epoch, obj=None):
                 label = labels[i]
                 class_accuracies[label] += c[i].item()
                 class_total[label] += 1
-        accuracy = test_correct / len(test_dl)
+            total_samples += labels.size(0)  # 累加每个批次的实际样本数
+        accuracy = test_correct / total_samples  # 使用总样本数
         loss = test_loss / len(test_dl)
         detail_acc = {}
         for i in range(num_classes):
@@ -177,6 +181,7 @@ def TestMultiTask(test_dl, model, loss_func, dev, epoch, obj=None):
 def _sub_test_for_multi_task(test_dl, model, loss_func, dev, epoch, task, obj=None):
     test_correct = 0
     test_loss = 0
+    total_samples = 0  # 添加样本计数
     classes = set(obj.test_ds.targets.data.numpy())
     if obj.label_mapping is not None:
         num_classes = len(set(obj.label_mapping[i] for i in classes))
@@ -198,10 +203,10 @@ def _sub_test_for_multi_task(test_dl, model, loss_func, dev, epoch, task, obj=No
                 label = labels[i]
                 class_accuracies[label] += c[i].item()
                 class_total[label] += 1
-        accuracy = test_correct / len(test_dl)
+            total_samples += labels.size(0)  # 累加每个批次的实际样本数
+        accuracy = test_correct / total_samples  # 使用总样本数
         loss = test_loss / len(test_dl)
         print(f'Epoch(t): {epoch}-{task} accuracy: {accuracy} {loss}')
         for i in range(num_classes):
             print(f"acc on class {i}: {class_accuracies[i] / class_total[i]:.4f}")
     return accuracy, loss
-
