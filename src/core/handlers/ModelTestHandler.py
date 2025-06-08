@@ -98,11 +98,37 @@ class ServerPostTestHandler(Handler):
             return request
         acc, loss = request.get('test_res')
         epoch = request.get('epoch')
-        print('Epoch', epoch, 'tested, accuracy:', acc, 'loss', loss)
-        if self.cloud_enabled:
-            wandb.log({'accuracy': acc, 'loss': loss}, step=epoch)
+
+        # 处理并记录精度
+        if isinstance(acc, dict):
+            # 获取总精度用于打印和本地保存
+            total_acc = acc.get('total', acc.get('avg', list(acc.values())[0] if acc else 0))
+            print('Epoch', epoch, 'tested, accuracy:', total_acc, 'loss:', loss)
+
+            # 上传到wandb，每个精度指标单独上传
+            if self.cloud_enabled:
+                log_data = {}
+                # 添加所有精度指标
+                for key, value in acc.items():
+                    log_data[f'accuracy/{key}'] = value
+
+                # 处理损失值
+                if isinstance(loss, dict):
+                    for key, value in loss.items():
+                        log_data[f'loss/{key}'] = value
+                else:
+                    log_data['loss'] = loss
+
+                # 上传所有指标
+                wandb.log(log_data, step=epoch)
+        else:
+            # 兼容处理非字典格式的精度结果
+            print('Epoch', epoch, 'tested, accuracy:', acc, 'loss:', loss)
+            if self.cloud_enabled:
+                wandb.log({'accuracy/total': acc, 'loss': loss}, step=epoch)
         self.accuracy_list.append(acc)
         self.loss_list.append(loss)
+
         return request
 
     def run_once(self, request):
@@ -130,7 +156,9 @@ def BasicTest(test_dl, model, loss_func, dev, epoch, obj=None):
             total_samples += labels.size(0)  # 累加每个批次的实际样本数
     accuracy = (test_correct * 100) / total_samples
     loss = test_loss / len(test_dl)
-    return accuracy, loss
+    # 创建精度字典，与其他测试函数保持一致的格式
+    accuracy_dict = {'total': float(accuracy)}
+    return accuracy_dict, loss
 
 
 def TestEachClass(test_dl, model, loss_func, dev, epoch, obj=None):
@@ -156,26 +184,36 @@ def TestEachClass(test_dl, model, loss_func, dev, epoch, obj=None):
             total_samples += labels.size(0)  # 累加每个批次的实际样本数
         accuracy = test_correct / total_samples  # 使用总样本数
         loss = test_loss / len(test_dl)
-        detail_acc = {}
+
+        # 创建包含总精度和各类别精度的字典
+        accuracy_dict = {'total': float(accuracy)}
         for i in range(num_classes):
             acc = class_accuracies[i] / class_total[i]
-            detail_acc[i] = float(acc)
-            print(f"acc on class {i}: {acc:.4f}")
-    return [float(accuracy), detail_acc], loss
+            accuracy_dict[f'class_{i}'] = float(acc)
+            print(f"acc on class {i}: {acc * 100:.2f}%")
+
+    return accuracy_dict, loss
 
 
 def TestMultiTask(test_dl, model, loss_func, dev, epoch, obj=None):
-    avg_acc, avg_loss = 0, 0
-    total_acc = [avg_acc]
-    total_loss = [avg_loss]
+    avg_acc = 0
+    avg_loss = 0
+
+    # 创建包含平均精度和各任务精度的字典
+    accuracy_dict = {}
+    loss_dict = {}
 
     for task, task_list in enumerate(obj.test_index_list):
         acc, loss = _sub_test_for_multi_task(test_dl, model, loss_func, dev, epoch, task, obj)
-        total_acc.append(float(acc))
-        total_loss.append(float(loss))
+        accuracy_dict[f'task_{task}'] = float(acc)
+        loss_dict[f'task_{task}'] = float(loss)
         avg_acc += acc / len(obj.test_index_list)
         avg_loss += loss / len(obj.test_index_list)
-    return total_acc, total_loss
+
+    accuracy_dict['avg'] = float(avg_acc)
+    loss_dict['avg'] = float(avg_loss)
+
+    return accuracy_dict, loss_dict
 
 
 def _sub_test_for_multi_task(test_dl, model, loss_func, dev, epoch, task, obj=None):
@@ -206,7 +244,7 @@ def _sub_test_for_multi_task(test_dl, model, loss_func, dev, epoch, task, obj=No
             total_samples += labels.size(0)  # 累加每个批次的实际样本数
         accuracy = test_correct / total_samples  # 使用总样本数
         loss = test_loss / len(test_dl)
-        print(f'Epoch(t): {epoch}-{task} accuracy: {accuracy} {loss}')
+        print(f'Epoch(t): {epoch}-{task} accuracy: {accuracy * 100:.2f}% {loss}')
         for i in range(num_classes):
-            print(f"acc on class {i}: {class_accuracies[i] / class_total[i]:.4f}")
-    return accuracy, loss
+            print(f"acc on class {i}: {class_accuracies[i] / class_total[i] * 100:.2f}%")
+    return accuracy * 100, loss
