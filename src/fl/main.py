@@ -6,6 +6,7 @@ import uuid
 
 import torch.multiprocessing as mp
 import wandb
+import yaml  # 新增导入yaml
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -47,11 +48,27 @@ def main():
     if not os.path.exists(os.path.join(os.path.dirname(os.path.abspath(__file__)), "../results")):
         os.mkdir(os.path.join(os.path.dirname(os.path.abspath(__file__)), "../results"))
 
-    # 配置文件读取
+    # 配置文件读取，支持yaml和json
     config_file = args.config_file if args.config_file else args.config
     if config_file == '':
         config_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../../config.json")
-    config = getJson(config_file)
+    config = None
+    if config_file.endswith('.yaml') or config_file.endswith('.yml'):
+        with open(config_file, 'r') as f:
+            config = yaml.safe_load(f)
+    elif config_file.endswith('.json'):
+        config = getJson(config_file)
+    else:
+        # 优先查找同名yaml
+        yaml_path = os.path.splitext(config_file)[0] + '.yaml'
+        json_path = os.path.splitext(config_file)[0] + '.json'
+        if os.path.exists(yaml_path):
+            with open(yaml_path, 'r') as f:
+                config = yaml.safe_load(f)
+        elif os.path.exists(json_path):
+            config = getJson(json_path)
+        else:
+            raise FileNotFoundError(f"配置文件 {config_file} 不存在")
 
     # 生成uuid
     uid = args.uid
