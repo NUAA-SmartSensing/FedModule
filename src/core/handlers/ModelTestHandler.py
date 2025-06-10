@@ -186,11 +186,11 @@ def TestEachClass(test_dl, model, loss_func, dev, epoch, obj=None):
         loss = test_loss / len(test_dl)
 
         # 创建包含总精度和各类别精度的字典
-        accuracy_dict = {'total': float(accuracy)}
+        accuracy_dict = {'total': float(accuracy) * 100}
         for i in range(num_classes):
             acc = class_accuracies[i] / class_total[i]
-            accuracy_dict[f'class_{i}'] = float(acc)
-            print(f"acc on class {i}: {acc * 100:.2f}%")
+            accuracy_dict[f'class_{i}'] = float(acc) * 100
+            print(f"acc on class {i}: {acc * 100:.2f}")
 
     return accuracy_dict, loss
 
@@ -244,7 +244,7 @@ def _sub_test_for_multi_task(test_dl, model, loss_func, dev, epoch, task, obj=No
             total_samples += labels.size(0)  # 累加每个批次的实际样本数
         accuracy = test_correct / total_samples  # 使用总样本数
         loss = test_loss / len(test_dl)
-        print(f'Epoch(t): {epoch}-{task} accuracy: {accuracy * 100:.2f}% {loss}')
+        print(f'Epoch(t): {epoch}-{task} accuracy: {accuracy * 100:.2f}{loss}')
         for i in range(num_classes):
-            print(f"acc on class {i}: {class_accuracies[i] / class_total[i] * 100:.2f}%")
+            print(f"acc on class {i}: {class_accuracies[i] / class_total[i] * 100:.2f}")
     return accuracy * 100, loss
