@@ -69,6 +69,7 @@ def main():
         seed = config["global"]["seed"]
     # 设置随机数种子
     random_seed_set(seed)
+    print("global seed:", seed)
 
     raw_config = copy.deepcopy(config)
     global_config = config['global']
