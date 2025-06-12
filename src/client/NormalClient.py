@@ -3,6 +3,7 @@ from client.mixin.ClientHandler import UpdateReceiver, DelaySimulator, UpdateSen
 from client.mixin.InitHandler import InitHandler
 from core.handlers.Handler import HandlerChain
 from core.handlers.ModelTrainHandler import ClientTrainHandler, ClientPostTrainHandler
+from client.mixin.DataStore import DataStore
 
 
 class NormalClient(Client):
@@ -32,20 +33,49 @@ class NormalClient(Client):
         Device
     """
 
-    def __init__(self, c_id, stop_event, selected_event, delay, index_list, config, dev):
+    def __init__(self, c_id, stop_event, selected_event, delay, index_list, config, dev, data_proxy=None):
         super().__init__(c_id, stop_event, selected_event, delay, index_list, dev)
         self.init_chain = HandlerChain()
         self.update_dict = {}
         self.lr_scheduler = None
-        self.fl_train_ds = None
-        self.optimizer = None
-        self.loss_func = None
-        self.train_dl = None
         self.batch_size = config.get("batch_size", 64)
         self.epoch = config["epochs"]
         self.optimizer_config = config["optimizer"]
         self.mu = config.get("mu", 0)
         self.config = config
+        self.data_proxy = data_proxy if data_proxy is not None else DataStore()
+
+    @property
+    def fl_train_ds(self):
+        return self.data_proxy.get(self.client_id, 'fl_train_ds')
+
+    @fl_train_ds.setter
+    def fl_train_ds(self, value):
+        self.data_proxy.set(self.client_id, 'fl_train_ds', value)
+
+    @property
+    def optimizer(self):
+        return self.data_proxy.get(self.client_id, 'optimizer')
+
+    @optimizer.setter
+    def optimizer(self, value):
+        self.data_proxy.set(self.client_id, 'optimizer', value)
+
+    @property
+    def loss_func(self):
+        return self.data_proxy.get(self.client_id, 'loss_func')
+
+    @loss_func.setter
+    def loss_func(self, value):
+        self.data_proxy.set(self.client_id, 'loss_func', value)
+
+    @property
+    def train_dl(self):
+        return self.data_proxy.get(self.client_id, 'train_dl')
+
+    @train_dl.setter
+    def train_dl(self, value):
+        self.data_proxy.set(self.client_id, 'train_dl', value)
 
     def _run_iteration(self):
         while not self.stop_event.is_set():
@@ -106,6 +136,30 @@ class NormalClient(Client):
         Customize the parameters uploaded to the server by the client.
         """
         pass
+
+    def run_one_iteration(self, client_dict=None):
+        """
+        通过调用方式运行一次迭代，并与外部共享数据以减少内存使用。
+
+        参数:
+            global_var: 可选，外部传入的全局变量（模型参数等）
+            time_stamp: 可选，外部传入的时间戳
+
+        返回:
+            update_dict: 客户端更新的结果字典
+        """
+        # 直接使用传入的外部数据引用而不是复制
+        if client_dict is not None:
+            for k, v in client_dict.items():
+                setattr(self, k, v)
+
+        # 执行训练流程
+        self.message_queue.set_training_status(self.client_id, True)
+        self.execute_chain()
+        self.message_queue.set_training_status(self.client_id, False)
+
+        # 返回更新字典供外部使用
+        return self
 
 
 class NormalClientWithDelta(NormalClient):

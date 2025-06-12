@@ -166,6 +166,13 @@ def main():
     global_var['client_index_list'] = index_list
     global_var['test_index_list'] = test_index_list
 
+    # 初始化数据代理
+    if "data_proxy" in config:
+        dp_conf = config["data_proxy"]
+        DataProxyClass = ModuleFindTool.find_class_by_path(dp_conf["path"])
+        data_proxy = DataProxyClass(**dp_conf.get("params", {}))
+        GlobalVarGetter.set({"data_proxy": data_proxy})
+
     # 启动client_manager
     # get the running mode of client
     running_mode(config, output=True)
