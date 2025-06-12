@@ -33,6 +33,10 @@ class DelaySimulator(Handler):
         if hasattr(client, 'delay_simulate'):
             client.delay_simulate()
         else:
-            time.sleep(client.delay)
+            delay = client.delay
+            if callable(delay):
+                d = delay()  # 动态获取延迟
+            else:
+                d = delay
+            time.sleep(d)
         return request
-
